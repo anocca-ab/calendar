@@ -4,8 +4,9 @@ import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
 import HomepageFeatures from "@site/src/components/HomepageFeatures";
 import Heading from "@theme/Heading";
-
 import styles from "./index.module.css";
+import { CalendarEntry } from "../components/calendar/calendar_entry";
+import { Box } from "@mui/material";
 
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
@@ -38,6 +39,9 @@ export default function Home(): JSX.Element {
     >
       <HomepageHeader />
       <main>
+        <Box width={1390} height={976}>
+          <CalendarEntry />
+        </Box>
         <HomepageFeatures />
       </main>
     </Layout>
