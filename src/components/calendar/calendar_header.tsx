@@ -1,16 +1,11 @@
 import { FlexCol, FlexRow } from "../wrappers";
 import { DayNumberStackDate } from "./components/day_number_stack_date";
-
-function addDays(date: Date, days: number) {
-  const newDate = new Date(date);
-  newDate.setDate(date.getDate() + days);
-  return newDate;
-}
+import { addDays } from "./helpers";
 
 export function CalendarHeader() {
   const today = new Date();
-  const fiveDays = [...Array(6)].map((_, index) => (
-    <DayNumberStackDate date={addDays(today, index)} />
+  const fiveDays = [...Array(5)].map((_, index) => (
+    <DayNumberStackDate key={index} date={addDays(today, index)} />
   ));
 
   return (

@@ -11,9 +11,9 @@ export function DayNumberStackDate({ date }: { date: Date }) {
       <Box width={26} height={20}>
         <Typography variant="caption">{dayOfWeek}</Typography>
       </Box>
-      <Typography width={28} height={32}>
+      <Box width={28} height={32}>
         <Typography variant="h5">{dayOfMonthNr}</Typography>
-      </Typography>
+      </Box>
     </FlexCol>
   );
 }

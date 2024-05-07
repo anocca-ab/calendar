@@ -7,8 +7,10 @@ export function Calendar() {
   return (
     <FlexCol width="100%" height="100%">
       <LayoutBar />
-      <CalendarHeader />
-      <CalendarGrid />
+      <FlexCol width="100%">
+        <CalendarHeader />
+        <CalendarGrid />
+      </FlexCol>
     </FlexCol>
   );
 }

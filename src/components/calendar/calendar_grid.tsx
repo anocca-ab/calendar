@@ -1,17 +1,29 @@
 import { Box, Grid } from "@mui/material";
+import { Event } from "./components/event";
+import { addMinutes } from "./helpers";
+import { FlexCol, FlexRow } from "../wrappers";
 
 export function CalendarGrid() {
-  const colWidth = { xs: 12, sm: 6, md: 4, lg: 3 } as const;
+  const colWidth = { xs: 4 } as const;
 
   return (
-    <Box sx={{ flexGrow: 1, p: 2 }}>
+    <Box sx={{ display: "inline-flex", alignItems: "flex-start" }}>
+      <FlexCol
+        sx={{
+          width: "64px",
+          padding: "29px 24px 0px 0px",
+          alignItems: "center",
+        }}
+      />
       <Grid
         container
-        spacing={2}
+        // spacing={2}
+        columns={20}
         sx={(theme) => ({
           "--Grid-borderWidth": "1px",
           borderTop: "var(--Grid-borderWidth) solid",
           borderColor: "divider",
+          ".MuiGrid-item": { padding: 0, width: 120 },
           "& > div": {
             borderRight: "var(--Grid-borderWidth) solid",
             borderBottom: "var(--Grid-borderWidth) solid",
@@ -30,9 +42,15 @@ export function CalendarGrid() {
           },
         })}
       >
-        {[...Array(6)].map((_, index) => (
-          <Grid key={index} {...colWidth} minHeight={160} />
-        ))}
+        {[...Array(6)].map((_, index) => {
+          const ends = addMinutes(new Date(), (index + 1) * 5);
+
+          return (
+            <Grid item key={index} {...colWidth} minHeight={160}>
+              <Event title="Test" startTime={new Date()} endTime={ends} />
+            </Grid>
+          );
+        })}
       </Grid>
     </Box>
   );
