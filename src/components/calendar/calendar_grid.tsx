@@ -1,7 +1,6 @@
 import { Box, Grid } from "@mui/material";
-import { Event } from "./components/event";
-import { addMinutes } from "./helpers";
-import { FlexCol, FlexRow } from "../wrappers";
+import { FlexCol } from "../wrappers";
+import { eventsFixture } from "./fixtures";
 
 export function CalendarGrid() {
   const colWidth = { xs: 4 } as const;
@@ -16,8 +15,8 @@ export function CalendarGrid() {
         }}
       />
       <Grid
+        width={600}
         container
-        // spacing={2}
         columns={20}
         sx={(theme) => ({
           "--Grid-borderWidth": "1px",
@@ -42,15 +41,25 @@ export function CalendarGrid() {
           },
         })}
       >
-        {[...Array(6)].map((_, index) => {
-          const ends = addMinutes(new Date(), (index + 1) * 5);
+        {/* {[...Array(6)].map((_, index) => {
+          const ends = addMinutes(new Date(), (index + 1) * 10);
 
           return (
-            <Grid item key={index} {...colWidth} minHeight={160}>
-              <Event title="Test" startTime={new Date()} endTime={ends} />
-            </Grid>
+            <HourCalendarCell key={index} >
+              <Event
+                variant="red"
+                title="event"
+                startTime={new Date()}
+                endTime={ends}
+              />
+            </HourCalendarCell>
           );
-        })}
+        })} */}
+        {eventsFixture}
+        {eventsFixture}
+        {eventsFixture}
+        {eventsFixture}
+        {eventsFixture}
       </Grid>
     </Box>
   );

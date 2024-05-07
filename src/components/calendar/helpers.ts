@@ -7,7 +7,6 @@ export function addDays(date: Date, days: number) {
 export function addMinutes(date: Date, minutes: number) {
   const newDate = new Date(date);
   newDate.setMinutes(date.getMinutes() + minutes);
-
   return newDate;
 }
 
