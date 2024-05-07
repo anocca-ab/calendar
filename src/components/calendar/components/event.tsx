@@ -1,10 +1,9 @@
-import { Box, Grid, SxProps, Theme, Typography, styled } from "@mui/material";
-import { intervalToDuration, format, differenceInMinutes } from "date-fns";
-import { addMinutes } from "../helpers";
-import { HourCalendarCell } from "./hour_calendar_cell";
+import { Box, SxProps, Theme, Typography, styled } from "@mui/material";
+import { differenceInMinutes, format } from "date-fns";
 
 export type CalendarVariant = "orange" | "indigo" | "pink" | "teal" | "red";
-const variationsToColorRecord: Record<CalendarVariant, string> = {
+
+export const variationsToColorRecord: Record<CalendarVariant, string> = {
   orange: "#FF7043",
   indigo: "#5C6BC0",
   pink: "#EC407A",
@@ -12,7 +11,7 @@ const variationsToColorRecord: Record<CalendarVariant, string> = {
   red: "#EF5350",
 };
 
-const EventTypography = styled(Typography)(({ theme }) => ({
+export const EventTypography = styled(Typography)(({ theme }) => ({
   color: theme.palette.primary.contrastText,
   fontWeight: 500,
   fontSize: "10px",
@@ -58,7 +57,7 @@ export function Event({
  * @param variant
  * @returns
  */
-function compileEventProperties(
+export function compileEventProperties(
   title: string,
   startTime: Date,
   endTime: Date,
@@ -82,7 +81,11 @@ function compileEventProperties(
  * @param endTime
  * @returns
  */
-function calculateTitleDuration(title: string, startTime: Date, endTime: Date) {
+export function calculateTitleDuration(
+  title: string,
+  startTime: Date,
+  endTime: Date
+) {
   const minutes = differenceInMinutes(endTime, startTime, {
     roundingMethod: "floor",
   });
@@ -114,7 +117,7 @@ function calculateTitleDuration(title: string, startTime: Date, endTime: Date) {
  * @param variant
  * @returns
  */
-function calculateEventProperties(
+export function calculateEventProperties(
   startTime: Date,
   endTime: Date,
   variant: CalendarVariant
