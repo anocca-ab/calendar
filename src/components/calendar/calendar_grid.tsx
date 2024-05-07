@@ -19,10 +19,12 @@ export function CalendarGrid() {
         container
         columns={20}
         sx={(theme) => ({
-          "--Grid-borderWidth": "1px",
+          position: "relative",
+          overflowY: "auto",
           borderTop: "var(--Grid-borderWidth) solid",
           borderColor: "divider",
           ".MuiGrid-item": { padding: 0, width: 120 },
+          "--Grid-borderWidth": "1px",
           "& > div": {
             borderRight: "var(--Grid-borderWidth) solid",
             borderBottom: "var(--Grid-borderWidth) solid",
@@ -55,6 +57,12 @@ export function CalendarGrid() {
             </HourCalendarCell>
           );
         })} */}
+        {eventsFixture}
+        {eventsFixture}
+        {eventsFixture}
+        {eventsFixture}
+        {eventsFixture}
+        {eventsFixture}
         {eventsFixture}
         {eventsFixture}
         {eventsFixture}

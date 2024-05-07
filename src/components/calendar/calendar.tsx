@@ -1,16 +1,16 @@
-import { FlexCol } from "../wrappers";
+import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarGrid } from "./calendar_grid";
 import { CalendarHeader } from "./calendar_header";
 import { LayoutBar } from "./layout_bar";
 
 export function Calendar() {
   return (
-    <FlexCol width="100%" height="100%">
-      <LayoutBar />
-      <FlexCol width="100%">
+    <FlexCol width="664px" height="832px">
+      <FlexCol>
+        <LayoutBar />
         <CalendarHeader />
-        <CalendarGrid />
       </FlexCol>
+      <CalendarGrid />
     </FlexCol>
   );
 }
