@@ -1,6 +1,7 @@
-import { FlexCol, FlexRow } from "../wrappers";
+import { FlexCol } from "../wrappers";
 import { CalendarGrid } from "./calendar_grid";
 import { CalendarHeader } from "./calendar_header";
+import { FullDayEventBar } from "./full_dat_event_bar";
 import { LayoutBar } from "./layout_bar";
 
 export function Calendar() {
@@ -9,6 +10,7 @@ export function Calendar() {
       <FlexCol>
         <LayoutBar />
         <CalendarHeader />
+        <FullDayEventBar />
       </FlexCol>
       <CalendarGrid />
     </FlexCol>

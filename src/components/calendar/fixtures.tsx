@@ -43,12 +43,4 @@ export const eventsFixture = [
       endTime={addMinutes(new Date(), 181)}
     />
   </HourCalendarCell>,
-  <HourCalendarCell key="orange">
-    <Event
-      variant="orange"
-      title="event"
-      startTime={new Date()}
-      endTime={addMinutes(new Date(), 30)}
-    />
-  </HourCalendarCell>,
 ];

@@ -18,6 +18,7 @@ export const EventTypography = styled(Typography)(({ theme }) => ({
   lineHeight: "14px",
   textAlign: "center",
   fontFamily: "Roboto",
+  whiteSpace: "nowrap",
 }));
 
 export function Event({
@@ -89,20 +90,27 @@ export function calculateTitleDuration(
   const minutes = differenceInMinutes(endTime, startTime, {
     roundingMethod: "floor",
   });
-  const hours = minutes / 60;
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
 
   const updatedStart = format(startTime, "h:mmaaa");
   const updatedEnd = format(endTime, "h:mmaaa");
 
   const updatedTitle =
-    minutes >= 180
+    days >= 2
+      ? `Multiday ${title}`
+      : days === 1
+      ? `Full day ${title}`
+      : minutes >= 180
       ? `${hours} hour ${title}`
       : minutes >= 30
       ? `${minutes} min ${title}`
       : `${minutes} min ${title}, `;
 
   const updatedDuration =
-    minutes >= 30
+    days >= 1
+      ? ""
+      : minutes >= 30
       ? `${format(startTime, "h:mm")} - ${updatedEnd}`
       : updatedStart;
 
@@ -126,6 +134,9 @@ export function calculateEventProperties(
     roundingMethod: "floor",
   });
 
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
   // event component base sx props
   const baseSxProps: SxProps<Theme> = {
     display: "flex",
@@ -134,13 +145,35 @@ export function calculateEventProperties(
     position: "absolute",
 
     backgroundColor: variationsToColorRecord[variant],
-    maxWidth: "110px",
+    width: "110px",
     minHeight: "15px",
     border: "1px solid #FFF",
     borderRadius: "4px",
     opacity: "0px",
   };
 
+  if (days === 1) {
+    const sxProps: SxProps<Theme> = {
+      ...baseSxProps,
+      width: "110px",
+      height: "16px",
+      padding: "0px 8px",
+      alignItems: "center",
+    };
+
+    return sxProps;
+  }
+  if (days > 2) {
+    const sxProps: SxProps<Theme> = {
+      ...baseSxProps,
+      width: `${days * 120 - 10}px`,
+      height: "16px",
+      padding: "0px 8px",
+      alignItems: "center",
+    };
+
+    return sxProps;
+  }
   // if the hours are 0 then there must be minutes
   if (minutes <= 15) {
     const sxProps: SxProps<Theme> = {
