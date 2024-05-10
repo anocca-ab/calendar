@@ -10,7 +10,7 @@ export function Calendar() {
       <FlexCol>
         <CalendarLayoutBar />
         <CalendarHeader />
-        <CalendarFullDayEventBar />
+        <CalendarFullDayEventBar eventHeight={2}/>
       </FlexCol>
       <CalendarGrid />
     </FlexCol>

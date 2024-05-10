@@ -1,6 +1,30 @@
 import { HourCalendarCell } from "./components/hour_calendar_cell";
-import { Event } from "./components/event";
+import { CalendarVariant, Event } from "./components/event";
 import { addMinutes } from "./helpers";
+import { Box } from "@mui/material";
+
+export function renderFixtureEvents(
+  numberOfEvents: number,
+  variant: CalendarVariant,
+) {
+  const events: React.JSX.Element[] = [];
+
+  for (let i = 1; i <= numberOfEvents; i++) {
+    events.push(
+      <Box height={i * 15 + 2}>
+        <Event
+          key={i + variant}
+          variant={variant}
+          title="event"
+          startTime={new Date()}
+          endTime={addMinutes(new Date(), i * 15)}
+        />
+      </Box>,
+    );
+  }
+
+  return events;
+}
 
 export const eventsFixture = [
   <HourCalendarCell key="orange">

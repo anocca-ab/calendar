@@ -1,6 +1,6 @@
-import { Box, Divider, Grid } from "@mui/material";
-import { FlexRow } from "../wrappers";
-import { Event, FullDayEvent } from "./components/event";
+import { Box, Divider } from "@mui/material";
+import { FlexCol, FlexRow } from "../wrappers";
+import { AllDayEvent } from "./components/all_day_event";
 import { addDays } from "./helpers";
 
 export function CalendarFullDayEventBar({
@@ -9,95 +9,88 @@ export function CalendarFullDayEventBar({
   eventHeight: number;
 }) {
   return (
-    <>
-      <Box pl={8}>
-        <Box
+    <Box pl={8}>
+      <Box
+        sx={{
+          position: "relative",
+          width: "100%",
+          height: `${eventHeight * (16 + 1) + 1}px`,
+        }}
+      >
+        {/* Horizontal lines */}
+        <FlexCol
           sx={{
-            position: "relative",
-            width: "100%",
-            height: `${eventHeight * (16 + 1) + 1}px`,
+            gap: "59px",
+            position: "absolute",
+            alignItems: "stretch",
+            justifyContent: "flex-end",
+            inset: 0,
           }}
         >
-          {/* Horizontal lines */}
-          <Box
+          <Divider
             sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "59px",
-              position: "absolute",
-              alignItems: "stretch",
-              justifyContent: "flex-end",
-              inset: 0,
+              marginLeft: "-16px",
             }}
-          >
-            <Divider
-              sx={{
-                marginLeft: "-16px",
-              }}
-            />
-          </Box>
-          {/* Vertical lines */}
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              position: "absolute",
-              alignItems: "stretch",
-              inset: 0,
-              justifyContent: "space-between",
-            }}
-          >
-            {[...Array(6)].map((_, i) => {
-              return (
-                <Divider
-                  key={i}
-                  orientation="vertical"
-                  sx={{
-                    opacity: i === 5 ? 0 : 1,
-                  }}
-                />
-              );
-            })}
-          </Box>
-          {/* Events */}
-          <Box>
-            {/* row 1 */}
-            <Box
-              sx={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)" }}
-            >
-              <Box pr={"10px"}>
-                <FullDayEvent
-                  variant="pink"
-                  title="event"
-                  startTime={new Date()}
-                  endTime={addDays(new Date(), 4)}
-                />
-              </Box>
-              <Box pr={"10px"}>
-                <FullDayEvent
-                  variant="pink"
-                  title="event"
-                  startTime={new Date()}
-                  endTime={addDays(new Date(), 4)}
-                />
-              </Box>
+          />
+        </FlexCol>
+        {/* Vertical lines */}
+        <FlexRow
+          sx={{
+            position: "absolute",
+            alignItems: "stretch",
+            inset: 0,
+            justifyContent: "space-between",
+          }}
+        >
+          {[...Array(6)].map((_, i) => {
+            return (
+              <Divider
+                key={i}
+                orientation="vertical"
+                sx={{
+                  opacity: i === 5 ? 0 : 1,
+                }}
+              />
+            );
+          })}
+        </FlexRow>
+        {/* Events */}
+        <Box>
+          {/* row 1 */}
+          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)" }}>
+            <Box pr={"10px"}>
+              <AllDayEvent
+                variant="pink"
+                title="event"
+                startTime={new Date()}
+                endTime={addDays(new Date(), 4)}
+              />
             </Box>
-            <Box sx={{ height: "1px" }} />
-            {/* row 2 */}
-            <FlexRow>
-              <Box sx={{}}>
-                <FullDayEvent
-                  variant="pink"
-                  title="event"
-                  startTime={new Date()}
-                  endTime={addDays(new Date(), 4)}
-                />
-              </Box>
-            </FlexRow>
+            <Box pr={"10px"}>
+              <AllDayEvent
+                variant="pink"
+                title="event"
+                startTime={new Date()}
+                endTime={addDays(new Date(), 4)}
+              />
+            </Box>
           </Box>
+          <Box sx={{ height: "1px" }} />
+          {/* row 2 */}
+          <FlexRow>
+            <Box sx={{}}>
+              <AllDayEvent
+                variant="pink"
+                title="event"
+                startTime={new Date()}
+                endTime={addDays(new Date(), 4)}
+              />
+            </Box>
+          </FlexRow>
         </Box>
       </Box>
-    </>
+    </Box>
+
     // <FlexRow>
     //   <Box width="64px" />
     //   {/* <Grid

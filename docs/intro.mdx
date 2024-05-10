@@ -11,13 +11,14 @@ Let's discover **Calendar in less than 5 minutes**.
  * to avoid having the page crashing on parsing code we use the noInline
  * therefore the function `render` is required
  */
-const Hello = () => {
+
+const CalendarEntryPoint = () => {
   return (
-    <Box width="100%" height="100%" display="flex" p={4}>
+    <FlexRow width="100%" height="100%" p={4}>
       <Calendar />
-    </Box>
+    </FlexRow>
   );
 };
 
-render(<Hello />);
+render(<CalendarEntryPoint />);
 ```

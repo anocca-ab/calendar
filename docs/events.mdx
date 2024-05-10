@@ -1,0 +1,34 @@
+---
+sidebar_position: 6
+---
+
+# Calendar Events
+
+Let's discover **Calendar in less than 5 minutes**.
+
+```jsx live noInline
+/**
+ * to avoid having the page crashing on parsing code we use the noInline
+ * therefore the function `render` is required
+ */
+
+const CalendarEvents = () => {
+  const redEvents:JSX.Element[] = renderFixtureEvents(6,'red')
+  const orangeEvents:JSX.Element[] = renderFixtureEvents(6,'orange')
+  const indigoEvents:JSX.Element[] = renderFixtureEvents(6,'indigo')
+  const tealEvents:JSX.Element[] = renderFixtureEvents(6,'teal')
+  const pinkEvents:JSX.Element[] = renderFixtureEvents(6,'pink')
+
+  return (
+    <FlexRow>
+      <FlexCol width='100%'>{redEvents}</Box>
+      <FlexCol width='100%'>{orangeEvents}</FlexCol>
+      <FlexCol width='100%'>{indigoEvents}</FlexCol>
+      <FlexCol width='100%'>{tealEvents}</FlexCol>
+      <FlexCol width='100%'>{pinkEvents}</FlexCol>
+    </FlexRow>
+  );
+};
+
+render(<CalendarEvents />);
+```

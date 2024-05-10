@@ -2,7 +2,7 @@
 sidebar_position: 6
 ---
 
-# Calendar Grid
+# CalendarGrid Component
 
 **Inner Architecture**.
 
@@ -11,7 +11,8 @@ sidebar_position: 6
  * to avoid having the page crashing on parsing code we use the noInline
  * therefore the function `render` is required
  */
-const CalendarComponent = () => {
+
+const CalendarGridComponent = () => {
   return (
     <FlexCol>
       <CalendarFullDayEventBar eventHeight={2} />
@@ -22,5 +23,5 @@ const CalendarComponent = () => {
   );
 };
 
-render(<CalendarComponent />);
+render(<CalendarGridComponent />);
 ```
