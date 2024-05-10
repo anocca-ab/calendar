@@ -23,5 +23,6 @@ export { DayNumberStackDate } from "./components/calendar_header/components/day_
 export { HourCalendarCell } from "./components/calendar_grid/components/hour_calendar_cell";
 export { MonthYearRowDate } from "./components/calendar_header/components/month_year_row_date";
 export { WeekChip } from "./components/calendar_header/components/week_chip";
+export { FlexCol, FlexRow } from "./wrappers";
 
 export type { CalendarVariant } from "./components/calendar_grid/components/calendar_event";

@@ -1,4 +1,4 @@
-import { FlexCol } from "../wrappers";
+import { FlexCol } from "./wrappers";
 import { CalendarGrid } from "./components/calendar_grid/calendar_grid";
 import { CalendarHeader } from "./components/calendar_header/calendar_header";
 

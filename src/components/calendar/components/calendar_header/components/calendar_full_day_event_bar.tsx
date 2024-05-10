@@ -1,5 +1,5 @@
 import { Box, Divider } from "@mui/material";
-import { FlexCol, FlexRow } from "../../../../wrappers";
+import { FlexCol, FlexRow } from "../../../wrappers";
 import { CalendarAllDayEvent } from "./calendar_all_day_event";
 import { addDays } from "../../../helpers";
 

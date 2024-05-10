@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import { FlexCol } from "../../../../wrappers";
+import { FlexCol } from "../../../wrappers";
 import { format } from "date-fns";
 
 export function DayNumberStackDate({ date }: { date: Date }) {
