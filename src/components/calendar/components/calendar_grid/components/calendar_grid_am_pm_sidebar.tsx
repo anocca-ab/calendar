@@ -1,7 +1,7 @@
 import { Typography } from "@mui/material";
-import { FlexCol } from "../../wrappers";
+import { FlexCol } from "../../../../wrappers";
 
-export function AmPmGridSidebar() {
+export function CalendarGridAmPmSidebar() {
   return (
     <FlexCol
       sx={{

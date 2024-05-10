@@ -1,6 +1,6 @@
 import { Box, SxProps, Theme, Typography, styled } from "@mui/material";
 import { differenceInMinutes, format } from "date-fns";
-import { mergeSx } from "../helpers";
+import { mergeSx } from "../../../helpers";
 
 export type CalendarVariant = "orange" | "indigo" | "pink" | "teal" | "red";
 
@@ -21,7 +21,7 @@ export const EventTypography = styled(Typography)(({ theme }) => ({
   whiteSpace: "nowrap",
 }));
 
-export function Event({
+export function CalendarEvent({
   title,
   startTime,
   endTime,

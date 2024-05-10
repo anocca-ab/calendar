@@ -1,12 +1,12 @@
 import { Box, SxProps, Theme } from "@mui/material";
-import { mergeSx } from "../helpers";
+import { mergeSx } from "../../../helpers";
 import {
   CalendarVariant,
   EventTypography,
   variationsToColorRecord,
-} from "./event";
+} from "../../calendar_grid/components/calendar_event";
 
-export function AllDayEvent({
+export function CalendarAllDayEvent({
   title,
   startTime,
   endTime,

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
 ---
 
 # Calendar Component
@@ -15,12 +15,8 @@ sidebar_position: 2
 const CalendarComponent = () => {
   return (
     <FlexRow width="100%" height="100%" p={4}>
-      <FlexCol width="664px" height="832px">
-        <FlexCol>
-          <CalendarLayoutBar />
-          <CalendarHeader />
-          <CalendarFullDayEventBar />
-        </FlexCol>
+      <FlexCol width="664px">
+        <CalendarHeader />
         <CalendarGrid />
       </FlexCol>
     </FlexRow>

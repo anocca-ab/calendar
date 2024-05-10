@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 2
 ---
 
 # CalendarHeader Component
@@ -19,16 +19,10 @@ const CalendarHeaderComponent = () => {
   ));
 
   return (
-    <FlexCol
-      justifyContent="flex-start"
-      alignItems="center"
-      width={664}
-      height={82}
-      pl={8}
-    >
-      <FlexRow justifyContent="flex-start" width={600} height={64}>
-        {fiveDays}
-      </FlexRow>
+    <FlexCol width="664px">
+      <CalendarLayoutBar />
+      <CalendarWeekViewBar />
+      <CalendarFullDayEventBar eventHeight={2} />
     </FlexCol>
   );
 };

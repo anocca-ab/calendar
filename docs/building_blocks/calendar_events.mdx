@@ -1,10 +1,8 @@
 ---
-sidebar_position: 6
+sidebar_position: 1
 ---
 
 # Calendar Events
-
-Let's discover **Calendar in less than 5 minutes**.
 
 ```jsx live noInline
 /**
@@ -21,11 +19,11 @@ const CalendarEvents = () => {
 
   return (
     <FlexRow>
-      <FlexCol width='100%'>{redEvents}</Box>
-      <FlexCol width='100%'>{orangeEvents}</FlexCol>
-      <FlexCol width='100%'>{indigoEvents}</FlexCol>
-      <FlexCol width='100%'>{tealEvents}</FlexCol>
-      <FlexCol width='100%'>{pinkEvents}</FlexCol>
+      <FlexCol width='100%'>{redEvents.map((e,i)=><Box key={'red'+i}>{e}</Box>)}</Box>
+      <FlexCol width='100%'>{orangeEvents.map((e,i)=><Box key={'orange'+i}>{e}</Box>)}</FlexCol>
+      <FlexCol width='100%'>{indigoEvents.map((e,i)=><Box key={'indigo'+i}>{e}</Box>)}</FlexCol>
+      <FlexCol width='100%'>{tealEvents.map((e,i)=><Box key={'teal'+i}>{e}</Box>)}</FlexCol>
+      <FlexCol width='100%'>{pinkEvents.map((e,i)=><Box key={'pink'+i}>{e}</Box>)}</FlexCol>
     </FlexRow>
   );
 };

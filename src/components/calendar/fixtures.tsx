@@ -1,5 +1,8 @@
-import { HourCalendarCell } from "./components/hour_calendar_cell";
-import { CalendarVariant, Event } from "./components/event";
+import { HourCalendarCell } from "./components/calendar_grid/components/hour_calendar_cell";
+import {
+  CalendarVariant,
+  CalendarEvent,
+} from "./components/calendar_grid/components/calendar_event";
 import { addMinutes } from "./helpers";
 import { Box } from "@mui/material";
 
@@ -12,7 +15,7 @@ export function renderFixtureEvents(
   for (let i = 1; i <= numberOfEvents; i++) {
     events.push(
       <Box height={i * 15 + 2}>
-        <Event
+        <CalendarEvent
           key={i + variant}
           variant={variant}
           title="event"
@@ -28,7 +31,7 @@ export function renderFixtureEvents(
 
 export const eventsFixture = [
   <HourCalendarCell key="orange">
-    <Event
+    <CalendarEvent
       variant="orange"
       title="event"
       startTime={new Date()}
@@ -36,7 +39,7 @@ export const eventsFixture = [
     />
   </HourCalendarCell>,
   <HourCalendarCell key="red">
-    <Event
+    <CalendarEvent
       variant="red"
       title="event"
       startTime={new Date()}
@@ -44,7 +47,7 @@ export const eventsFixture = [
     />
   </HourCalendarCell>,
   <HourCalendarCell key="teal">
-    <Event
+    <CalendarEvent
       variant="teal"
       title="event"
       startTime={new Date()}
@@ -52,7 +55,7 @@ export const eventsFixture = [
     />
   </HourCalendarCell>,
   <HourCalendarCell key="pink">
-    <Event
+    <CalendarEvent
       variant="pink"
       title="event"
       startTime={new Date()}
@@ -60,7 +63,7 @@ export const eventsFixture = [
     />
   </HourCalendarCell>,
   <HourCalendarCell key="indigo">
-    <Event
+    <CalendarEvent
       variant="indigo"
       title="event"
       startTime={new Date()}

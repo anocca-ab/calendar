@@ -1,9 +1,18 @@
-import { Box, Divider } from "@mui/material";
-import { AmPmGridSidebar } from "./components/am_pm_grid_sidebar";
-import { Event } from "./components/event";
-import { addMinutes } from "./helpers";
+---
+sidebar_position: 3
+---
 
-export function CalendarGrid() {
+# CalendarGrid Component
+
+**Inner Architecture**.
+
+```jsx live noInline
+/**
+ * to avoid having the page crashing on parsing code we use the noInline
+ * therefore the function `render` is required *
+ */
+
+const CalendarGridComponent = () => {
   return (
     <Box
       sx={{
@@ -11,7 +20,7 @@ export function CalendarGrid() {
         alignItems: "flex-start",
       }}
     >
-      <AmPmGridSidebar />
+      <CalendarGridAmPmSidebar />
       <Box
         sx={{
           position: "relative",
@@ -72,7 +81,7 @@ export function CalendarGrid() {
           }}
         >
           <Box sx={{ top: 1, left: 1, position: "absolute" }}>
-            <Event
+            <CalendarEvent
               variant="orange"
               title="event"
               startTime={new Date()}
@@ -81,37 +90,9 @@ export function CalendarGrid() {
           </Box>
         </Box>
       </Box>
-      {/* <Grid
-        width={600}
-        container
-        columns={20}
-        sx={{
-          position: "relative",
-          overflowY: "auto",
-          "--Grid-borderWidth": "1px",
-          borderColor: "divider",
-          ".MuiGrid-item": { padding: 0, width: 115 },
-          "& > div": {
-            borderRight: "var(--Grid-borderWidth) solid",
-            borderBottom: "var(--Grid-borderWidth) solid",
-
-            borderColor: "divider",
-            "&:nth-of-type(1n)": {
-              borderLeft: "var(--Grid-borderWidth) solid",
-              borderColor: "divider",
-              borderRight: "none",
-            },
-            "&:nth-of-type(5n)": {
-              borderRight: "var(--Grid-borderWidth) solid",
-              borderColor: "divider",
-            },
-          },
-        }}
-      >
-        {[...Array(24)].map((_) => {
-          return eventsFixture;
-        })}
-      </Grid> */}
     </Box>
   );
-}
+};
+
+render(<CalendarGridComponent />);
+```

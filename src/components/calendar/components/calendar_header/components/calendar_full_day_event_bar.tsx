@@ -1,7 +1,7 @@
 import { Box, Divider } from "@mui/material";
-import { FlexCol, FlexRow } from "../wrappers";
-import { AllDayEvent } from "./components/all_day_event";
-import { addDays } from "./helpers";
+import { FlexCol, FlexRow } from "../../../../wrappers";
+import { CalendarAllDayEvent } from "./calendar_all_day_event";
+import { addDays } from "../../../helpers";
 
 export function CalendarFullDayEventBar({
   eventHeight,
@@ -59,7 +59,7 @@ export function CalendarFullDayEventBar({
           {/* row 1 */}
           <Box sx={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)" }}>
             <Box pr={"10px"}>
-              <AllDayEvent
+              <CalendarAllDayEvent
                 variant="pink"
                 title="event"
                 startTime={new Date()}
@@ -67,7 +67,7 @@ export function CalendarFullDayEventBar({
               />
             </Box>
             <Box pr={"10px"}>
-              <AllDayEvent
+              <CalendarAllDayEvent
                 variant="pink"
                 title="event"
                 startTime={new Date()}
@@ -79,7 +79,7 @@ export function CalendarFullDayEventBar({
           {/* row 2 */}
           <FlexRow>
             <Box sx={{}}>
-              <AllDayEvent
+              <CalendarAllDayEvent
                 variant="pink"
                 title="event"
                 startTime={new Date()}
