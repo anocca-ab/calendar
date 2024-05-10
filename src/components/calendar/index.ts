@@ -1,3 +1,5 @@
+import "@fontsource/roboto";
+
 export { CalendarEntry } from "./calendar_entry";
 export { Calendar } from "./calendar";
 export { CalendarGrid, AmPmGridSidebar } from "./calendar_grid";

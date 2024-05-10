@@ -1,5 +1,6 @@
 import { Box, SxProps, Theme, Typography, styled } from "@mui/material";
 import { differenceInMinutes, format } from "date-fns";
+import { mergeSx } from "../helpers";
 
 export type CalendarVariant = "orange" | "indigo" | "pink" | "teal" | "red";
 
@@ -17,7 +18,6 @@ export const EventTypography = styled(Typography)(({ theme }) => ({
   fontSize: "10px",
   lineHeight: "14px",
   textAlign: "center",
-  fontFamily: "Roboto",
   whiteSpace: "nowrap",
 }));
 
@@ -26,11 +26,13 @@ export function Event({
   startTime,
   endTime,
   variant = "orange",
+  sx,
 }: {
   title: string;
   startTime: Date;
   endTime: Date;
   variant?: CalendarVariant;
+  sx?: SxProps<Theme>;
 }) {
   const {
     sxProps: eventSxProp,
@@ -39,12 +41,47 @@ export function Event({
   } = compileEventProperties(title, startTime, endTime, variant);
 
   return (
-    <Box sx={eventSxProp}>
+    <Box sx={mergeSx(eventSxProp, sx)}>
       <Box>
         <EventTypography>{updatedTitle}</EventTypography>
       </Box>
 
       <EventTypography>{updatedDuration}</EventTypography>
+    </Box>
+  );
+}
+
+export function FullDayEvent({
+  title,
+  startTime,
+  endTime,
+  variant = "orange",
+  sx,
+}: {
+  title: string;
+  startTime: Date;
+  endTime: Date;
+  variant?: CalendarVariant;
+  sx?: SxProps<Theme>;
+}) {
+  return (
+    <Box
+      sx={mergeSx(
+        {
+          backgroundColor: variationsToColorRecord[variant],
+          display: "flex",
+          padding: "0px 8px",
+          height: "16px",
+          borderRadius: "4px",
+        },
+        sx,
+      )}
+    >
+      <Box>
+        <EventTypography>aa</EventTypography>
+      </Box>
+
+      <EventTypography>aa</EventTypography>
     </Box>
   );
 }
@@ -62,7 +99,7 @@ export function compileEventProperties(
   title: string,
   startTime: Date,
   endTime: Date,
-  variant: CalendarVariant
+  variant: CalendarVariant,
 ): {
   sxProps: SxProps<Theme>;
   updatedTitle: string;
@@ -85,7 +122,7 @@ export function compileEventProperties(
 export function calculateTitleDuration(
   title: string,
   startTime: Date,
-  endTime: Date
+  endTime: Date,
 ) {
   const minutes = differenceInMinutes(endTime, startTime, {
     roundingMethod: "floor",
@@ -100,19 +137,19 @@ export function calculateTitleDuration(
     days >= 2
       ? `Multiday ${title}`
       : days === 1
-      ? `Full day ${title}`
-      : minutes >= 180
-      ? `${hours} hour ${title}`
-      : minutes >= 30
-      ? `${minutes} min ${title}`
-      : `${minutes} min ${title}, `;
+        ? `Full day ${title}`
+        : minutes >= 180
+          ? `${hours} hour ${title}`
+          : minutes >= 30
+            ? `${minutes} min ${title}`
+            : `${minutes} min ${title}, `;
 
   const updatedDuration =
     days >= 1
       ? ""
       : minutes >= 30
-      ? `${format(startTime, "h:mm")} - ${updatedEnd}`
-      : updatedStart;
+        ? `${format(startTime, "h:mm")} - ${updatedEnd}`
+        : updatedStart;
 
   return { updatedTitle, updatedDuration };
 }
@@ -128,7 +165,7 @@ export function calculateTitleDuration(
 export function calculateEventProperties(
   startTime: Date,
   endTime: Date,
-  variant: CalendarVariant
+  variant: CalendarVariant,
 ): SxProps<Theme> {
   const minutes = differenceInMinutes(endTime, startTime, {
     roundingMethod: "floor",
@@ -149,7 +186,6 @@ export function calculateEventProperties(
     minHeight: "15px",
     border: "1px solid #FFF",
     borderRadius: "4px",
-    opacity: "0px",
   };
 
   if (days === 1) {
