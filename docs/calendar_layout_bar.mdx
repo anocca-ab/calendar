@@ -1,0 +1,42 @@
+---
+sidebar_position: 3
+---
+
+# CalendarLayoutBar Component
+
+**Inner Architecture**.
+
+```jsx live noInline
+/**
+ * to avoid having the page crashing on parsing code we use the noInline
+ * therefore the function `render` is required
+ */
+const CalendarLayoutBarComponent = () => {
+  const today = new Date();
+
+  return (
+    <FlexRow
+      justifyContent="flex-start"
+      px="22px"
+      py="14px"
+      gap={3}
+      alignItems="center"
+    >
+      <Button variant="outlined">Today</Button>
+      <FlexRow>
+        <IconButton>
+          <MdOutlineChevronLeft />
+        </IconButton>
+        <IconButton>
+          <MdOutlineChevronRight />
+        </IconButton>
+      </FlexRow>
+
+      <MonthYearRowDate date={today} />
+      <WeekChip date={today} />
+    </FlexRow>
+  );
+};
+
+render(<CalendarLayoutBarComponent />);
+```

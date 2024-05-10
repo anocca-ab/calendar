@@ -1,9 +1,17 @@
-import { Box, Grid } from "@mui/material";
-import { FlexRow } from "../wrappers";
-import { Event } from "./components/event";
-import { addDays } from "./helpers";
+---
+sidebar_position: 5
+---
 
-export function FullDayEventBar() {
+# Tutorial Intro
+
+Let's discover **Calendar in less than 5 minutes**.
+
+```jsx live noInline
+/**
+ * to avoid having the page crashing on parsing code we use the noInline
+ * therefore the function `render` is required
+ */
+const CalendarFullDayEvent = () => {
   return (
     <FlexRow>
       <Box width="64px" />
@@ -81,4 +89,7 @@ export function FullDayEventBar() {
       </Grid>
     </FlexRow>
   );
-}
+};
+
+render(<CalendarFullDayEvent />);
+```

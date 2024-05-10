@@ -4,7 +4,7 @@ import { MonthYearRowDate } from "./components/month_year_row_date";
 import { WeekChip } from "./components/week_chip";
 import { MdOutlineChevronLeft, MdOutlineChevronRight } from "react-icons/md";
 
-export function LayoutBar() {
+export function CalendarLayoutBar() {
   const today = new Date();
 
   return (

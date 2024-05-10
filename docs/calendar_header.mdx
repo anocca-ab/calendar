@@ -1,0 +1,36 @@
+---
+sidebar_position: 4
+---
+
+# CalendarHeader Component
+
+**Inner Architecture**.
+
+```jsx live noInline
+/**
+ * to avoid having the page crashing on parsing code we use the noInline
+ * therefore the function `render` is required
+ */
+const CalendarHeaderComponent = () => {
+  const today = new Date();
+  const fiveDays = [...Array(5)].map((_, index) => (
+    <DayNumberStackDate key={index} date={addDays(today, index)} />
+  ));
+
+  return (
+    <FlexCol
+      justifyContent="flex-start"
+      alignItems="center"
+      width={664}
+      height={82}
+      pl={8}
+    >
+      <FlexRow justifyContent="flex-start" width={600} height={64}>
+        {fiveDays}
+      </FlexRow>
+    </FlexCol>
+  );
+};
+
+render(<CalendarHeaderComponent />);
+```
