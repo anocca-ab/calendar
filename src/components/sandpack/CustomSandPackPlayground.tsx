@@ -12,7 +12,7 @@ export function CustomSandPackPlayground({ height }: { height: number }) {
 
   const customSetup = {
     dependencies: {
-      "@mui/material": "latest",
+      //   "@mui/material": "latest",
       "@emotion/styled": "latest",
       "@emotion/react": "latest",
       "react-icons": "latest",

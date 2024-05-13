@@ -1,4 +1,5 @@
 import calendarRaw from "!!raw-loader!../calendar/build-sandpack/index.js";
+import muiRaw from "!!raw-loader!./material-ui.production.min.js";
 
 const AppTsx = `
 import TestTsx from './TestTsx.tsx'
@@ -37,6 +38,17 @@ export const files = {
   "/node_modules/@internals/calendar/index.js": {
     hidden: true,
     code: calendarRaw,
+  },
+  "/node_modules/@mui/material/package.json": {
+    hidden: true,
+    code: JSON.stringify({
+      name: "@mui/material",
+      main: "./index.js",
+    }),
+  },
+  "/node_modules/@mui/material/index.js": {
+    hidden: true,
+    code: muiRaw,
   },
 };
 
