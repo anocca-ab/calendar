@@ -1,4 +1,4 @@
-import "@fontsource/roboto";
+// import "@fontsource/roboto";
 
 export { CalendarEntry } from "./calendar_entry";
 export { Calendar } from "./calendar";

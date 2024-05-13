@@ -1,7 +1,8 @@
 import { Sandpack } from "@codesandbox/sandpack-react";
-import calendarRaw from "@site/src/components/calendar/build-sandpack/index";
+import calendarRaw from "!!raw-loader!./calendar/build-sandpack/index.js";
 
-const codeString = `import { FlexRow, Calendar } from "@internals/calendar";
+const codeString = `
+import { FlexRow, Calendar } from "@internals/calendar";
 
 export default function () {
   return (
@@ -15,16 +16,16 @@ export function SandPackPlayground() {
   return (
     <Sandpack
       template="react-ts"
+      customSetup={{
+        dependencies: {
+          "@mui/material": "latest",
+          "@emotion/styled": "latest",
+          "@emotion/react": "latest",
+          "react-icons": "latest",
+        },
+      }}
       files={{
-        "/components/index.js": `import { FlexRow, Calendar } from "@internals/calendar";
-
-        export default function () {
-          return (
-            <FlexRow width="100%" p={4}>
-              <Calendar />
-            </FlexRow>
-          );
-        }`,
+        "App.tsx": codeString,
         "/node_modules/@internals/calendar/package.json": {
           hidden: true,
           code: JSON.stringify({
