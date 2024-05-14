@@ -1,7 +1,7 @@
 import { Box, Divider } from "@mui/material";
+import { addDays } from "../../../helpers";
 import { FlexCol, FlexRow } from "../../../wrappers";
 import { CalendarAllDayEvent } from "./calendar_all_day_event";
-import { addDays } from "../../../helpers";
 
 export function CalendarFullDayEventBar({
   eventHeight,
@@ -39,7 +39,8 @@ export function CalendarFullDayEventBar({
             position: "absolute",
             alignItems: "stretch",
             inset: 0,
-            justifyContent: "space-between",
+            gap: "119px",
+            justifyContent: "flex-start",
           }}
         >
           {[...Array(6)].map((_, i) => {
@@ -55,30 +56,37 @@ export function CalendarFullDayEventBar({
           })}
         </FlexRow>
         {/* Events */}
-        <Box>
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+          }}
+        >
           {/* row 1 */}
-          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)" }}>
-            <Box pr={"10px"}>
+          <Box
+            sx={{ display: "grid", gridTemplateColumns: "repeat(5, 120px)" }}
+          >
+            <Box pl="2px">
               <CalendarAllDayEvent
                 variant="pink"
                 title="event"
                 startTime={new Date()}
-                endTime={addDays(new Date(), 4)}
+                endTime={addDays(new Date(), 1)}
               />
             </Box>
-            <Box pr={"10px"}>
+            <Box pl="2px">
               <CalendarAllDayEvent
                 variant="pink"
                 title="event"
                 startTime={new Date()}
-                endTime={addDays(new Date(), 4)}
+                endTime={addDays(new Date(), 1)}
               />
             </Box>
           </Box>
           <Box sx={{ height: "1px" }} />
           {/* row 2 */}
           <FlexRow>
-            <Box sx={{}}>
+            <Box pl="2px">
               <CalendarAllDayEvent
                 variant="pink"
                 title="event"
@@ -93,7 +101,7 @@ export function CalendarFullDayEventBar({
 
     // <FlexRow>
     //   <Box width="64px" />
-    //   {/* <Grid
+    //   <Grid
     //     width={600}
     //     container
     //     columns={20}
@@ -121,11 +129,11 @@ export function CalendarFullDayEventBar({
     //     {[...Array(5)].map((_, index) => {
     //       return (
     //         <Grid item key={index} xs={4} height="17px">
-    //           <Event
-    //             variant="indigo"
+    //           <CalendarEvent
+    //             variant="pink"
     //             title="event"
     //             startTime={new Date()}
-    //             endTime={addDays(new Date(), 1)}
+    //             endTime={addDays(new Date(), 4)}
     //           />
     //         </Grid>
     //       );
@@ -133,7 +141,7 @@ export function CalendarFullDayEventBar({
     //     {[...Array(1)].map((_, index) => {
     //       return (
     //         <Grid item key={index} xs={4} height="17px">
-    //           <Event
+    //           <CalendarEvent
     //             variant="teal"
     //             title="event"
     //             startTime={new Date()}
@@ -148,7 +156,7 @@ export function CalendarFullDayEventBar({
     //     {[...Array(1)].map((_, index) => {
     //       return (
     //         <Grid item position="relative" xs={4} key={index} height="17px">
-    //           <Event
+    //           <CalendarEvent
     //             variant="pink"
     //             title="event"
     //             startTime={new Date()}
@@ -164,7 +172,7 @@ export function CalendarFullDayEventBar({
     //         </Grid>
     //       );
     //     })}
-    //   </Grid> */}
+    //   </Grid>
     // </FlexRow>
   );
 }

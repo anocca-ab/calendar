@@ -1,13 +1,15 @@
 import { Sandpack } from "@codesandbox/sandpack-react";
-import { files } from "./files";
+import type { SandpackFiles } from "@codesandbox/sandpack-react";
+import { commonFiles } from "./common_files";
 
-export function SandPackPlayground() {
+export function SandPackPlayground({ files }: { files: SandpackFiles }) {
   return (
     <Sandpack
       template="react-ts"
       theme="auto"
       options={{
-        editorHeight: 500,
+        editorHeight: 600,
+        editorWidthPercentage: 40,
         rtl: true,
       }}
       customSetup={{
@@ -18,7 +20,7 @@ export function SandPackPlayground() {
           "react-icons": "latest",
         },
       }}
-      files={files}
+      files={{ ...commonFiles, ...files }}
     />
   );
 }

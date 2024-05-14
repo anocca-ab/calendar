@@ -1,10 +1,10 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
+import * as _mui_material from '@mui/material';
+import { SxProps, Theme, GridProps, BoxProps } from '@mui/material';
 import * as react from 'react';
 import * as _emotion_styled from '@emotion/styled';
 import * as _mui_system from '@mui/system';
 import * as _mui_material_OverridableComponent from '@mui/material/OverridableComponent';
-import * as _mui_material from '@mui/material';
-import { Theme, SxProps, GridProps, BoxProps } from '@mui/material';
 
 declare function CalendarEntry(): react_jsx_runtime.JSX.Element;
 
@@ -25,6 +25,12 @@ declare function CalendarLayoutBar(): react_jsx_runtime.JSX.Element;
 declare function addDays(date: Date, days: number): Date;
 declare function addMinutes(date: Date, minutes: number): Date;
 declare function daysInMonth(month: number, year: number): number;
+type Sx = SxProps<any>;
+/**
+ * Use this function to merge sx props
+ * @public
+ */
+declare function mergeSx(...sxs: (Sx | null | undefined | boolean)[]): Sx;
 
 type CalendarVariant = "orange" | "indigo" | "pink" | "teal" | "red";
 declare const variationsToColorRecord: Record<CalendarVariant, string>;
@@ -114,4 +120,4 @@ declare function FlexCol(props: BoxProps): react_jsx_runtime.JSX.Element;
  */
 declare function FlexRow(props: BoxProps): react_jsx_runtime.JSX.Element;
 
-export { Calendar, CalendarAllDayEvent, CalendarEntry, CalendarEvent, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, type CalendarVariant, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, WeekChip, addDays, addMinutes, calculateEventProperties, calculateTitleDuration, compileEventProperties, daysInMonth, eventsFixture, renderFixtureEvents, variationsToColorRecord };
+export { Calendar, CalendarAllDayEvent, CalendarEntry, CalendarEvent, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, type CalendarVariant, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, WeekChip, addDays, addMinutes, calculateEventProperties, calculateTitleDuration, compileEventProperties, daysInMonth, eventsFixture, mergeSx, renderFixtureEvents, variationsToColorRecord };

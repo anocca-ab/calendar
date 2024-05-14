@@ -5,6 +5,7 @@ import {
   EventTypography,
   variationsToColorRecord,
 } from "../../calendar_grid/components/calendar_event";
+import { differenceInMinutes, format } from "date-fns";
 
 export function CalendarAllDayEvent({
   title,
@@ -19,6 +20,13 @@ export function CalendarAllDayEvent({
   variant?: CalendarVariant;
   sx?: SxProps<Theme>;
 }) {
+  const minutes = differenceInMinutes(endTime, startTime, {
+    roundingMethod: "floor",
+  });
+
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  console.log(days);
   return (
     <Box
       sx={mergeSx(
@@ -28,6 +36,7 @@ export function CalendarAllDayEvent({
           padding: "0px 8px",
           height: "16px",
           borderRadius: "4px",
+          width: days > 1 ? `${days * 120 - 10}px` : "110px",
         },
         sx,
       )}

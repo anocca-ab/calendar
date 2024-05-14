@@ -5,7 +5,7 @@ import { CalendarFullDayEventBar } from "./components/calendar_full_day_event_ba
 
 export function CalendarHeader() {
   return (
-    <FlexCol>
+    <FlexCol width="664px">
       <CalendarLayoutBar />
       <CalendarWeekViewBar />
       <CalendarFullDayEventBar eventHeight={2} />

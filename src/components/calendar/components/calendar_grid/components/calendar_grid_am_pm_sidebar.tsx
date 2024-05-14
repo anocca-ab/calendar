@@ -33,7 +33,7 @@ export function CalendarGridAmPmSidebar() {
             key={index + hour}
             sx={{
               height: "60px",
-              alignSelf: "stretch",
+              alignSelf: "center",
               justifyContent: "center",
             }}
           >

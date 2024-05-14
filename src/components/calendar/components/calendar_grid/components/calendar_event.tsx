@@ -41,7 +41,7 @@ export function CalendarEvent({
   } = compileEventProperties(title, startTime, endTime, variant);
 
   return (
-    <Box sx={mergeSx(eventSxProp, sx)}>
+    <Box sx={mergeSx(eventSxProp, sx)} maxWidth="110px">
       <Box>
         <EventTypography>{updatedTitle}</EventTypography>
       </Box>
@@ -145,12 +145,12 @@ export function calculateEventProperties(
     padding: "0px 8px",
     alignItems: "center",
     position: "absolute",
+    borderRadius: "4px",
 
     backgroundColor: variationsToColorRecord[variant],
     width: "110px",
     minHeight: "15px",
     border: "1px solid #FFF",
-    borderRadius: "4px",
   };
 
   if (days === 1) {

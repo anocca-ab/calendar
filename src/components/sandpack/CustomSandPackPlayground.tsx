@@ -4,10 +4,17 @@ import {
   SandpackPreview,
   SandpackProvider,
 } from "@codesandbox/sandpack-react";
+import type { SandpackFiles } from "@codesandbox/sandpack-react";
 import { useState } from "react";
-import { files } from "./files";
+import { commonFiles } from "./common_files";
 
-export function CustomSandPackPlayground({ height }: { height: number }) {
+export function CustomSandPackPlayground({
+  files,
+  height,
+}: {
+  files: SandpackFiles;
+  height: number;
+}) {
   const [editorViewable, setEditorViewable] = useState(true);
 
   const customSetup = {
@@ -22,7 +29,7 @@ export function CustomSandPackPlayground({ height }: { height: number }) {
   return (
     <SandpackProvider
       template="react-ts"
-      files={files}
+      files={{ ...commonFiles, ...files }}
       customSetup={customSetup}
       theme="auto"
     >

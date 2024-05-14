@@ -2,13 +2,14 @@ import { Box, Divider } from "@mui/material";
 import { CalendarGridAmPmSidebar } from "./components/calendar_grid_am_pm_sidebar";
 import { CalendarEvent } from "./components/calendar_event";
 import { addMinutes } from "../../helpers";
+import { FlexCol, FlexRow } from "../../wrappers";
 
 export function CalendarGrid() {
   return (
-    <Box
+    <FlexRow
       sx={{
-        display: "flex",
         alignItems: "flex-start",
+        width: "664px",
       }}
     >
       <CalendarGridAmPmSidebar />
@@ -20,10 +21,8 @@ export function CalendarGrid() {
         }}
       >
         {/* Horizontal lines */}
-        <Box
+        <FlexCol
           sx={{
-            display: "flex",
-            flexDirection: "column",
             gap: "59px",
             position: "absolute",
             alignItems: "stretch",
@@ -41,16 +40,15 @@ export function CalendarGrid() {
               />
             );
           })}
-        </Box>
+        </FlexCol>
         {/* Vertical lines */}
-        <Box
+        <FlexRow
           sx={{
-            display: "flex",
-            flexDirection: "row",
             position: "absolute",
             alignItems: "stretch",
+            justifyContent: "flex-start",
             inset: 0,
-            justifyContent: "space-between",
+            gap: "119px",
           }}
         >
           {[...Array(6)].map((_, i) => {
@@ -64,7 +62,7 @@ export function CalendarGrid() {
               />
             );
           })}
-        </Box>
+        </FlexRow>
         <Box
           sx={{
             position: "absolute",
@@ -112,6 +110,6 @@ export function CalendarGrid() {
           return eventsFixture;
         })}
       </Grid> */}
-    </Box>
+    </FlexRow>
   );
 }

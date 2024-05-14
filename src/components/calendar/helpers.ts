@@ -1,4 +1,4 @@
-import { SxProps } from "@mui/material";
+import type { SxProps } from "@mui/material";
 
 export function addDays(date: Date, days: number) {
   const newDate = new Date(date);

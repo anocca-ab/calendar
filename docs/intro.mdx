@@ -4,11 +4,21 @@ sidebar_position: 1
 
 import { SandPackPlayground } from "@site/src/components/sandpack/SandPackPlayground";
 import { CustomSandPackPlayground } from "@site/src/components/sandpack/CustomSandPackPlayground";
+import { CalendarEntry } from "@site/src/components/calendar/calendar_entry";
+import {
+  AppTsx,
+  CalendarTsx,
+  CalendarHeaderTsx,
+  CalendarGridTsx,
+  CalendarEventTsx,
+} from "@site/src/components/sandpack/codes.ts";
 
 # Tutorial Intro
 
 Let's discover **Calendar in less than 5 minutes**.
 
-<SandPackPlayground />
+{/* <SandPackPlayground files={{ "/App.tsx": { code: AppTsx, },    "/Calendar.tsx": {      code: CalendarTsx,    },    "/CalendarHeader.tsx": {      code: CalendarHeaderTsx,    },    "/CalendarGrid.tsx": {      code: CalendarGridTsx,    },    "/CalendarEvent.tsx": {      code: CalendarEventTsx,    },  }}/> */}
 
-<CustomSandPackPlayground height={500} />
+<CalendarEntry />
+
+{/* <CustomSandPackPlayground height={500} /> */}
