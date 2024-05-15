@@ -1,227 +1,85 @@
 export const AppTsx = `
+import { Box, ScopedCssBaseline } from "@mui/material"
 import { WeekCalendar } from "@anocca/calendar";
-import { events } from './fixtures.tsx';
+import { eventsFixture } from './fixtures.tsx';
 
 export default function App () {
   return (
-    <WeekCalendar
-      events={events}
-      onEditEvent={(oldEvent, newEvent) => {}}
-      onCreateEvent{(event) => {}}
-      onMoveEvent={(oldEvent, newEvent) => {}}
-    />
-  );
-}
-`;
-
-export const fixtures = `
-export const events = [
-  {
-    title: "event",
-    startTime: new Date(),
-    endTime: addMinutes(new Date(), 10),
-    color: "orange",
-  },
-  {
-    title: "event",
-    startTime: new Date(),
-    endTime: addMinutes(new Date(), 15),
-    color: "red",
-  },
-  {
-    title: "event",
-    startTime: new Date(),
-    endTime: addMinutes(new Date(), 36),
-    color: "teal",
-  },
-  {
-    title: "event",
-    startTime: new Date(),
-    endTime: addMinutes(new Date(), 120),
-    color: "pink",
-  },
-  {
-    title: "event",
-    startTime: new Date(),
-    endTime: addMinutes(new Date(), 181),
-    color: "indigo",
-  },
-];
-`;
-
-export const CalendarTsx = `
-import { FlexCol } from "@internals/calendar";
-import CalendarHeader from "./CalendarHeader.tsx";
-import CalendarGrid from "./CalendarGrid.tsx";
-
-export default function Calendar() {
-  return (
-    <FlexCol width="664px">
-      <div style={{paddingLeft:'24px'}}>
-        <CalendarHeader />
-      </div>
-      <CalendarGrid />
-    </FlexCol>
-  );
-}
-`;
-
-export const CalendarHeaderTsx = `
-import { 
-  CalendarLayoutBar, 
-  CalendarWeekViewBar, 
-  CalendarFullDayEventBar, 
-  FlexCol 
-} from "@internals/calendar";
-
-export default function CalendarHeader() {
-  return (
-    <FlexCol>
-      <CalendarLayoutBar />
-      <CalendarWeekViewBar />
-      <CalendarFullDayEventBar eventHeight={2} />
-    </FlexCol>
-  );
-}`;
-
-export const CalendarGridTsx = `
-import { Box, Divider } from "@mui/material";
-import CalendarEvent from "./CalendarEvent.tsx";
-import { 
-  CalendarGridAmPmSidebar, 
-  FlexRow, 
-  FlexCol, 
-  addMinutes
- } from "@internals/calendar";
-
-export default function CalendarGrid() {
-  return (
-    <FlexRow
-    sx={{
-      alignItems: "flex-start",
-      width: "664px",
-    }}
-  >
-    <CalendarGridAmPmSidebar />
-    <Box
-      sx={{
-        position: "relative",
-        width: "100%",
-        height: 1440,
-      }}
-    >
-      {/* Horizontal lines */}
-      <FlexCol
-        sx={{
-          gap: "59px",
-          position: "absolute",
-          alignItems: "stretch",
-          inset: 0,
-        }}
-      >
-        {[...Array(25)].map((_, i) => {
-          return (
-            <Divider
-              key={i}
-              sx={{
-                marginLeft: "-16px",
-                opacity: i === 0 ? 0 : 1,
-              }}
-            />
-          );
-        })}
-      </FlexCol>
-      {/* Vertical lines */}
-      <FlexRow
-        sx={{
-          position: "absolute",
-          alignItems: "stretch",
-          justifyContent: "flex-start",
-          inset: 0,
-          gap: "120px",
-        }}
-      >
-        {[...Array(6)].map((_, i) => {
-          return (
-            <Divider
-              key={i}
-              orientation="vertical"
-              sx={{
-                opacity: i === 5 ? 0 : 1,
-              }}
-            />
-          );
-        })}
-      </FlexRow>
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-        }}
-      >
-        <Box sx={{ top: 1, left: 1, position: "absolute" }}>
-          <CalendarEvent
-            variant="orange"
-            title="event"
-            startTime={new Date()}
-            endTime={addMinutes(new Date(), 10)}
-          />
-        </Box>
+    <ScopedCssBaseline>
+      <Box width="100%" height="100%" display="flex" p={4}>
+        <WeekCalendar
+          events={eventsFixture}
+          onEditEvent={(oldEvent, newEvent) => {}}
+          onCreateEvent={(newEvent) => {}}
+          onMoveEvent={(oldEvent, newEvent) => {}}
+        />
       </Box>
-    </Box>
-  </FlexRow>
+    </ScopedCssBaseline>
   );
 }
 `;
 
-export const CalendarEventTsx = `
-  import { 
-    mergeSx, 
-    compileEventProperties, 
-    EventTypography, 
-    variationsToColorRecord
-  } from "@internals/calendar";
-  import { Box } from "@mui/material";
+export const FixturesTsx = `
+import type { CalendarEvent } from "@anocca/calendar";
+import {  addDays, addMinutes } from "@anocca/calendar";
 
-  export default function CalendarEvent({
-    title,
-    startTime,
-    endTime,
-    variant = "orange",
-    sx,
-  }: {
-    title: string;
-    startTime: Date;
-    endTime: Date;
-    variant?: CalendarVariant;
-    sx?: SxProps<Theme>;
-  }) {
-    const {
-      sxProps: eventSxProp,
-      updatedTitle,
-      updatedDuration,
-    } = compileEventProperties(title, startTime, endTime, variant);
 
-    return (
-      <Box sx={
-        mergeSx(
-          // {
-          //   backgroundColor: variationsToColorRecord[variant],
-          //   display: "flex",
-          //   padding: "0px 8px",
-          //   height: "16px",
-          //   borderRadius: "4px",
-          // }, 
-          eventSxProp,
-          sx
-        )
-      }>
-        <Box>
-          <EventTypography>aa</EventTypography>
-        </Box>
+export const eventsFixture: {
+  allDayEvents: CalendarEvent[];
+  gridEvents: CalendarEvent[];
+} = {
+  allDayEvents: [
+    {
+      title: "event",
+      startTime: new Date(),
+      endTime: addDays(new Date(), 4),
+      variant: "pink",
+    },
+    {
+      title: "event",
+      startTime: new Date(),
+      endTime: addDays(new Date(), 2),
+      variant: "pink",
+    },
+    {
+      title: "event",
+      startTime: new Date(),
+      endTime: addDays(new Date(), 1),
+      variant: "red",
+    },
+  ],
+  gridEvents: [
+    {
+      title: "event",
+      startTime: new Date(),
+      endTime: addMinutes(new Date(), 10),
+      variant: "orange",
+    },
+    {
+      title: "event",
+      startTime: new Date(),
+      endTime: addMinutes(new Date(), 15),
+      variant: "red",
+    },
+    {
+      title: "event",
+      startTime: new Date(),
+      endTime: addMinutes(new Date(), 36),
+      variant: "teal",
+    },
+    {
+      title: "event",
+      startTime: new Date(),
+      endTime: addMinutes(new Date(), 120),
+      variant: "pink",
+    },
+    {
+      title: "event",
+      startTime: new Date(),
+      endTime: addMinutes(new Date(), 181),
+      variant: "indigo",
+    },
+  ],
+};
 
-        <EventTypography>aa</EventTypography>
-      </Box>
-    );
-  }
 `;

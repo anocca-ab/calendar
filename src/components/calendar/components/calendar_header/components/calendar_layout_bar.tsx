@@ -1,5 +1,5 @@
 import { Button, IconButton } from "@mui/material";
-import { FlexRow } from "../../../wrappers";
+import { FlexRow } from "../../wrappers";
 import { MonthYearRowDate } from "./month_year_row_date";
 import { WeekChip } from "./week_chip";
 import { MdOutlineChevronLeft, MdOutlineChevronRight } from "react-icons/md";

@@ -1,11 +1,11 @@
 import { Box, SxProps, Theme } from "@mui/material";
+import { differenceInMinutes } from "date-fns";
 import { mergeSx } from "../../../helpers";
+import { CalendarVariant } from "../../../types";
 import {
-  CalendarVariant,
   EventTypography,
   variationsToColorRecord,
 } from "../../calendar_grid/components/calendar_event";
-import { differenceInMinutes, format } from "date-fns";
 
 export function CalendarAllDayEvent({
   title,
@@ -26,7 +26,7 @@ export function CalendarAllDayEvent({
 
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
-  console.log(days);
+
   return (
     <Box
       sx={mergeSx(

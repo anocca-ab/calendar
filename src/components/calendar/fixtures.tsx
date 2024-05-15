@@ -1,10 +1,10 @@
-import { HourCalendarCell } from "./components/calendar_grid/components/hour_calendar_cell";
-import {
-  CalendarVariant,
-  CalendarEvent,
-} from "./components/calendar_grid/components/calendar_event";
-import { addMinutes } from "./helpers";
+import { addDays, addMinutes } from "./helpers";
 import { Box } from "@mui/material";
+import { CalendarEvent } from "./components/calendar_grid/components/calendar_event";
+import type {
+  CalendarEvent as CalendarEventType,
+  CalendarVariant,
+} from "./types";
 
 export function renderFixtureEvents(
   numberOfEvents: number,
@@ -29,45 +29,60 @@ export function renderFixtureEvents(
   return events;
 }
 
-export const eventsFixture = [
-  <HourCalendarCell key="orange">
-    <CalendarEvent
-      variant="orange"
-      title="event"
-      startTime={new Date()}
-      endTime={addMinutes(new Date(), 10)}
-    />
-  </HourCalendarCell>,
-  <HourCalendarCell key="red">
-    <CalendarEvent
-      variant="red"
-      title="event"
-      startTime={new Date()}
-      endTime={addMinutes(new Date(), 15)}
-    />
-  </HourCalendarCell>,
-  <HourCalendarCell key="teal">
-    <CalendarEvent
-      variant="teal"
-      title="event"
-      startTime={new Date()}
-      endTime={addMinutes(new Date(), 36)}
-    />
-  </HourCalendarCell>,
-  <HourCalendarCell key="pink">
-    <CalendarEvent
-      variant="pink"
-      title="event"
-      startTime={new Date()}
-      endTime={addMinutes(new Date(), 120)}
-    />
-  </HourCalendarCell>,
-  <HourCalendarCell key="indigo">
-    <CalendarEvent
-      variant="indigo"
-      title="event"
-      startTime={new Date()}
-      endTime={addMinutes(new Date(), 181)}
-    />
-  </HourCalendarCell>,
-];
+export const eventsFixture: {
+  allDayEvents: CalendarEventType[];
+  gridEvents: CalendarEventType[];
+} = {
+  allDayEvents: [
+    {
+      title: "event",
+      startTime: new Date(),
+      endTime: addDays(new Date(), 4),
+      variant: "pink",
+    },
+    {
+      title: "event",
+      startTime: new Date(),
+      endTime: addDays(new Date(), 2),
+      variant: "pink",
+    },
+    {
+      title: "event",
+      startTime: new Date(),
+      endTime: addDays(new Date(), 1),
+      variant: "red",
+    },
+  ],
+  gridEvents: [
+    {
+      title: "event",
+      startTime: new Date(),
+      endTime: addMinutes(new Date(), 10),
+      variant: "orange",
+    },
+    {
+      title: "event",
+      startTime: new Date(),
+      endTime: addMinutes(new Date(), 15),
+      variant: "red",
+    },
+    {
+      title: "event",
+      startTime: new Date(),
+      endTime: addMinutes(new Date(), 36),
+      variant: "teal",
+    },
+    {
+      title: "event",
+      startTime: new Date(),
+      endTime: addMinutes(new Date(), 120),
+      variant: "pink",
+    },
+    {
+      title: "event",
+      startTime: new Date(),
+      endTime: addMinutes(new Date(), 181),
+      variant: "indigo",
+    },
+  ],
+};

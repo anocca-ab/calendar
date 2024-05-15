@@ -8,15 +8,37 @@ import * as _mui_material_OverridableComponent from '@mui/material/OverridableCo
 
 declare function CalendarEntry(): react_jsx_runtime.JSX.Element;
 
-declare function Calendar(): react_jsx_runtime.JSX.Element;
+type CalendarEvent = {
+    title: string;
+    startTime: Date;
+    endTime: Date;
+    variant?: CalendarVariant;
+};
+type WeekCalendarProps = {
+    events: {
+        allDayEvents: CalendarEvent[];
+        gridEvents: CalendarEvent[];
+    };
+    onEditEvent: (oldEvent: CalendarEvent, newEvent: CalendarEvent) => void;
+    onCreateEvent: (event: CalendarEvent) => void;
+    onMoveEvent: (oldEvent: CalendarEvent, newEvent: CalendarEvent) => void;
+};
+type CalendarVariant = "orange" | "indigo" | "pink" | "teal" | "red";
 
-declare function CalendarHeader(): react_jsx_runtime.JSX.Element;
+declare function WeekCalendar(props: WeekCalendarProps): react_jsx_runtime.JSX.Element;
 
-declare function CalendarGrid(): react_jsx_runtime.JSX.Element;
+declare function CalendarHeader({ allDayEvents, }: {
+    allDayEvents: CalendarEvent[];
+}): react_jsx_runtime.JSX.Element;
+
+declare function CalendarGrid({ gridEvents, }: {
+    gridEvents: CalendarEvent[];
+}): react_jsx_runtime.JSX.Element;
 
 declare function CalendarWeekViewBar(): react_jsx_runtime.JSX.Element;
 
-declare function CalendarFullDayEventBar({ eventHeight, }: {
+declare function CalendarFullDayEventBar({ events, eventHeight, }: {
+    events: CalendarEvent[];
     eventHeight: number;
 }): react_jsx_runtime.JSX.Element;
 
@@ -32,18 +54,18 @@ type Sx = SxProps<any>;
  */
 declare function mergeSx(...sxs: (Sx | null | undefined | boolean)[]): Sx;
 
-type CalendarVariant = "orange" | "indigo" | "pink" | "teal" | "red";
+declare function renderFixtureEvents(numberOfEvents: number, variant: CalendarVariant): react.JSX.Element[];
+declare const eventsFixture: {
+    allDayEvents: CalendarEvent[];
+    gridEvents: CalendarEvent[];
+};
+
+declare function CalendarGridAmPmSidebar(): react_jsx_runtime.JSX.Element;
+
 declare const variationsToColorRecord: Record<CalendarVariant, string>;
 declare const EventTypography: _emotion_styled.StyledComponent<_mui_material.TypographyOwnProps & _mui_material_OverridableComponent.CommonProps & Omit<Omit<react.DetailedHTMLProps<react.HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>, "ref"> & {
     ref?: react.Ref<HTMLSpanElement>;
 }, "className" | "style" | "classes" | "border" | "borderTop" | "borderRight" | "borderBottom" | "borderLeft" | "borderColor" | "borderRadius" | "display" | "displayPrint" | "overflow" | "textOverflow" | "visibility" | "whiteSpace" | "flexBasis" | "flexDirection" | "flexWrap" | "justifyContent" | "alignItems" | "alignContent" | "order" | "flex" | "flexGrow" | "flexShrink" | "alignSelf" | "justifyItems" | "justifySelf" | "gap" | "columnGap" | "rowGap" | "gridColumn" | "gridRow" | "gridAutoFlow" | "gridAutoColumns" | "gridAutoRows" | "gridTemplateColumns" | "gridTemplateRows" | "gridTemplateAreas" | "gridArea" | "bgcolor" | "color" | "zIndex" | "position" | "top" | "right" | "bottom" | "left" | "boxShadow" | "width" | "maxWidth" | "minWidth" | "height" | "maxHeight" | "minHeight" | "boxSizing" | "m" | "mt" | "mr" | "mb" | "ml" | "mx" | "my" | "p" | "pt" | "pr" | "pb" | "pl" | "px" | "py" | "margin" | "marginTop" | "marginRight" | "marginBottom" | "marginLeft" | "marginX" | "marginY" | "marginInline" | "marginInlineStart" | "marginInlineEnd" | "marginBlock" | "marginBlockStart" | "marginBlockEnd" | "padding" | "paddingTop" | "paddingRight" | "paddingBottom" | "paddingLeft" | "paddingX" | "paddingY" | "paddingInline" | "paddingInlineStart" | "paddingInlineEnd" | "paddingBlock" | "paddingBlockStart" | "paddingBlockEnd" | "typography" | "fontFamily" | "fontSize" | "fontStyle" | "fontWeight" | "letterSpacing" | "lineHeight" | "textAlign" | "textTransform" | "children" | "sx" | "align" | "gutterBottom" | "noWrap" | "paragraph" | "variant" | "variantMapping"> & _mui_system.MUIStyledCommonProps<Theme>, {}, {}>;
-declare function CalendarEvent({ title, startTime, endTime, variant, sx, }: {
-    title: string;
-    startTime: Date;
-    endTime: Date;
-    variant?: CalendarVariant;
-    sx?: SxProps<Theme>;
-}): react_jsx_runtime.JSX.Element;
 /**
  * Returns the sxProps for the wrapper box and the title/duration strings
  *
@@ -80,11 +102,6 @@ declare function calculateTitleDuration(title: string, startTime: Date, endTime:
  */
 declare function calculateEventProperties(startTime: Date, endTime: Date, variant: CalendarVariant): SxProps<Theme>;
 
-declare function renderFixtureEvents(numberOfEvents: number, variant: CalendarVariant): react.JSX.Element[];
-declare const eventsFixture: react_jsx_runtime.JSX.Element[];
-
-declare function CalendarGridAmPmSidebar(): react_jsx_runtime.JSX.Element;
-
 declare function CalendarAllDayEvent({ title, startTime, endTime, variant, sx, }: {
     title: string;
     startTime: Date;
@@ -120,4 +137,4 @@ declare function FlexCol(props: BoxProps): react_jsx_runtime.JSX.Element;
  */
 declare function FlexRow(props: BoxProps): react_jsx_runtime.JSX.Element;
 
-export { Calendar, CalendarAllDayEvent, CalendarEntry, CalendarEvent, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, type CalendarVariant, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, WeekChip, addDays, addMinutes, calculateEventProperties, calculateTitleDuration, compileEventProperties, daysInMonth, eventsFixture, mergeSx, renderFixtureEvents, variationsToColorRecord };
+export { CalendarAllDayEvent, CalendarEntry, type CalendarEvent, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, type CalendarVariant, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, WeekCalendar, type WeekCalendarProps, WeekChip, addDays, addMinutes, calculateEventProperties, calculateTitleDuration, compileEventProperties, daysInMonth, eventsFixture, mergeSx, renderFixtureEvents, variationsToColorRecord };

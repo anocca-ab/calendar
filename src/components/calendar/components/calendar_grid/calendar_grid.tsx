@@ -1,10 +1,14 @@
 import { Box, Divider } from "@mui/material";
-import { CalendarGridAmPmSidebar } from "./components/calendar_grid_am_pm_sidebar";
+import type { CalendarEvent as CalendarEventType } from "../../types";
+import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarEvent } from "./components/calendar_event";
-import { addMinutes } from "../../helpers";
-import { FlexCol, FlexRow } from "../../wrappers";
+import { CalendarGridAmPmSidebar } from "./components/calendar_grid_am_pm_sidebar";
 
-export function CalendarGrid() {
+export function CalendarGrid({
+  gridEvents,
+}: {
+  gridEvents: CalendarEventType[];
+}) {
   return (
     <FlexRow
       sx={{
@@ -70,12 +74,7 @@ export function CalendarGrid() {
           }}
         >
           <Box sx={{ top: 1, left: 1, position: "absolute" }}>
-            <CalendarEvent
-              variant="orange"
-              title="event"
-              startTime={new Date()}
-              endTime={addMinutes(new Date(), 10)}
-            />
+            <CalendarEvent {...gridEvents[0]} />
           </Box>
         </Box>
       </Box>

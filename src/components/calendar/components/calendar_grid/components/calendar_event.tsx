@@ -1,8 +1,14 @@
-import { Box, ScopedCssBaseline, SxProps, Theme, Typography, styled } from "@mui/material";
+import {
+  Box,
+  ScopedCssBaseline,
+  SxProps,
+  Theme,
+  Typography,
+  styled,
+} from "@mui/material";
 import { differenceInMinutes, format } from "date-fns";
 import { mergeSx } from "../../../helpers";
-
-export type CalendarVariant = "orange" | "indigo" | "pink" | "teal" | "red";
+import { CalendarVariant } from "../../../types";
 
 export const variationsToColorRecord: Record<CalendarVariant, string> = {
   orange: "#FF7043",
