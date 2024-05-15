@@ -1,15 +1,52 @@
 export const AppTsx = `
-import Calendar from './Calendar.tsx'
-import { Box } from "@mui/material"
-import { FlexCol } from "@internals/calendar";
+import { WeekCalendar } from "@anocca/calendar";
+import { events } from './fixtures.tsx';
 
 export default function App () {
   return (
-    <Box width="100%" height="100%" display="flex" p={4}>
-      <Calendar />
-    </Box>
+    <WeekCalendar
+      events={events}
+      onEditEvent={(oldEvent, newEvent) => {}}
+      onCreateEvent{(event) => {}}
+      onMoveEvent={(oldEvent, newEvent) => {}}
+    />
   );
 }
+`;
+
+export const fixtures = `
+export const events = [
+  {
+    title: "event",
+    startTime: new Date(),
+    endTime: addMinutes(new Date(), 10),
+    color: "orange",
+  },
+  {
+    title: "event",
+    startTime: new Date(),
+    endTime: addMinutes(new Date(), 15),
+    color: "red",
+  },
+  {
+    title: "event",
+    startTime: new Date(),
+    endTime: addMinutes(new Date(), 36),
+    color: "teal",
+  },
+  {
+    title: "event",
+    startTime: new Date(),
+    endTime: addMinutes(new Date(), 120),
+    color: "pink",
+  },
+  {
+    title: "event",
+    startTime: new Date(),
+    endTime: addMinutes(new Date(), 181),
+    color: "indigo",
+  },
+];
 `;
 
 export const CalendarTsx = `

@@ -1,4 +1,4 @@
-import { Box, SxProps, Theme, Typography, styled } from "@mui/material";
+import { Box, ScopedCssBaseline, SxProps, Theme, Typography, styled } from "@mui/material";
 import { differenceInMinutes, format } from "date-fns";
 import { mergeSx } from "../../../helpers";
 
@@ -41,13 +41,15 @@ export function CalendarEvent({
   } = compileEventProperties(title, startTime, endTime, variant);
 
   return (
-    <Box sx={mergeSx(eventSxProp, sx)} maxWidth="110px">
-      <Box>
-        <EventTypography>{updatedTitle}</EventTypography>
-      </Box>
+    <ScopedCssBaseline>
+      <Box sx={mergeSx(eventSxProp, sx)} maxWidth="110px">
+        <Box>
+          <EventTypography>{updatedTitle}</EventTypography>
+        </Box>
 
-      <EventTypography>{updatedDuration}</EventTypography>
-    </Box>
+        <EventTypography>{updatedDuration}</EventTypography>
+      </Box>
+    </ScopedCssBaseline>
   );
 }
 
