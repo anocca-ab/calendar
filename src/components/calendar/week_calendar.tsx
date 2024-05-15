@@ -14,19 +14,20 @@ export function WeekCalendar(props: WeekCalendarProps) {
   return (
     // the height should be 832px but is being removed because messes with the live editor
     <>
-      <GlobalStyles
-        styles={{
-          "*:not(path)": {
-            all: "revert",
+      <Box
+        sx={{
+          "*": {
+            all: "revert-layer",
           },
         }}
-      />
-      <ScopedCssBaseline>
-        <FlexCol width="664px">
-          <CalendarHeader allDayEvents={events.allDayEvents} />
-          <CalendarBody gridEvents={events.gridEvents} />
-        </FlexCol>
-      </ScopedCssBaseline>
+      >
+        <ScopedCssBaseline>
+          <FlexCol width="664px">
+            <CalendarHeader allDayEvents={events.allDayEvents} />
+            <CalendarBody gridEvents={events.gridEvents} />
+          </FlexCol>
+        </ScopedCssBaseline>
+      </Box>
     </>
   );
 }
