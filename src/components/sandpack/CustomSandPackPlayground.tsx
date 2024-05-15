@@ -23,6 +23,7 @@ export function CustomSandPackPlayground({
       "@emotion/styled": "latest",
       "@emotion/react": "latest",
       "react-icons": "latest",
+      "@fontsource/roboto": "latest",
     },
   };
 

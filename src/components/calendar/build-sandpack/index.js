@@ -1,5 +1,6 @@
 'use strict';
 
+require('@fontsource/roboto');
 var material = require('@mui/material');
 var jsxRuntime = require('react/jsx-runtime');
 var md = require('react-icons/md');
