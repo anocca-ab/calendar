@@ -1,8 +1,27 @@
-import { Button, IconButton } from "@mui/material";
+import { Button, IconButton, SvgIcon } from "@mui/material";
 import { FlexRow } from "../../wrappers";
 import { MonthYearRowDate } from "./month_year_row_date";
 import { WeekChip } from "./week_chip";
-import { MdOutlineChevronLeft, MdOutlineChevronRight } from "react-icons/md";
+
+const ChevronLeft = (props: React.ComponentProps<"svg">) => (
+  <SvgIcon>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={24}
+      height={24}
+      fill="black"
+      viewBox="0 0 24 24"
+      color="inherit"
+      {...props}
+    >
+      <path
+        fill="#000"
+        fillOpacity={0.54}
+        d="M15.705 7.41 14.295 6l-6 6 6 6 1.41-1.41-4.58-4.59 4.58-4.59Z"
+      />
+    </svg>
+  </SvgIcon>
+);
 
 export function CalendarLayoutBar() {
   const today = new Date();
@@ -18,10 +37,10 @@ export function CalendarLayoutBar() {
       <Button variant="outlined">Today</Button>
       <FlexRow>
         <IconButton>
-          <MdOutlineChevronLeft />
+          <ChevronLeft />
         </IconButton>
         <IconButton>
-          <MdOutlineChevronRight />
+          <ChevronLeft style={{ transform: "rotate(180deg)" }} />
         </IconButton>
       </FlexRow>
 

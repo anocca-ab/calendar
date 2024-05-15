@@ -1,20 +1,18 @@
 export const AppTsx = `
-import { Box, ScopedCssBaseline } from "@mui/material"
+import { Box } from "@mui/material"
 import { WeekCalendar } from "@anocca/calendar";
 import { eventsFixture } from './fixtures.tsx';
 
 export default function App () {
   return (
-    <ScopedCssBaseline>
-      <Box width="100%" height="100%" display="flex" p={4}>
-        <WeekCalendar
-          events={eventsFixture}
-          onEditEvent={(oldEvent, newEvent) => {}}
-          onCreateEvent={(newEvent) => {}}
-          onMoveEvent={(oldEvent, newEvent) => {}}
-        />
-      </Box>
-    </ScopedCssBaseline>
+    <Box p={4}>
+      <WeekCalendar
+        events={eventsFixture}
+        onEditEvent={(oldEvent, newEvent) => {}}
+        onCreateEvent={(newEvent) => {}}
+        onMoveEvent={(oldEvent, newEvent) => {}}
+      />
+    </Box>
   );
 }
 `;
@@ -32,7 +30,7 @@ export const eventsFixture: {
     {
       title: "event",
       startTime: new Date(),
-      endTime: addDays(new Date(), 4),
+      endTime: addDays(new Date(), 1),
       variant: "pink",
     },
     {
@@ -44,7 +42,7 @@ export const eventsFixture: {
     {
       title: "event",
       startTime: new Date(),
-      endTime: addDays(new Date(), 1),
+      endTime: addDays(new Date(), 4),
       variant: "red",
     },
   ],

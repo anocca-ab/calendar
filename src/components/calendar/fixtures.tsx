@@ -37,7 +37,7 @@ export const eventsFixture: {
     {
       title: "event",
       startTime: new Date(),
-      endTime: addDays(new Date(), 4),
+      endTime: addDays(new Date(), 1),
       variant: "pink",
     },
     {
@@ -49,7 +49,7 @@ export const eventsFixture: {
     {
       title: "event",
       startTime: new Date(),
-      endTime: addDays(new Date(), 1),
+      endTime: addDays(new Date(), 4),
       variant: "red",
     },
   ],

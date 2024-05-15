@@ -22,7 +22,6 @@ export function CustomSandPackPlayground({
       //   "@mui/material": "latest",
       "@emotion/styled": "latest",
       "@emotion/react": "latest",
-      "react-icons": "latest",
       "@fontsource/roboto": "latest",
     },
   };

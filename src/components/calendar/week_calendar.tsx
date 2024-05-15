@@ -1,4 +1,9 @@
-import { ScopedCssBaseline } from "@mui/material";
+import {
+  Box,
+  GlobalStyles,
+  ScopedCssBaseline,
+  StyledEngineProvider,
+} from "@mui/material";
 import { CalendarBody } from "./components/calendar_body/calendar_body";
 import { CalendarHeader } from "./components/calendar_header/calendar_header";
 import { FlexCol } from "./components/wrappers";
@@ -8,11 +13,24 @@ export function WeekCalendar(props: WeekCalendarProps) {
   const { events } = props;
   return (
     // the height should be 832px but is being removed because messes with the live editor
-    <ScopedCssBaseline>
-      <FlexCol width="664px">
-        <CalendarHeader allDayEvents={events.allDayEvents} />
-        <CalendarBody gridEvents={events.gridEvents} />
-      </FlexCol>
-    </ScopedCssBaseline>
+    <>
+      <StyledEngineProvider>
+        <GlobalStyles
+          styles={{
+            ".anocca-calendar-reset *:not(svg)": {
+              all: "revert",
+            },
+          }}
+        ></GlobalStyles>
+        <Box className="anocca-calendar-reset">
+          <ScopedCssBaseline enableColorScheme>
+            <FlexCol width="664px">
+              <CalendarHeader allDayEvents={events.allDayEvents} />
+              <CalendarBody gridEvents={events.gridEvents} />
+            </FlexCol>
+          </ScopedCssBaseline>
+        </Box>
+      </StyledEngineProvider>
+    </>
   );
 }
