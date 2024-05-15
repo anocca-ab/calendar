@@ -14,23 +14,19 @@ export function WeekCalendar(props: WeekCalendarProps) {
   return (
     // the height should be 832px but is being removed because messes with the live editor
     <>
-      <StyledEngineProvider>
-        <GlobalStyles
-          styles={{
-            ".anocca-calendar-reset *:not(svg)": {
-              all: "revert",
-            },
-          }}
-        ></GlobalStyles>
-        <Box className="anocca-calendar-reset">
-          <ScopedCssBaseline enableColorScheme>
-            <FlexCol width="664px">
-              <CalendarHeader allDayEvents={events.allDayEvents} />
-              <CalendarBody gridEvents={events.gridEvents} />
-            </FlexCol>
-          </ScopedCssBaseline>
-        </Box>
-      </StyledEngineProvider>
+      <GlobalStyles
+        styles={{
+          "*:not(path)": {
+            all: "revert",
+          },
+        }}
+      />
+      <ScopedCssBaseline>
+        <FlexCol width="664px">
+          <CalendarHeader allDayEvents={events.allDayEvents} />
+          <CalendarBody gridEvents={events.gridEvents} />
+        </FlexCol>
+      </ScopedCssBaseline>
     </>
   );
 }
