@@ -55,16 +55,18 @@ export function CalendarGrid({ events }: { events: CalendarEventType[] }) {
           );
         })}
       </FlexRow>
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-        }}
-      >
-        <Box sx={{ top: 1, left: 1, position: "absolute" }}>
-          <CalendarEvent {...events[0]} />
+      {events.length > 0 && (
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+          }}
+        >
+          <Box sx={{ top: 1, left: 1, position: "absolute" }}>
+            <CalendarEvent {...events[0]} />
+          </Box>
         </Box>
-      </Box>
+      )}
     </Box>
   );
 }

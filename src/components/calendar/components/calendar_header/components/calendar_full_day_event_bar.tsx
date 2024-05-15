@@ -58,31 +58,33 @@ export function CalendarFullDayEventBar({
           })}
         </FlexRow>
         {/* Events */}
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-          }}
-        >
-          {/* row 1 */}
+        {events.length > 0 && (
           <Box
-            sx={{ display: "grid", gridTemplateColumns: "repeat(5, 120px)" }}
+            sx={{
+              position: "absolute",
+              inset: 0,
+            }}
           >
-            <Box pl="2px">
-              <CalendarAllDayEvent {...events[0]} />
+            {/* row 1 */}
+            <Box
+              sx={{ display: "grid", gridTemplateColumns: "repeat(5, 120px)" }}
+            >
+              <Box pl="2px">
+                <CalendarAllDayEvent {...events[0]} />
+              </Box>
+              <Box pl="2px">
+                <CalendarAllDayEvent {...events[1]} />
+              </Box>
             </Box>
-            <Box pl="2px">
-              <CalendarAllDayEvent {...events[1]} />
-            </Box>
+            <Box sx={{ height: "1px" }} />
+            {/* row 2 */}
+            <FlexRow>
+              <Box pl="2px">
+                <CalendarAllDayEvent {...events[2]} />
+              </Box>
+            </FlexRow>
           </Box>
-          <Box sx={{ height: "1px" }} />
-          {/* row 2 */}
-          <FlexRow>
-            <Box pl="2px">
-              <CalendarAllDayEvent {...events[2]} />
-            </Box>
-          </FlexRow>
-        </Box>
+        )}
       </Box>
     </Box>
   );
