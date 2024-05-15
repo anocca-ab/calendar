@@ -1,26 +1,25 @@
 import { Box, SxProps, Theme } from "@mui/material";
 import { differenceInMinutes } from "date-fns";
 import { mergeSx } from "../../../helpers";
-import { CalendarVariant } from "../../../types";
 import {
   EventTypography,
   variationsToColorRecord,
 } from "../../calendar_body/components/calendar_event";
+import { CalendarEvent as CalendarEventType } from "@/types";
 
 export function CalendarAllDayEvent({
   title,
-  startTime,
-  endTime,
-  variant = "orange",
+  start,
+  end,
+  color = "orange",
   sx,
-}: {
-  title: string;
-  startTime: Date;
-  endTime: Date;
-  variant?: CalendarVariant;
+}: CalendarEventType & {
   sx?: SxProps<Theme>;
 }) {
-  const minutes = differenceInMinutes(endTime, startTime, {
+  if (!end) {
+    throw new Error("A full day event must have an end date!");
+  }
+  const minutes = differenceInMinutes(end, start, {
     roundingMethod: "floor",
   });
 
@@ -31,7 +30,7 @@ export function CalendarAllDayEvent({
     <Box
       sx={mergeSx(
         {
-          backgroundColor: variationsToColorRecord[variant],
+          backgroundColor: variationsToColorRecord[color],
           display: "flex",
           padding: "0px 8px",
           height: "16px",

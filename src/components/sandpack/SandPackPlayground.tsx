@@ -18,6 +18,7 @@ export function SandPackPlayground({ files }: { files: SandpackFiles }) {
           "@emotion/styled": "latest",
           "@emotion/react": "latest",
           "@fontsource/roboto": "latest",
+          "date-fns": "latest",
         },
       }}
       files={{ ...commonFiles, ...files }}

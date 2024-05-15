@@ -1,16 +1,9 @@
-import {
-  Box,
-  ScopedCssBaseline,
-  SxProps,
-  Theme,
-  Typography,
-  styled,
-} from "@mui/material";
-import { differenceInMinutes, format } from "date-fns";
+import { Box, SxProps, Theme, Typography, styled } from "@mui/material";
+import { addMinutes, differenceInMinutes, format } from "date-fns";
 import { mergeSx } from "../../../helpers";
-import { CalendarVariant } from "../../../types";
+import type { CalendarEvent as CalendarEventType } from "../../../types";
 
-export const variationsToColorRecord: Record<CalendarVariant, string> = {
+export const variationsToColorRecord: Record<string, string> = {
   orange: "#FF7043",
   indigo: "#5C6BC0",
   pink: "#EC407A",
@@ -28,34 +21,29 @@ export const EventTypography = styled(Typography)(({ theme }) => ({
 }));
 
 export function CalendarEvent({
-  title,
-  startTime,
-  endTime,
-  variant = "orange",
+  title = "(No title)",
+  start,
+  end,
+  color = "orange",
   sx,
-}: {
-  title: string;
-  startTime: Date;
-  endTime: Date;
-  variant?: CalendarVariant;
+}: CalendarEventType & {
   sx?: SxProps<Theme>;
 }) {
-  const {
-    sxProps: eventSxProp,
-    updatedTitle,
-    updatedDuration,
-  } = compileEventProperties(title, startTime, endTime, variant);
+  const { sxProps: eventSxProp, formattedDuration } = compileEventProperties(
+    title,
+    color,
+    start,
+    end,
+  );
 
   return (
-    <ScopedCssBaseline>
-      <Box sx={mergeSx(eventSxProp, sx)} maxWidth="110px">
-        <Box>
-          <EventTypography>{updatedTitle}</EventTypography>
-        </Box>
-
-        <EventTypography>{updatedDuration}</EventTypography>
+    <Box sx={mergeSx(eventSxProp, sx)} maxWidth="110px">
+      <Box>
+        <EventTypography>{title}</EventTypography>
       </Box>
-    </ScopedCssBaseline>
+
+      <EventTypography>{formattedDuration}</EventTypography>
+    </Box>
   );
 }
 
@@ -63,84 +51,75 @@ export function CalendarEvent({
  * Returns the sxProps for the wrapper box and the title/duration strings
  *
  * @param title
- * @param startTime
- * @param endTime
- * @param variant
+ * @param start
+ * @param end
+ * @param color
  * @returns
  */
 export function compileEventProperties(
   title: string,
-  startTime: Date,
-  endTime: Date,
-  variant: CalendarVariant,
+  color: string,
+  start: Date,
+  end?: Date,
 ): {
   sxProps: SxProps<Theme>;
-  updatedTitle: string;
-  updatedDuration: string;
+  formattedDuration: string;
 } {
   return {
-    sxProps: calculateEventProperties(startTime, endTime, variant),
-    ...calculateTitleDuration(title, startTime, endTime),
+    sxProps: calculateEventProperties(
+      start,
+      end ?? addMinutes(start, 15),
+      color,
+    ),
+    formattedDuration: formatDuration(start, end),
   };
 }
 
 /**
  * This function compiles and returns the title/duration information shown on the event component.
  *
- * @param title
- * @param startTime
- * @param endTime
+ * @param start
+ * @param end
  * @returns
  */
-export function calculateTitleDuration(
-  title: string,
-  startTime: Date,
-  endTime: Date,
-) {
-  const minutes = differenceInMinutes(endTime, startTime, {
+export function formatDuration(start: Date, end?: Date) {
+  if (!end) {
+    return format(start, "h:mm");
+  }
+
+  const minutes = differenceInMinutes(end, start, {
     roundingMethod: "floor",
   });
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
-  const updatedStart = format(startTime, "h:mmaaa");
-  const updatedEnd = format(endTime, "h:mmaaa");
+  const updatedStart = format(start, "h:mmaaa");
+  const updatedEnd = format(end, "h:mmaaa");
 
-  const updatedTitle =
-    days >= 2
-      ? `Multiday ${title}`
-      : days === 1
-        ? `Full day ${title}`
-        : minutes >= 180
-          ? `${hours} hour ${title}`
-          : minutes >= 30
-            ? `${minutes} min ${title}`
-            : `${minutes} min ${title}, `;
-
-  const updatedDuration =
+  const formattedDuration =
     days >= 1
       ? ""
       : minutes >= 30
-        ? `${format(startTime, "h:mm")} - ${updatedEnd}`
+        ? `${format(start, "h:mm")} - ${updatedEnd}`
         : updatedStart;
 
-  return { updatedTitle, updatedDuration };
+  return formattedDuration;
 }
 
 /**
  * A function to calculate the event's CSS properties
  *
- * @param startTime
- * @param endTime
- * @param variant
+ * @param start
+ * @param end
+ * @param color
  * @returns
  */
 export function calculateEventProperties(
-  startTime: Date,
-  endTime: Date,
-  variant: CalendarVariant,
+  start: Date,
+  end: Date,
+  color: string,
 ): SxProps<Theme> {
-  const minutes = differenceInMinutes(endTime, startTime, {
+  const minutes = differenceInMinutes(end, start, {
     roundingMethod: "floor",
   });
 
@@ -155,7 +134,7 @@ export function calculateEventProperties(
     position: "absolute",
     borderRadius: "4px",
 
-    backgroundColor: variationsToColorRecord[variant],
+    backgroundColor: variationsToColorRecord[color],
     width: "110px",
     minHeight: "15px",
     border: "1px solid #FFF",

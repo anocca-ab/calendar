@@ -1,15 +1,9 @@
-import { addDays, addMinutes } from "./helpers";
 import { Box } from "@mui/material";
+import { addDays, addMinutes } from "date-fns";
+import type { CalendarEvent as CalendarEventType } from "./types";
 import { CalendarEvent } from "./components/calendar_body/components/calendar_event";
-import type {
-  CalendarEvent as CalendarEventType,
-  CalendarVariant,
-} from "./types";
 
-export function renderFixtureEvents(
-  numberOfEvents: number,
-  variant: CalendarVariant,
-) {
+export function renderFixtureEvents(numberOfEvents: number, variant: string) {
   const events: React.JSX.Element[] = [];
 
   for (let i = 1; i <= numberOfEvents; i++) {
@@ -17,10 +11,10 @@ export function renderFixtureEvents(
       <Box height={i * 15 + 2}>
         <CalendarEvent
           key={i + variant}
-          variant={variant}
+          color={variant}
           title="event"
-          startTime={new Date()}
-          endTime={addMinutes(new Date(), i * 15)}
+          start={new Date()}
+          end={addMinutes(new Date(), i * 15)}
         />
       </Box>,
     );
@@ -29,60 +23,59 @@ export function renderFixtureEvents(
   return events;
 }
 
-export const eventsFixture: {
-  allDayEvents: CalendarEventType[];
-  gridEvents: CalendarEventType[];
-} = {
-  allDayEvents: [
-    {
-      title: "event",
-      startTime: new Date(),
-      endTime: addDays(new Date(), 1),
-      variant: "pink",
-    },
-    {
-      title: "event",
-      startTime: new Date(),
-      endTime: addDays(new Date(), 2),
-      variant: "pink",
-    },
-    {
-      title: "event",
-      startTime: new Date(),
-      endTime: addDays(new Date(), 4),
-      variant: "red",
-    },
-  ],
-  gridEvents: [
-    {
-      title: "event",
-      startTime: new Date(),
-      endTime: addMinutes(new Date(), 10),
-      variant: "orange",
-    },
-    {
-      title: "event",
-      startTime: new Date(),
-      endTime: addMinutes(new Date(), 15),
-      variant: "red",
-    },
-    {
-      title: "event",
-      startTime: new Date(),
-      endTime: addMinutes(new Date(), 36),
-      variant: "teal",
-    },
-    {
-      title: "event",
-      startTime: new Date(),
-      endTime: addMinutes(new Date(), 120),
-      variant: "pink",
-    },
-    {
-      title: "event",
-      startTime: new Date(),
-      endTime: addMinutes(new Date(), 181),
-      variant: "indigo",
-    },
-  ],
-};
+export const eventsFixture: CalendarEventType[] = [
+  {
+    id: "1",
+    title: "event",
+    start: new Date(),
+    color: "pink",
+  },
+  {
+    title: "event",
+    start: new Date(),
+    end: addDays(new Date(), 1),
+    color: "pink",
+  },
+  {
+    title: "event",
+    start: new Date(),
+    end: addDays(new Date(), 2),
+    color: "pink",
+  },
+  {
+    title: "event",
+    start: new Date(),
+    end: addDays(new Date(), 4),
+    color: "red",
+  },
+  {
+    title: "event",
+    start: new Date(),
+    end: addMinutes(new Date(), 10),
+    color: "orange",
+  },
+  {
+    title: "event",
+    start: new Date(),
+    end: addMinutes(new Date(), 15),
+    color: "red",
+  },
+  {
+    title: "event",
+    start: new Date(),
+    end: addMinutes(new Date(), 36),
+    color: "teal",
+  },
+  {
+    title: "event",
+    start: new Date(),
+    end: addMinutes(new Date(), 120),
+    color: "pink",
+  },
+  {
+    title: "event",
+    start: new Date(),
+    end: addMinutes(new Date(), 181),
+    color: "indigo",
+  },
+];

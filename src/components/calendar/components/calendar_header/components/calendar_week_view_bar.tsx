@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
 import { DayNumberStackDate } from "./day_number_stack_date";
-import { addDays } from "../../../helpers";
+import { addDays } from "date-fns";
 
 export function CalendarWeekViewBar() {
   const today = new Date();
