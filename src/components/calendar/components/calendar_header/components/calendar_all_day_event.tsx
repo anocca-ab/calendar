@@ -5,7 +5,7 @@ import { CalendarVariant } from "../../../types";
 import {
   EventTypography,
   variationsToColorRecord,
-} from "../../calendar_grid/components/calendar_event";
+} from "../../calendar_body/components/calendar_event";
 
 export function CalendarAllDayEvent({
   title,

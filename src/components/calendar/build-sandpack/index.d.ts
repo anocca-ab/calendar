@@ -31,8 +31,12 @@ declare function CalendarHeader({ allDayEvents, }: {
     allDayEvents: CalendarEvent[];
 }): react_jsx_runtime.JSX.Element;
 
-declare function CalendarGrid({ gridEvents, }: {
+declare function CalendarBody({ gridEvents, }: {
     gridEvents: CalendarEvent[];
+}): react_jsx_runtime.JSX.Element;
+
+declare function CalendarGrid({ events }: {
+    events: CalendarEvent[];
 }): react_jsx_runtime.JSX.Element;
 
 declare function CalendarWeekViewBar(): react_jsx_runtime.JSX.Element;
@@ -137,4 +141,4 @@ declare function FlexCol(props: BoxProps): react_jsx_runtime.JSX.Element;
  */
 declare function FlexRow(props: BoxProps): react_jsx_runtime.JSX.Element;
 
-export { CalendarAllDayEvent, CalendarEntry, type CalendarEvent, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, type CalendarVariant, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, WeekCalendar, type WeekCalendarProps, WeekChip, addDays, addMinutes, calculateEventProperties, calculateTitleDuration, compileEventProperties, daysInMonth, eventsFixture, mergeSx, renderFixtureEvents, variationsToColorRecord };
+export { CalendarAllDayEvent, CalendarBody, CalendarEntry, type CalendarEvent, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, type CalendarVariant, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, WeekCalendar, type WeekCalendarProps, WeekChip, addDays, addMinutes, calculateEventProperties, calculateTitleDuration, compileEventProperties, daysInMonth, eventsFixture, mergeSx, renderFixtureEvents, variationsToColorRecord };

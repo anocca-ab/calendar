@@ -1,0 +1,70 @@
+import { Box, Divider } from "@mui/material";
+import type { CalendarEvent as CalendarEventType } from "../../../types";
+import { FlexCol, FlexRow } from "../../wrappers";
+import { CalendarEvent } from "./calendar_event";
+
+export function CalendarGrid({ events }: { events: CalendarEventType[] }) {
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        width: "100%",
+        height: 1440,
+      }}
+    >
+      {/* Horizontal lines */}
+      <FlexCol
+        sx={{
+          gap: "59px",
+          position: "absolute",
+          alignItems: "stretch",
+          inset: 0,
+        }}
+      >
+        {[...Array(25)].map((_, i) => {
+          return (
+            <Divider
+              key={i}
+              sx={{
+                marginLeft: "-16px",
+                opacity: i === 0 ? 0 : 1,
+              }}
+            />
+          );
+        })}
+      </FlexCol>
+      {/* Vertical lines */}
+      <FlexRow
+        sx={{
+          position: "absolute",
+          alignItems: "stretch",
+          justifyContent: "flex-start",
+          inset: 0,
+          gap: "119px",
+        }}
+      >
+        {[...Array(6)].map((_, i) => {
+          return (
+            <Divider
+              key={i}
+              orientation="vertical"
+              sx={{
+                opacity: i === 5 ? 0 : 1,
+              }}
+            />
+          );
+        })}
+      </FlexRow>
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+        }}
+      >
+        <Box sx={{ top: 1, left: 1, position: "absolute" }}>
+          <CalendarEvent {...events[0]} />
+        </Box>
+      </Box>
+    </Box>
+  );
+}

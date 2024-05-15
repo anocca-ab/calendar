@@ -6,26 +6,7 @@ sidebar_position: 2
 
 **Inner Architecture**.
 
-```jsx live noInline
-/**
- * to avoid having the page crashing on parsing code we use the noInline
- * therefore the function `render` is required
- */
+import { CalendarHeader } from "@site/src/components/calendar/components/calendar_header/calendar_header";
+import { eventsFixture } from "@site/src/components/calendar/fixtures";
 
-const CalendarHeaderComponent = () => {
-  const today = new Date();
-  const fiveDays = [...Array(5)].map((_, index) => (
-    <DayNumberStackDate key={index} date={addDays(today, index)} />
-  ));
-
-  return (
-    <FlexCol width="664px">
-      <CalendarLayoutBar />
-      <CalendarWeekViewBar />
-      <CalendarFullDayEventBar eventHeight={2} />
-    </FlexCol>
-  );
-};
-
-render(<CalendarHeaderComponent />);
-```
+<CalendarHeader allDayEvents={eventsFixture.allDayEvents} />

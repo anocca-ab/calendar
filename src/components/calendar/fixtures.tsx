@@ -1,6 +1,6 @@
 import { addDays, addMinutes } from "./helpers";
 import { Box } from "@mui/material";
-import { CalendarEvent } from "./components/calendar_grid/components/calendar_event";
+import { CalendarEvent } from "./components/calendar_body/components/calendar_event";
 import type {
   CalendarEvent as CalendarEventType,
   CalendarVariant,
