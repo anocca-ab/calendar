@@ -1,17 +1,11 @@
 import { Box, Typography } from "@mui/material";
-import { WeekCalendar } from "./week_calendar";
 import { eventsFixture } from "./fixtures";
-import { addDays } from "date-fns";
+import { WeekCalendar } from "./week_calendar";
+import { FlexCol } from "./components/wrappers";
 
 export function CalendarEntry() {
   return (
-    <Box
-      width="100%"
-      height="100%"
-      display="flex"
-      flexDirection={"column"}
-      p={4}
-    >
+    <FlexCol width="100%" height="100%" p={4}>
       <Box>
         <Typography variant="h4">Many events</Typography>
         <WeekCalendar events={eventsFixture} />
@@ -35,6 +29,6 @@ export function CalendarEntry() {
         <Typography variant="h4">Many events</Typography>
         <WeekCalendar events={eventsFixture} />
       </Box>
-    </Box>
+    </FlexCol>
   );
 }

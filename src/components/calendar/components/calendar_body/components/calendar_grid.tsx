@@ -1,9 +1,20 @@
 import { Box, Divider } from "@mui/material";
+import { useMemo } from "react";
 import type { CalendarEvent as CalendarEventType } from "../../../types";
 import { FlexCol, FlexRow } from "../../wrappers";
 import { CalendarEvent } from "./calendar_event";
 
 export function CalendarGrid({ events }: { events: CalendarEventType[] }) {
+  const eventsComponents = useMemo(
+    () =>
+      events.map((e, i) => (
+        <Box key={i} sx={{ top: i * 18, left: 1, position: "absolute" }}>
+          <CalendarEvent {...e} />
+        </Box>
+      )),
+    [],
+  );
+
   return (
     <Box
       sx={{
@@ -56,16 +67,16 @@ export function CalendarGrid({ events }: { events: CalendarEventType[] }) {
         })}
       </FlexRow>
       {events.length > 0 && (
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-          }}
-        >
-          <Box sx={{ top: 1, left: 1, position: "absolute" }}>
-            <CalendarEvent {...events[0]} />
+        <>
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+            }}
+          >
+            {eventsComponents}
           </Box>
-        </Box>
+        </>
       )}
     </Box>
   );

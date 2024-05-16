@@ -30,7 +30,6 @@ export function CalendarEvent({
   sx?: SxProps<Theme>;
 }) {
   const { sxProps: eventSxProp, formattedDuration } = compileEventProperties(
-    title,
     color,
     start,
     end,
@@ -57,7 +56,6 @@ export function CalendarEvent({
  * @returns
  */
 export function compileEventProperties(
-  title: string,
   color: string,
   start: Date,
   end?: Date,
