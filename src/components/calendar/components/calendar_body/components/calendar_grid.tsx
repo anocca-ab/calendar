@@ -3,15 +3,52 @@ import { useMemo } from "react";
 import type { CalendarEvent as CalendarEventType } from "../../../types";
 import { FlexCol, FlexRow } from "../../wrappers";
 import { CalendarEvent } from "./calendar_event";
+import { differenceInMinutes, getHours, getMinutes } from "date-fns";
 
 export function CalendarGrid({ events }: { events: CalendarEventType[] }) {
+  const test = events.map((e, i) => {
+    const hour = getHours(e.start);
+    const minutes = getMinutes(e.start);
+
+    const topPosition = hour * 60 + minutes;
+    const duration = e.end
+      ? differenceInMinutes(e.end, e.start, {
+          roundingMethod: "floor",
+        })
+      : 15;
+    return {
+      startPosition: topPosition,
+      endPosition: topPosition + duration,
+      duration,
+      event: e,
+    };
+    // <Box key={i} sx={{ top: topPosition, left: 1, position: "absolute" }}>
+    //   <CalendarEvent {...e} />
+    // </Box>
+  });
+
+  // console.log(test);
+  const n = test.length;
+  const b = 110 / n;
+  const c = 110 - (0.8 * b) / 2;
+  const a = (c / (n - 1)) * 1.5 - (0.8 * b) / 2 / 4;
+
   const eventsComponents = useMemo(
     () =>
-      events.map((e, i) => (
-        <Box key={i} sx={{ top: i * 18, left: 1, position: "absolute" }}>
-          <CalendarEvent {...e} />
-        </Box>
-      )),
+      events.map((e, i) => {
+        const hour = getHours(e.start);
+        const minutes = getMinutes(e.start);
+
+        const topPosition = hour * 60 + minutes;
+        return (
+          <Box
+            key={i}
+            sx={{ top: topPosition, left: (i * a) / 2, position: "absolute" }}
+          >
+            <CalendarEvent {...e} sx={{ width: a }} />
+          </Box>
+        );
+      }),
     [],
   );
 

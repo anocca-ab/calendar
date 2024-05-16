@@ -1,6 +1,6 @@
 export type StartDay = "monday" | "sunday";
 
-export type CalendarEvent = {
+export type CalendarEvent<T = undefined> = {
   /**
    * If (start - end) % 24 * 60 * 60 * 1000 === 0, the event is considered to be an all-day event
    */
@@ -14,7 +14,7 @@ export type CalendarEvent = {
    */
   title?: string;
   color?: string;
-  id?: string;
+  data?: T;
 };
 
 export type OnChangeEventTime = (

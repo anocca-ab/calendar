@@ -8,10 +8,10 @@ import {
 import { CalendarEvent as CalendarEventType } from "@/types";
 
 export function CalendarAllDayEvent({
-  title,
+  title = "(No title)",
   start,
   end,
-  color = "orange",
+  color = "pink",
   sx,
 }: CalendarEventType & {
   sx?: SxProps<Theme>;
@@ -41,10 +41,8 @@ export function CalendarAllDayEvent({
       )}
     >
       <Box>
-        <EventTypography>aa</EventTypography>
+        <EventTypography>{title}</EventTypography>
       </Box>
-
-      <EventTypography>aa</EventTypography>
     </Box>
   );
 }
