@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { addDays, addMinutes } from "date-fns";
+import { addDays, addMinutes, subHours, subMinutes } from "date-fns";
 import type { CalendarEvent as CalendarEventType } from "./types";
 import { CalendarEvent } from "./components/calendar_body/components/calendar_event";
 
@@ -27,7 +27,7 @@ export const eventsFixture: CalendarEventType[] = [
   {
     // data: { id: "1" },
     title: "Task",
-    start: new Date(),
+    start: subMinutes(new Date(), 30),
     color: "pink",
   },
   {
@@ -50,20 +50,20 @@ export const eventsFixture: CalendarEventType[] = [
   },
   {
     // title: "10min event",
-    start: new Date(),
-    end: addMinutes(new Date(), 10),
+    start: subHours(new Date(), 3),
+    end: addMinutes(subHours(new Date(), 3), 10),
     color: "orange",
   },
   {
     title: "15min event",
-    start: new Date(),
-    end: addMinutes(new Date(), 15),
+    start: subHours(new Date(), 2),
+    end: addMinutes(subHours(new Date(), 2), 10),
     color: "red",
   },
   {
     title: "36min event",
-    start: new Date(),
-    end: addMinutes(new Date(), 36),
+    start: addMinutes(new Date(), 15),
+    end: addMinutes(addMinutes(new Date(), 15), 36),
     color: "teal",
   },
   {

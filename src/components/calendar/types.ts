@@ -23,3 +23,11 @@ export type OnChangeEventTime = (
   newEnd: Date,
 ) => void;
 export type OnSelectEvent = (event: CalendarEvent) => void;
+
+export type CalendarEventWithRange = {
+  // this is the start position in px used to describe distance from top
+  start: number;
+  // this is the end position in px used to describe distance from top
+  end: number;
+  event: CalendarEvent;
+};

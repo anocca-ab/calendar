@@ -16,7 +16,7 @@ export function CalendarEntry() {
         <WeekCalendar
           events={[
             {
-              id: "1",
+              // id: "1",
               title: "event",
               start: new Date(),
               color: "pink",
