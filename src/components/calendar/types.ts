@@ -33,3 +33,9 @@ export type CalendarEventWithRange = {
   height: string;
   event: CalendarEvent;
 };
+
+export type WeekCalendarState = {
+  workWeek: boolean;
+  startDay: StartDay;
+  today: Date;
+};

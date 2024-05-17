@@ -2,12 +2,18 @@ import { Box, ScopedCssBaseline } from "@mui/material";
 import { CalendarBody } from "./components/calendar_body/calendar_body";
 import { CalendarHeader } from "./components/calendar_header/calendar_header";
 import { FlexCol } from "./components/wrappers";
-import { CalendarEvent, OnChangeEventTime, OnSelectEvent, StartDay } from "./types";
+import {
+  CalendarEvent,
+  OnChangeEventTime,
+  OnSelectEvent,
+  StartDay,
+} from "./types";
+import { WeekCalendarProvider } from "./state_management/week_calendar_context";
 
 export function WeekCalendar({
   // defaults
   workWeek = false,
-  startDay = 'monday',
+  startDay = "monday",
   today = new Date(),
 
   // eventListeners
@@ -41,22 +47,28 @@ export function WeekCalendar({
   });
 
   return (
-    // the height should be 832px but is being removed because messes with the live editor
     <>
-      <Box
-        sx={{
-          "*": {
-            all: "revert-layer",
-          },
-        }}
-      >
-        <ScopedCssBaseline>
-          <FlexCol width="664px">
-            <CalendarHeader allDayEvents={allDayEvents} />
-            <CalendarBody gridEvents={gridEvents} />
-          </FlexCol>
-        </ScopedCssBaseline>
-      </Box>
+      <WeekCalendarProvider initialState={{ workWeek, startDay, today }}>
+        <Box
+          sx={{
+            "*": {
+              all: "revert-layer",
+            },
+          }}
+        >
+          <ScopedCssBaseline>
+            <FlexCol width="664px">
+              <CalendarHeader
+                allDayEvents={allDayEvents}
+                workWeek={workWeek}
+                startDay={startDay}
+                today={today}
+              />
+              <CalendarBody gridEvents={gridEvents} />
+            </FlexCol>
+          </ScopedCssBaseline>
+        </Box>
+      </WeekCalendarProvider>
     </>
   );
 }

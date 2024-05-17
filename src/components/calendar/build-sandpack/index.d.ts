@@ -2,7 +2,7 @@ import * as react_jsx_runtime from 'react/jsx-runtime';
 import * as _mui_material from '@mui/material';
 import { GridProps, SxProps, Theme, BoxProps } from '@mui/material';
 import * as react from 'react';
-import { ReactElement } from 'react';
+import { ReactElement, ReactNode } from 'react';
 import * as _emotion_styled from '@emotion/styled';
 import * as _mui_system from '@mui/system';
 import * as _mui_material_OverridableComponent from '@mui/material/OverridableComponent';
@@ -35,6 +35,11 @@ type CalendarEventWithRange = {
     height: string;
     event: CalendarEvent;
 };
+type WeekCalendarState = {
+    workWeek: boolean;
+    startDay: StartDay;
+    today: Date;
+};
 
 declare function CalendarBody({ gridEvents, }: {
     gridEvents: CalendarEvent[];
@@ -57,8 +62,11 @@ declare function CalendarGridAmPmSidebar(): react_jsx_runtime.JSX.Element;
 
 declare function HourCalendarCell(props: GridProps): react_jsx_runtime.JSX.Element;
 
-declare function CalendarHeader({ allDayEvents, }: {
+declare function CalendarHeader({ allDayEvents, today, workWeek, startDay, }: {
     allDayEvents: CalendarEvent[];
+    today: Date;
+    workWeek: boolean;
+    startDay: StartDay;
 }): react_jsx_runtime.JSX.Element;
 
 declare function CalendarAllDayEvent({ title, start, end, color, sx, }: CalendarEvent & {
@@ -70,9 +78,15 @@ declare function CalendarFullDayEventBar({ events, eventHeight, }: {
     eventHeight: number;
 }): react_jsx_runtime.JSX.Element;
 
-declare function CalendarLayoutBar(): react_jsx_runtime.JSX.Element;
+declare function CalendarLayoutBar({ today }: {
+    today: Date;
+}): react_jsx_runtime.JSX.Element;
 
-declare function CalendarWeekViewBar(): react_jsx_runtime.JSX.Element;
+declare function CalendarWeekViewBar({ today, workWeek, startDay, }: {
+    today: Date;
+    workWeek: boolean;
+    startDay: StartDay;
+}): react_jsx_runtime.JSX.Element;
 
 declare function DayNumberStackDate({ date }: {
     date: Date;
@@ -154,4 +168,25 @@ declare function WeekCalendar({ workWeek, startDay, today, onSelectEvent, onChan
     onSelectEvent?: OnSelectEvent;
 }): react_jsx_runtime.JSX.Element;
 
-export { CalendarAllDayEvent, CalendarBody, CalendarEntry, type CalendarEvent, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, WeekCalendar, WeekChip, calculateEventProperties, formatDuration as calculateTitleDuration, eventsFixture, getEventsWithRange, mergeSx, partitionGridEventsOnRanges, renderFixtureEvents, transformEventsToComponents, variationsToColorRecord };
+type WeekCalendarActionTypes = {
+    type: "edit-workWeek";
+    workWeek: boolean;
+} | {
+    type: "edit-startDay";
+    startDay: StartDay;
+} | {
+    type: "edit-today";
+    today: Date;
+};
+declare const weekCalendarReducer: (state: WeekCalendarState, action: WeekCalendarActionTypes) => WeekCalendarState;
+
+declare const WeekCalendarContext: react.Context<WeekCalendarState | undefined>;
+declare const WeekCalendarDispatchContext: react.Context<react.Dispatch<WeekCalendarActionTypes> | undefined>;
+declare function WeekCalendarProvider({ initialState, children, }: {
+    initialState: WeekCalendarState;
+    children: ReactNode;
+}): react_jsx_runtime.JSX.Element;
+declare function useCalendar(): WeekCalendarState | undefined;
+declare function useCalendarDispatch(): react.Dispatch<WeekCalendarActionTypes> | undefined;
+
+export { CalendarAllDayEvent, CalendarBody, CalendarEntry, type CalendarEvent, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, WeekCalendar, type WeekCalendarActionTypes, WeekCalendarContext, WeekCalendarDispatchContext, WeekCalendarProvider, WeekChip, calculateEventProperties, formatDuration as calculateTitleDuration, eventsFixture, getEventsWithRange, mergeSx, partitionGridEventsOnRanges, renderFixtureEvents, transformEventsToComponents, useCalendar, useCalendarDispatch, variationsToColorRecord, weekCalendarReducer };

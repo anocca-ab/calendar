@@ -26,5 +26,15 @@ export {
   variationsToColorRecord,
 } from "./helpers";
 export { WeekCalendar } from "./week_calendar";
+export {
+  WeekCalendarContext,
+  WeekCalendarDispatchContext,
+  WeekCalendarProvider,
+  useCalendar,
+  useCalendarDispatch,
+} from "./state_management/week_calendar_context";
+
+export { weekCalendarReducer } from "./state_management/week_calendar_reducer";
+export type { WeekCalendarActionTypes } from "./state_management/week_calendar_reducer";
 
 export type { CalendarEvent } from "./types";

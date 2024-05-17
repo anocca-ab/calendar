@@ -23,9 +23,7 @@ const ChevronLeft = (props: React.ComponentProps<"svg">) => (
   </SvgIcon>
 );
 
-export function CalendarLayoutBar() {
-  const today = new Date();
-
+export function CalendarLayoutBar({ today }: { today: Date }) {
   return (
     <FlexRow
       justifyContent="flex-start"
