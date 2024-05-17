@@ -19,6 +19,7 @@ export function SandPackPlayground({ files }: { files: SandpackFiles }) {
           "@emotion/react": "latest",
           "@fontsource/roboto": "latest",
           "date-fns": "latest",
+          immer: "latest",
         },
       }}
       files={{ ...commonFiles, ...files }}

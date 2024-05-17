@@ -24,6 +24,7 @@ export function CustomSandPackPlayground({
       "@emotion/react": "latest",
       "@fontsource/roboto": "latest",
       "date-fns": "latest",
+      immer: "latest",
     },
   };
 
