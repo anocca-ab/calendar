@@ -1,20 +1,41 @@
 import { Box } from "@mui/material";
-import { addDays, addMinutes, subHours, subMinutes } from "date-fns";
-import type { CalendarEvent as CalendarEventType } from "./types";
+import { addDays, addHours, addMinutes, subHours, subMinutes } from "date-fns";
 import { CalendarEvent } from "./components/calendar_body/components/calendar_event";
+import {
+  calculateEventProperties,
+  getEventsWithRange,
+  partitionGridEventsOnRanges,
+} from "./helpers";
+import type { CalendarEvent as CalendarEventType } from "./types";
 
-export function renderFixtureEvents(numberOfEvents: number, variant: string) {
+export function renderFixtureEvents(numberOfEvents: number, color: string) {
   const events: React.JSX.Element[] = [];
 
   for (let i = 1; i <= numberOfEvents; i++) {
+    const eventsWithRange = getEventsWithRange([
+      {
+        title: "event",
+        start: new Date(),
+        end: addMinutes(new Date(), i * 15),
+        color,
+      },
+    ]);
+    const groupsOfOverlappingEvents =
+      partitionGridEventsOnRanges(eventsWithRange);
+
     events.push(
       <Box height={i * 15 + 2}>
         <CalendarEvent
-          key={i + variant}
-          color={variant}
+          key={i + color}
           title="event"
           start={new Date()}
           end={addMinutes(new Date(), i * 15)}
+          sx={calculateEventProperties(
+            groupsOfOverlappingEvents[0][0].event.start,
+            groupsOfOverlappingEvents[0][0].height,
+            groupsOfOverlappingEvents[0][0].event.color ?? "orange",
+            groupsOfOverlappingEvents[0][0].event.end,
+          )}
         />
       </Box>,
     );
@@ -77,5 +98,11 @@ export const eventsFixture: CalendarEventType[] = [
     start: new Date(),
     end: addMinutes(new Date(), 181),
     color: "indigo",
+  },
+  {
+    title: "Overnight event",
+    start: addHours(new Date(), 10),
+    end: addHours(addHours(new Date(), 14), 8),
+    color: "teal",
   },
 ];

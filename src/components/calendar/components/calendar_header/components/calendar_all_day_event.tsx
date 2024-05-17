@@ -1,10 +1,10 @@
 import { Box, SxProps, Theme } from "@mui/material";
 import { differenceInMinutes } from "date-fns";
-import { mergeSx } from "../../../helpers";
 import {
   EventTypography,
+  mergeSx,
   variationsToColorRecord,
-} from "../../calendar_body/components/calendar_event";
+} from "../../../helpers";
 import { CalendarEvent as CalendarEventType } from "@/types";
 
 export function CalendarAllDayEvent({
@@ -19,12 +19,12 @@ export function CalendarAllDayEvent({
   if (!end) {
     throw new Error("A full day event must have an end date!");
   }
-  const minutes = differenceInMinutes(end, start, {
+  const eventDurationInMins = differenceInMinutes(end, start, {
     roundingMethod: "floor",
   });
 
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
+  const eventDurationInHours = Math.floor(eventDurationInMins / 60);
+  const eventDurationInDays = Math.floor(eventDurationInHours / 24);
 
   return (
     <Box
@@ -35,7 +35,10 @@ export function CalendarAllDayEvent({
           padding: "0px 8px",
           height: "16px",
           borderRadius: "4px",
-          width: days > 1 ? `${days * 120 - 10}px` : "110px",
+          width:
+            eventDurationInDays > 1
+              ? `${eventDurationInDays * 120 - 10}px`
+              : "110px",
         },
         sx,
       )}

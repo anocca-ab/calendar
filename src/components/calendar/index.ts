@@ -2,13 +2,7 @@ import "@fontsource/roboto";
 
 export { CalendarEntry } from "./calendar_entry";
 export { CalendarBody } from "./components/calendar_body/calendar_body";
-export {
-  EventTypography,
-  calculateEventProperties,
-  formatDuration as calculateTitleDuration,
-  compileEventProperties,
-  variationsToColorRecord,
-} from "./components/calendar_body/components/calendar_event";
+export { formatDuration as calculateTitleDuration } from "./components/calendar_body/components/calendar_event";
 export { CalendarGrid } from "./components/calendar_body/components/calendar_grid";
 export { CalendarGridAmPmSidebar } from "./components/calendar_body/components/calendar_grid_am_pm_sidebar";
 export { HourCalendarCell } from "./components/calendar_body/components/hour_calendar_cell";
@@ -22,7 +16,15 @@ export { MonthYearRowDate } from "./components/calendar_header/components/month_
 export { WeekChip } from "./components/calendar_header/components/week_chip";
 export { FlexCol, FlexRow } from "./components/wrappers";
 export { eventsFixture, renderFixtureEvents } from "./fixtures";
-export { mergeSx } from "./helpers";
+export {
+  mergeSx,
+  getEventsWithRange,
+  calculateEventProperties,
+  partitionGridEventsOnRanges,
+  transformEventsToComponents,
+  EventTypography,
+  variationsToColorRecord,
+} from "./helpers";
 export { WeekCalendar } from "./week_calendar";
 
 export type { CalendarEvent } from "./types";

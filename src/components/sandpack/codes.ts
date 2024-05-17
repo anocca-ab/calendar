@@ -14,62 +14,68 @@ export default function App () {
 
 export const FixturesTsx = `
 import type { CalendarEvent } from "@anocca/calendar";
-import { addDays, addMinutes } from "date-fns";
+import { addDays, addHours, addMinutes, subMinutes, subHours } from "date-fns";
 
-export const eventsFixture: CalendarEventType[] = [
+export const eventsFixture: CalendarEventType[] =  [
   {
-    id: "1",
-    title: "event",
-    start: new Date(),
+    // data: { id: "1" },
+    title: "Task",
+    start: subMinutes(new Date(), 30),
     color: "pink",
   },
   {
-    title: "event",
+    title: "Full day event",
     start: new Date(),
     end: addDays(new Date(), 1),
     color: "pink",
   },
   {
-    title: "event",
+    title: "2 days event",
     start: new Date(),
     end: addDays(new Date(), 2),
     color: "pink",
   },
   {
-    title: "event",
+    title: "4 days event",
     start: new Date(),
     end: addDays(new Date(), 4),
     color: "red",
   },
   {
-    title: "event",
-    start: new Date(),
-    end: addMinutes(new Date(), 10),
+    // title: "10min event",
+    start: subHours(new Date(), 3),
+    end: addMinutes(subHours(new Date(), 3), 10),
     color: "orange",
   },
   {
-    title: "event",
-    start: new Date(),
-    end: addMinutes(new Date(), 15),
+    title: "15min event",
+    start: subHours(new Date(), 2),
+    end: addMinutes(subHours(new Date(), 2), 10),
     color: "red",
   },
   {
-    title: "event",
-    start: new Date(),
-    end: addMinutes(new Date(), 36),
+    title: "36min event",
+    start: addMinutes(new Date(), 15),
+    end: addMinutes(addMinutes(new Date(), 15), 36),
     color: "teal",
   },
   {
-    title: "event",
+    title: "2 hours event",
     start: new Date(),
     end: addMinutes(new Date(), 120),
     color: "pink",
   },
   {
-    title: "event",
+    title: "3 hours event",
     start: new Date(),
     end: addMinutes(new Date(), 181),
     color: "indigo",
+  },
+  {
+    title: "Overnight event",
+    start: addHours(new Date(), 10),
+    end: addHours(addHours(new Date(), 14), 8),
+    color: "teal",
   },
 ];
 

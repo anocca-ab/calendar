@@ -29,5 +29,7 @@ export type CalendarEventWithRange = {
   start: number;
   // this is the end position in px used to describe distance from top
   end: number;
+  left: number;
+  height: string;
   event: CalendarEvent;
 };

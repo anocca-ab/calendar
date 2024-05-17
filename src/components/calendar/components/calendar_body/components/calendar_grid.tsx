@@ -1,15 +1,11 @@
+import { Box, Divider } from "@mui/material";
 import {
   getEventsWithRange,
   partitionGridEventsOnRanges,
+  transformEventsToComponents,
 } from "../../../helpers";
-import { Box, Divider } from "@mui/material";
-import { ReactElement } from "react";
-import type {
-  CalendarEvent as CalendarEventType,
-  CalendarEventWithRange,
-} from "../../../types";
+import type { CalendarEvent as CalendarEventType } from "../../../types";
 import { FlexCol, FlexRow } from "../../wrappers";
-import { CalendarEvent } from "./calendar_event";
 
 export function CalendarGrid({ events }: { events: CalendarEventType[] }) {
   const eventsWithRange = getEventsWithRange(events);
@@ -87,55 +83,4 @@ export function CalendarGrid({ events }: { events: CalendarEventType[] }) {
       )}
     </Box>
   );
-}
-
-/**
- * Receives groups of grouped events, calculates the sx props
- * of overlapping groups and returns an array of events
- *
- * @param groupsOfEvents
- * @returns
- */
-function transformEventsToComponents(
-  groupsOfEvents: CalendarEventWithRange[][],
-) {
-  const events: ReactElement[] = [];
-  let numOfEvents = 0;
-  groupsOfEvents.forEach((group) => {
-    if (group.length < 2) {
-      group.forEach((event) => {
-        events.push(
-          <Box
-            key={numOfEvents + 1}
-            sx={{ top: event.start, left: 1, position: "absolute" }}
-          >
-            <CalendarEvent {...event.event} />
-          </Box>,
-        );
-        numOfEvents += 1;
-      });
-    } else {
-      const n = group.length;
-      const b = 110 / n;
-      const c = 110 - (0.8 * b) / 2;
-      const a = (c / (n - 1)) * 1.5 - (0.8 * b) / 2 / 4;
-
-      group.forEach((event, i) => {
-        events.push(
-          <Box
-            key={numOfEvents + 1}
-            sx={{ top: event.start, left: i * b, position: "absolute" }}
-          >
-            <CalendarEvent
-              {...event.event}
-              sx={{ width: n - 1 != i ? a : b }}
-            />
-          </Box>,
-        );
-        numOfEvents += 1;
-      });
-    }
-  });
-
-  return events;
 }

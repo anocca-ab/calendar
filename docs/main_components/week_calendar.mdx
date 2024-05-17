@@ -2,16 +2,20 @@
 sidebar_position: 1
 ---
 
+# Week Calendar
+
+import { WeekCalendar } from "@site/src/components/calendar/week_calendar";
+import { eventsFixture } from "@site/src/components/calendar/fixtures";
 import { SandPackPlayground } from "@site/src/components/sandpack/SandPackPlayground";
 import { CustomSandPackPlayground } from "@site/src/components/sandpack/CustomSandPackPlayground";
 import { CalendarEntry } from "@site/src/components/calendar/calendar_entry";
 import { AppTsx, FixturesTsx } from "@site/src/components/sandpack/codes.ts";
 
-# Tutorial Intro
+<SandPackPlayground
+  files={{
+    "/App.tsx": { code: AppTsx },
+    "/fixtures.tsx": { code: FixturesTsx },
+  }}
+/>
 
-Let's discover **Calendar in less than 5 minutes**.
-{/* <SandPackPlayground  files={{    "/App.tsx": { code: AppTsx },    "/fixtures.tsx": { code: FixturesTsx },  }}/> */}
-
-<CalendarEntry />
-
-{/* <CustomSandPackPlayground height={500} /> */}
+{/* <WeekCalendar events={eventsFixture} /> */}
