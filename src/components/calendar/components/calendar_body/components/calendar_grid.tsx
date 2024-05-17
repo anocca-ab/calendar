@@ -6,8 +6,10 @@ import {
 } from "../../../helpers";
 import type { CalendarEvent as CalendarEventType } from "../../../types";
 import { FlexCol, FlexRow } from "../../wrappers";
+import { useCalendar } from "../../../state_management/week_calendar_context";
 
 export function CalendarGrid({ events }: { events: CalendarEventType[] }) {
+  const { workWeek } = useCalendar();
   const eventsWithRange = getEventsWithRange(events);
   const groupsOfOverlappingEvents =
     partitionGridEventsOnRanges(eventsWithRange);
@@ -57,13 +59,13 @@ export function CalendarGrid({ events }: { events: CalendarEventType[] }) {
           gap: "119px",
         }}
       >
-        {[...Array(6)].map((_, i) => {
+        {[...Array(workWeek ? 6 : 8)].map((_, i) => {
           return (
             <Divider
               key={i}
               orientation="vertical"
               sx={{
-                opacity: i === 5 ? 0 : 1,
+                opacity: workWeek && i === 5 ? 0 : !workWeek && i == 7 ? 0 : 1,
               }}
             />
           );

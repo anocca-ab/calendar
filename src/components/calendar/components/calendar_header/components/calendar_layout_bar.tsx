@@ -2,6 +2,7 @@ import { Button, IconButton, SvgIcon } from "@mui/material";
 import { FlexRow } from "../../wrappers";
 import { MonthYearRowDate } from "./month_year_row_date";
 import { WeekChip } from "./week_chip";
+import { useCalendar } from "../../../state_management/week_calendar_context";
 
 const ChevronLeft = (props: React.ComponentProps<"svg">) => (
   <SvgIcon>
@@ -23,7 +24,8 @@ const ChevronLeft = (props: React.ComponentProps<"svg">) => (
   </SvgIcon>
 );
 
-export function CalendarLayoutBar({ today }: { today: Date }) {
+export function CalendarLayoutBar() {
+  const { today } = useCalendar();
   return (
     <FlexRow
       justifyContent="flex-start"

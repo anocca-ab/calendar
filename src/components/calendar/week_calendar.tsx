@@ -57,13 +57,8 @@ export function WeekCalendar({
           }}
         >
           <ScopedCssBaseline>
-            <FlexCol width="664px">
-              <CalendarHeader
-                allDayEvents={allDayEvents}
-                workWeek={workWeek}
-                startDay={startDay}
-                today={today}
-              />
+            <FlexCol width={workWeek ? "664px" : "904px"}>
+              <CalendarHeader allDayEvents={allDayEvents} />
               <CalendarBody gridEvents={gridEvents} />
             </FlexCol>
           </ScopedCssBaseline>

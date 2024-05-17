@@ -1,18 +1,12 @@
 import { Box } from "@mui/material";
 import { addDays, startOfWeek } from "date-fns";
-import { StartDay } from "../../../types";
+import { useCalendar } from "../../../state_management/week_calendar_context";
 import { DayNumberStackDate } from "./day_number_stack_date";
 
-export function CalendarWeekViewBar({
-  today,
-  workWeek,
-  startDay,
-}: {
-  today: Date;
-  workWeek: boolean;
-  startDay: StartDay;
-}) {
+export function CalendarWeekViewBar() {
+  const { workWeek, today, startDay } = useCalendar();
   const daysInWeek = workWeek ? 5 : 7;
+
   if (startDay === "monday") {
     const startingDateOfTheWeek = startOfWeek(today, { weekStartsOn: 1 });
     const weekDays = [...Array(daysInWeek)].map((_, index) => (

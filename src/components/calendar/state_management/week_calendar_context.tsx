@@ -5,12 +5,14 @@ import {
   weekCalendarReducer,
 } from "./week_calendar_reducer";
 
-export const WeekCalendarContext = createContext<WeekCalendarState | undefined>(
-  undefined,
-);
+export const WeekCalendarContext = createContext<WeekCalendarState>({
+  workWeek: false,
+  startDay: "monday",
+  today: new Date(),
+});
 export const WeekCalendarDispatchContext = createContext<
-  React.Dispatch<WeekCalendarActionTypes> | undefined
->(undefined);
+  React.Dispatch<WeekCalendarActionTypes>
+>(() => {});
 
 export function WeekCalendarProvider({
   initialState,

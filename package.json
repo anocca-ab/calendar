@@ -23,6 +23,7 @@
     "@emotion/styled": "^11.11.5",
     "@fontsource/roboto": "^5.0.13",
     "@mdx-js/react": "^3.0.0",
+    "@mui/icons-material": "^5.15.18",
     "@mui/material": "^5.15.16",
     "clsx": "^2.0.0",
     "date-fns": "3.6.0",

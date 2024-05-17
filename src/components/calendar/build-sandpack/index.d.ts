@@ -62,11 +62,8 @@ declare function CalendarGridAmPmSidebar(): react_jsx_runtime.JSX.Element;
 
 declare function HourCalendarCell(props: GridProps): react_jsx_runtime.JSX.Element;
 
-declare function CalendarHeader({ allDayEvents, today, workWeek, startDay, }: {
+declare function CalendarHeader({ allDayEvents, }: {
     allDayEvents: CalendarEvent[];
-    today: Date;
-    workWeek: boolean;
-    startDay: StartDay;
 }): react_jsx_runtime.JSX.Element;
 
 declare function CalendarAllDayEvent({ title, start, end, color, sx, }: CalendarEvent & {
@@ -78,15 +75,9 @@ declare function CalendarFullDayEventBar({ events, eventHeight, }: {
     eventHeight: number;
 }): react_jsx_runtime.JSX.Element;
 
-declare function CalendarLayoutBar({ today }: {
-    today: Date;
-}): react_jsx_runtime.JSX.Element;
+declare function CalendarLayoutBar(): react_jsx_runtime.JSX.Element;
 
-declare function CalendarWeekViewBar({ today, workWeek, startDay, }: {
-    today: Date;
-    workWeek: boolean;
-    startDay: StartDay;
-}): react_jsx_runtime.JSX.Element;
+declare function CalendarWeekViewBar(): react_jsx_runtime.JSX.Element;
 
 declare function DayNumberStackDate({ date }: {
     date: Date;
@@ -180,13 +171,13 @@ type WeekCalendarActionTypes = {
 };
 declare const weekCalendarReducer: (state: WeekCalendarState, action: WeekCalendarActionTypes) => WeekCalendarState;
 
-declare const WeekCalendarContext: react.Context<WeekCalendarState | undefined>;
-declare const WeekCalendarDispatchContext: react.Context<react.Dispatch<WeekCalendarActionTypes> | undefined>;
+declare const WeekCalendarContext: react.Context<WeekCalendarState>;
+declare const WeekCalendarDispatchContext: react.Context<react.Dispatch<WeekCalendarActionTypes>>;
 declare function WeekCalendarProvider({ initialState, children, }: {
     initialState: WeekCalendarState;
     children: ReactNode;
 }): react_jsx_runtime.JSX.Element;
-declare function useCalendar(): WeekCalendarState | undefined;
-declare function useCalendarDispatch(): react.Dispatch<WeekCalendarActionTypes> | undefined;
+declare function useCalendar(): WeekCalendarState;
+declare function useCalendarDispatch(): react.Dispatch<WeekCalendarActionTypes>;
 
 export { CalendarAllDayEvent, CalendarBody, CalendarEntry, type CalendarEvent, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, WeekCalendar, type WeekCalendarActionTypes, WeekCalendarContext, WeekCalendarDispatchContext, WeekCalendarProvider, WeekChip, calculateEventProperties, formatDuration as calculateTitleDuration, eventsFixture, getEventsWithRange, mergeSx, partitionGridEventsOnRanges, renderFixtureEvents, transformEventsToComponents, useCalendar, useCalendarDispatch, variationsToColorRecord, weekCalendarReducer };
