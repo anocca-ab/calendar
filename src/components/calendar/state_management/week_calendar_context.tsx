@@ -4,11 +4,13 @@ import {
   WeekCalendarActionTypes,
   weekCalendarReducer,
 } from "./week_calendar_reducer";
+import { startOfWeek } from "date-fns";
 
 export const WeekCalendarContext = createContext<WeekCalendarState>({
   workWeek: false,
   startDay: "monday",
   today: new Date(),
+  currentFirstDayOfTheWeek: startOfWeek(new Date(), { weekStartsOn: 1 }),
 });
 export const WeekCalendarDispatchContext = createContext<
   React.Dispatch<WeekCalendarActionTypes>

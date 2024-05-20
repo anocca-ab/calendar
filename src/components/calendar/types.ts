@@ -38,4 +38,5 @@ export type WeekCalendarState = {
   workWeek: boolean;
   startDay: StartDay;
   today: Date;
+  currentFirstDayOfTheWeek: Date;
 };

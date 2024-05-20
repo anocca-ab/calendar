@@ -39,6 +39,7 @@ type WeekCalendarState = {
     workWeek: boolean;
     startDay: StartDay;
     today: Date;
+    currentFirstDayOfTheWeek: Date;
 };
 
 declare function CalendarBody({ gridEvents, }: {
@@ -168,6 +169,9 @@ type WeekCalendarActionTypes = {
 } | {
     type: "edit-today";
     today: Date;
+} | {
+    type: "edit-currentFirstDayOfTheWeek";
+    currentFirstDayOfTheWeek: Date;
 };
 declare const weekCalendarReducer: (state: WeekCalendarState, action: WeekCalendarActionTypes) => WeekCalendarState;
 

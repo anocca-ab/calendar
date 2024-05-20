@@ -2,7 +2,11 @@ import { Button, IconButton, SvgIcon } from "@mui/material";
 import { FlexRow } from "../../wrappers";
 import { MonthYearRowDate } from "./month_year_row_date";
 import { WeekChip } from "./week_chip";
-import { useCalendar } from "../../../state_management/week_calendar_context";
+import {
+  useCalendar,
+  useCalendarDispatch,
+} from "../../../state_management/week_calendar_context";
+import { addWeeks, subWeeks } from "date-fns";
 
 const ChevronLeft = (props: React.ComponentProps<"svg">) => (
   <SvgIcon>
@@ -25,7 +29,9 @@ const ChevronLeft = (props: React.ComponentProps<"svg">) => (
 );
 
 export function CalendarLayoutBar() {
-  const { today } = useCalendar();
+  const { today, currentFirstDayOfTheWeek } = useCalendar();
+  const dispatch = useCalendarDispatch();
+
   return (
     <FlexRow
       justifyContent="flex-start"
@@ -34,18 +40,42 @@ export function CalendarLayoutBar() {
       gap={3}
       alignItems="center"
     >
-      <Button variant="outlined">Today</Button>
+      <Button
+        variant="outlined"
+        onClick={() => {
+          dispatch({
+            type: "edit-currentFirstDayOfTheWeek",
+            currentFirstDayOfTheWeek: today,
+          });
+        }}
+      >
+        Today
+      </Button>
       <FlexRow>
-        <IconButton>
+        <IconButton
+          onClick={() => {
+            dispatch({
+              type: "edit-currentFirstDayOfTheWeek",
+              currentFirstDayOfTheWeek: subWeeks(currentFirstDayOfTheWeek, 1),
+            });
+          }}
+        >
           <ChevronLeft />
         </IconButton>
-        <IconButton>
+        <IconButton
+          onClick={() => {
+            dispatch({
+              type: "edit-currentFirstDayOfTheWeek",
+              currentFirstDayOfTheWeek: addWeeks(currentFirstDayOfTheWeek, 1),
+            });
+          }}
+        >
           <ChevronLeft style={{ transform: "rotate(180deg)" }} />
         </IconButton>
       </FlexRow>
 
-      <MonthYearRowDate date={today} />
-      <WeekChip date={today} />
+      <MonthYearRowDate date={currentFirstDayOfTheWeek} />
+      <WeekChip date={currentFirstDayOfTheWeek} />
     </FlexRow>
   );
 }

@@ -9,6 +9,7 @@ import {
   StartDay,
 } from "./types";
 import { WeekCalendarProvider } from "./state_management/week_calendar_context";
+import { startOfWeek } from "date-fns";
 
 export function WeekCalendar({
   // defaults
@@ -48,7 +49,16 @@ export function WeekCalendar({
 
   return (
     <>
-      <WeekCalendarProvider initialState={{ workWeek, startDay, today }}>
+      <WeekCalendarProvider
+        initialState={{
+          workWeek,
+          startDay,
+          today,
+          currentFirstDayOfTheWeek: startOfWeek(today, {
+            weekStartsOn: startDay === "monday" ? 1 : 0,
+          }),
+        }}
+      >
         <Box
           sx={{
             "*": {

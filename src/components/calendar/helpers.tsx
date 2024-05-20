@@ -175,65 +175,67 @@ export function transformEventsToComponents(
 ) {
   const events: ReactElement[] = [];
   let numOfEvents = 0;
-  groupsOfEvents.forEach((group) => {
-    if (group.length < 2) {
-      group.forEach((event) => {
-        events.push(
-          <Box
-            key={numOfEvents + 1}
-            sx={{
-              top: event.start,
-              left: event.left,
-              position: "absolute",
-            }}
-          >
-            <CalendarEvent
-              {...event.event}
-              sx={calculateEventProperties(
-                event.event.start,
-                event.height,
-                event.event.color ?? "orange",
-                event.event.end,
-              )}
-            />
-          </Box>,
-        );
-        numOfEvents += 1;
-      });
-    } else {
-      const n = group.length;
-      const b = 110 / n;
-      const c = 110 - (0.8 * b) / 2;
-      const a = (c / (n - 1)) * 1.5 - (0.8 * b) / 2 / 4;
-
-      group.forEach((event, i) => {
-        events.push(
-          <Box
-            key={numOfEvents + 1}
-            sx={{
-              top: event.start,
-              left: event.left + i * b,
-              position: "absolute",
-            }}
-          >
-            <CalendarEvent
-              {...event.event}
-              sx={mergeSx(
-                calculateEventProperties(
+  if (groupsOfEvents.length > 0) {
+    groupsOfEvents.forEach((group) => {
+      if (group.length < 2) {
+        group.forEach((event) => {
+          events.push(
+            <Box
+              key={numOfEvents + 1}
+              sx={{
+                top: event.start,
+                left: event.left,
+                position: "absolute",
+              }}
+            >
+              <CalendarEvent
+                {...event.event}
+                sx={calculateEventProperties(
                   event.event.start,
                   event.height,
                   event.event.color ?? "orange",
                   event.event.end,
-                ),
-                { width: n - 1 != i ? a : b },
-              )}
-            />
-          </Box>,
-        );
-        numOfEvents += 1;
-      });
-    }
-  });
+                )}
+              />
+            </Box>,
+          );
+          numOfEvents += 1;
+        });
+      } else {
+        const n = group.length;
+        const b = 110 / n;
+        const c = 110 - (0.8 * b) / 2;
+        const a = (c / (n - 1)) * 1.5 - (0.8 * b) / 2 / 4;
+
+        group.forEach((event, i) => {
+          events.push(
+            <Box
+              key={numOfEvents + 1}
+              sx={{
+                top: event.start,
+                left: event.left + i * b,
+                position: "absolute",
+              }}
+            >
+              <CalendarEvent
+                {...event.event}
+                sx={mergeSx(
+                  calculateEventProperties(
+                    event.event.start,
+                    event.height,
+                    event.event.color ?? "orange",
+                    event.event.end,
+                  ),
+                  { width: n - 1 != i ? a : b },
+                )}
+              />
+            </Box>,
+          );
+          numOfEvents += 1;
+        });
+      }
+    });
+  }
 
   return events;
 }

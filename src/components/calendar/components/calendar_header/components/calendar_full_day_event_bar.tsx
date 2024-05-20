@@ -1,8 +1,15 @@
 import { Box, Divider } from "@mui/material";
-import { CalendarEvent } from "../../../types";
+import {
+  addWeeks,
+  differenceInCalendarDays,
+  isAfter,
+  isBefore,
+} from "date-fns";
+import { useMemo } from "react";
+import { useCalendar } from "../../../state_management/week_calendar_context";
+import type { CalendarEvent } from "../../../types";
 import { FlexCol, FlexRow } from "../../wrappers";
 import { CalendarAllDayEvent } from "./calendar_all_day_event";
-import { useCalendar } from "../../../state_management/week_calendar_context";
 
 export function CalendarFullDayEventBar({
   events,
@@ -11,14 +18,61 @@ export function CalendarFullDayEventBar({
   events: CalendarEvent[];
   eventHeight: number;
 }) {
-  const { workWeek } = useCalendar();
+  const { workWeek, currentFirstDayOfTheWeek } = useCalendar();
+  const filteredEvents = useMemo(() => {
+    const filtEvents: CalendarEvent[] = [];
+    events.forEach((event) => {
+      if (
+        isBefore(currentFirstDayOfTheWeek, event.start) &&
+        isBefore(event.start, addWeeks(currentFirstDayOfTheWeek, 1))
+      ) {
+        filtEvents.push(event);
+      } else if (
+        event.end &&
+        isBefore(currentFirstDayOfTheWeek, event.end) &&
+        isBefore(event.end, addWeeks(currentFirstDayOfTheWeek, 1)) &&
+        isBefore(event.start, currentFirstDayOfTheWeek)
+      ) {
+        filtEvents.push(event);
+      }
+    });
+    return filtEvents;
+  }, [currentFirstDayOfTheWeek]);
+
+  const sortedEvents = filteredEvents.sort(function (a, b) {
+    if (isBefore(a.start, b.start) && a.end && b.end && isBefore(a.end, b.end))
+      return -1;
+    if (isAfter(a.start, b.start) && a.end && b.end && isAfter(a.end, b.end))
+      return 1;
+    return 0;
+  });
+
+  const rangedEventsGroups = [];
+  let allDayEventsRows = 0;
+
+  rangedEventsGroups[allDayEventsRows] = [sortedEvents[0]];
+
+  for (let i = 1, l = sortedEvents.length; i < l; i++) {
+    if (!sortedEvents[i].end) {
+      throw new Error("A full day event must have an end date!");
+    }
+    if (isBefore(sortedEvents[i].end as Date, sortedEvents[i - 1].start)) {
+      rangedEventsGroups[allDayEventsRows].push(sortedEvents[i]);
+    } else {
+      allDayEventsRows++;
+      rangedEventsGroups[allDayEventsRows] = [sortedEvents[i]];
+    }
+  }
+  // console.log(rangedEventsGroups);
+
   return (
     <Box pl={8}>
       <Box
         sx={{
           position: "relative",
           width: "100%",
-          height: `${eventHeight * (16 + 1) + 1}px`,
+          // height: `${eventHeight * (16 + 1) + 1}px`,
+          height: `${rangedEventsGroups.length * (16 + 1) + 1}px`,
         }}
       >
         {/* Horizontal lines */}
@@ -61,31 +115,43 @@ export function CalendarFullDayEventBar({
           })}
         </FlexRow>
         {/* Events */}
-        {events.length > 0 && (
+        {sortedEvents.length > 0 && (
           <Box
             sx={{
               position: "absolute",
               inset: 0,
             }}
           >
-            {/* row 1 */}
-            <Box
-              sx={{ display: "grid", gridTemplateColumns: "repeat(5, 120px)" }}
-            >
-              <Box pl="2px">
-                <CalendarAllDayEvent {...events[0]} />
-              </Box>
-              <Box pl="2px">
-                <CalendarAllDayEvent {...events[1]} />
-              </Box>
-            </Box>
-            <Box sx={{ height: "1px" }} />
-            {/* row 2 */}
-            <FlexRow>
-              <Box pl="2px">
-                <CalendarAllDayEvent {...events[2]} />
-              </Box>
-            </FlexRow>
+            {rangedEventsGroups.map((group, groupIndex) => {
+              return (
+                <Box
+                  key={`group-${groupIndex}`}
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: `repeat(${workWeek ? 5 : 7}, 120px)`,
+                  }}
+                >
+                  {group.map((event, eventIndex) => {
+                    return (
+                      <Box
+                        key={`event-${eventIndex}`}
+                        pl="2px"
+                        left={`
+                          ${
+                            differenceInCalendarDays(
+                              currentFirstDayOfTheWeek,
+                              event.start,
+                            ) * 120
+                          }px`}
+                      >
+                        <CalendarAllDayEvent {...event} />
+                        <Box sx={{ height: "1px" }} />
+                      </Box>
+                    );
+                  })}
+                </Box>
+              );
+            })}
           </Box>
         )}
       </Box>
