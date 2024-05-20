@@ -6,7 +6,7 @@ import {
   useCalendar,
   useCalendarDispatch,
 } from "../../../state_management/week_calendar_context";
-import { addWeeks, subWeeks } from "date-fns";
+import { addWeeks, startOfWeek, subWeeks } from "date-fns";
 
 const ChevronLeft = (props: React.ComponentProps<"svg">) => (
   <SvgIcon>
@@ -29,7 +29,7 @@ const ChevronLeft = (props: React.ComponentProps<"svg">) => (
 );
 
 export function CalendarLayoutBar() {
-  const { today, currentFirstDayOfTheWeek } = useCalendar();
+  const { today, startDay, currentFirstDayOfTheWeek } = useCalendar();
   const dispatch = useCalendarDispatch();
 
   return (
@@ -45,7 +45,9 @@ export function CalendarLayoutBar() {
         onClick={() => {
           dispatch({
             type: "edit-currentFirstDayOfTheWeek",
-            currentFirstDayOfTheWeek: today,
+            currentFirstDayOfTheWeek: startOfWeek(today, {
+              weekStartsOn: startDay === "monday" ? 1 : 0,
+            }),
           });
         }}
       >
