@@ -5,7 +5,6 @@ import {
   isAfter,
   isBefore,
 } from "date-fns";
-import { useMemo } from "react";
 import { useCalendar } from "../../../state_management/week_calendar_context";
 import type { CalendarEvent } from "../../../types";
 import { FlexCol, FlexRow } from "../../wrappers";
@@ -23,25 +22,23 @@ export function CalendarFullDayEventBar({
   eventHeight: number;
 }) {
   const { workWeek, currentFirstDayOfTheWeek } = useCalendar();
-  const filteredEvents = useMemo(() => {
-    const filtEvents: CalendarEvent[] = [];
-    events.forEach((event) => {
-      if (
-        isBefore(currentFirstDayOfTheWeek, event.start) &&
-        isBefore(event.start, addWeeks(currentFirstDayOfTheWeek, 1))
-      ) {
-        filtEvents.push(event);
-      } else if (
-        event.end &&
-        isBefore(currentFirstDayOfTheWeek, event.end) &&
-        isBefore(event.end, addWeeks(currentFirstDayOfTheWeek, 1)) &&
-        isBefore(event.start, currentFirstDayOfTheWeek)
-      ) {
-        filtEvents.push(event);
-      }
-    });
-    return filtEvents;
-  }, [currentFirstDayOfTheWeek]);
+
+  const filteredEvents: CalendarEvent[] = [];
+  events.forEach((event) => {
+    if (
+      isBefore(currentFirstDayOfTheWeek, event.start) &&
+      isBefore(event.start, addWeeks(currentFirstDayOfTheWeek, 1))
+    ) {
+      filteredEvents.push(event);
+    } else if (
+      event.end &&
+      isBefore(currentFirstDayOfTheWeek, event.end) &&
+      isBefore(event.end, addWeeks(currentFirstDayOfTheWeek, 1)) &&
+      isBefore(event.start, currentFirstDayOfTheWeek)
+    ) {
+      filteredEvents.push(event);
+    }
+  });
 
   const sortedEvents = filteredEvents.sort(function (a, b) {
     if (isBefore(a.start, b.start) && a.end && b.end && isBefore(a.end, b.end))

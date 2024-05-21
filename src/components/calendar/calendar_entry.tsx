@@ -1,56 +1,28 @@
-import {
-  Box,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography,
-} from "@mui/material";
-import { eventsFixture } from "./fixtures";
-import { WeekCalendar } from "./week_calendar";
+import { Box, ScopedCssBaseline, Typography } from "@mui/material";
 import { FlexCol } from "./components/wrappers";
-import { useState } from "react";
-// import DateRangeIcon from "@mui/icons-material/DateRange";
-// import TodayIcon from "@mui/icons-material/Today";
+import { eventsFixture } from "./fixtures";
+import {
+  CalendarEvent,
+  OnChangeEventTime,
+  OnSelectEvent,
+  StartDay,
+} from "./types";
+import { startOfWeek } from "date-fns";
+import { WeekCalendarProvider } from "./state_management/week_calendar_context";
+import { WeekCalendarWrapper } from "./week_calendar";
 
 export function CalendarEntry() {
-  // const [calendarOptions, setCalendarOptions] = useState<string[]>([
-  //   "monday",
-  //   "workWeek",
-  // ]);
-
-  // const handleDefaultValues = (
-  //   event: React.MouseEvent<HTMLElement>,
-  //   newOptions: string[],
-  // ) => {
-  //   setCalendarOptions(newOptions);
-  // };
-
   return (
-    <>
-      {/* <ToggleButtonGroup value={calendarOptions} onChange={handleDefaultValues}>
-        <ToggleButton value="workWeek">
-          <DateRangeIcon />
-        </ToggleButton>
-        <ToggleButton value="monday">
-          <TodayIcon />
-        </ToggleButton>
-      </ToggleButtonGroup> */}
+    <Box>
       <FlexCol width="100%" height="100%" p={4}>
         <Box>
           <Typography variant="h4">Many events</Typography>
-          <WeekCalendar
-            events={eventsFixture}
-            // workWeek={calendarOptions.some((option) => option === "workWeek")}
-            // startDay={
-            //   calendarOptions.some((option) => option === "monday")
-            //     ? "monday"
-            //     : "sunday"
-            // }
-          />
+          <Calendar variant="week" events={eventsFixture} />
         </Box>
 
         <Box>
           <Typography variant="h4">A task</Typography>
-          <WeekCalendar
+          <Calendar
             events={[
               {
                 // id: "1",
@@ -64,9 +36,59 @@ export function CalendarEntry() {
 
         <Box>
           <Typography variant="h4">Many events</Typography>
-          <WeekCalendar events={eventsFixture} />
+          <Calendar events={eventsFixture} />
         </Box>
       </FlexCol>
+    </Box>
+  );
+}
+
+export function Calendar({
+  variant = "week",
+  // defaults
+  workWeek = false,
+  startDay = "monday",
+  today = new Date(),
+
+  // eventListeners
+  onSelectEvent,
+  onChangeEventTime,
+
+  // our events
+  events,
+}: {
+  events: CalendarEvent[];
+  variant?: "week" | "month";
+  workWeek?: boolean;
+  startDay?: StartDay;
+  today?: Date;
+  onChangeEventTime?: OnChangeEventTime;
+  onSelectEvent?: OnSelectEvent;
+}) {
+  return (
+    <>
+      <Box
+        sx={{
+          "*": {
+            all: "revert-layer",
+          },
+        }}
+      >
+        <ScopedCssBaseline>
+          <WeekCalendarProvider
+            initialState={{
+              workWeek,
+              startDay,
+              today,
+              currentFirstDayOfTheWeek: startOfWeek(today, {
+                weekStartsOn: startDay === "monday" ? 1 : 0,
+              }),
+            }}
+          >
+            <WeekCalendarWrapper events={events} />
+          </WeekCalendarProvider>
+        </ScopedCssBaseline>
+      </Box>
     </>
   );
 }

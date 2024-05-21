@@ -72,71 +72,48 @@ export function getEventsWithRange(
 ): CalendarEventWithRange[] {
   const eventsWithRange: CalendarEventWithRange[] = [];
 
-  events.forEach((e, i) => {
-    const hours = getHours(e.start);
-    const minutes = getMinutes(e.start);
-    const eventDurationInMinutes = e.end
-      ? differenceInMinutes(e.end, e.start, {
-          roundingMethod: "floor",
-        })
-      : 15;
-    const diffInDays = e.end ? differenceInCalendarDays(e.end, e.start) : 0;
+  if (events.length > 0) {
+    events.forEach((e, i) => {
+      const hours = getHours(e.start);
+      const minutes = getMinutes(e.start);
+      const eventDurationInMinutes = e.end
+        ? differenceInMinutes(e.end, e.start, {
+            roundingMethod: "floor",
+          })
+        : 15;
+      const diffInDays = e.end ? differenceInCalendarDays(e.end, e.start) : 0;
 
-    const topPosition = hours * 60 + minutes;
+      const topPosition = hours * 60 + minutes;
 
-    if (diffInDays > 0) {
-      eventsWithRange.push({
-        start: topPosition,
-        end: 1439,
-        left: 1,
-        height: `${1439 - topPosition}px`,
-        event: e,
-      });
-      eventsWithRange.push({
-        start: 1,
-        end: 1 + eventDurationInMinutes - (1439 - topPosition),
-        left: 121,
-        height: `${1 + eventDurationInMinutes - (1439 - topPosition) - 1}px`,
-        event: e,
-      });
-    } else {
-      eventsWithRange.push({
-        start: topPosition,
-        end: topPosition + eventDurationInMinutes,
-        left: 1,
-        height:
-          eventDurationInMinutes <= 15 ? "15px" : `${eventDurationInMinutes}px`,
-        event: e,
-      });
-    }
-  });
-
-  return eventsWithRange;
-}
-
-export function getAllDayEventsWithRange(
-  events: CalendarEventType[],
-  day: Date,
-): {
-  left: string;
-  height: string;
-  event: CalendarEventType;
-}[] {
-  const eventsWithRange: {
-    left: string;
-    height: string;
-    event: CalendarEventType;
-  }[] = [];
-
-  events.forEach((e, i) => {
-    const diffInDays = differenceInCalendarDays(e.start, day);
-
-    eventsWithRange.push({
-      left: `${diffInDays * 120}px`,
-      height: "16px",
-      event: e,
+      if (diffInDays > 0) {
+        eventsWithRange.push({
+          start: topPosition,
+          end: 1439,
+          left: 1,
+          height: `${1439 - topPosition}px`,
+          event: e,
+        });
+        eventsWithRange.push({
+          start: 1,
+          end: 1 + eventDurationInMinutes - (1439 - topPosition),
+          left: 121,
+          height: `${1 + eventDurationInMinutes - (1439 - topPosition) - 1}px`,
+          event: e,
+        });
+      } else {
+        eventsWithRange.push({
+          start: topPosition,
+          end: topPosition + eventDurationInMinutes,
+          left: 1,
+          height:
+            eventDurationInMinutes <= 15
+              ? "15px"
+              : `${eventDurationInMinutes}px`,
+          event: e,
+        });
+      }
     });
-  });
+  }
 
   return eventsWithRange;
 }
@@ -152,26 +129,27 @@ export function partitionGridEventsOnRanges(
 ): CalendarEventWithRange[][] {
   const rangedEventsGroups = [];
   let group = 0;
+  if (events.length > 0) {
+    const sortedEvents = events.sort(function (a, b) {
+      if (a.start < b.start && a.left < b.left) return -1;
+      if (a.start > b.start && a.left > b.left) return 1;
+      return 0;
+    });
 
-  const sortedEvents = events.sort(function (a, b) {
-    if (a.start < b.start && a.left < b.left) return -1;
-    if (a.start > b.start && a.left > b.left) return 1;
-    return 0;
-  });
+    rangedEventsGroups[group] = [sortedEvents[0]];
 
-  rangedEventsGroups[group] = [sortedEvents[0]];
-
-  for (let i = 1, l = sortedEvents.length; i < l; i++) {
-    const maxEnd = getMaxEnd(rangedEventsGroups[group]);
-    if (
-      sortedEvents[i].start >= sortedEvents[i - 1].start &&
-      sortedEvents[i].start < maxEnd &&
-      sortedEvents[i].left === sortedEvents[i - 1].left
-    ) {
-      rangedEventsGroups[group].push(sortedEvents[i]);
-    } else {
-      group++;
-      rangedEventsGroups[group] = [sortedEvents[i]];
+    for (let i = 1, l = sortedEvents.length; i < l; i++) {
+      const maxEnd = getMaxEnd(rangedEventsGroups[group]);
+      if (
+        sortedEvents[i].start >= sortedEvents[i - 1].start &&
+        sortedEvents[i].start < maxEnd &&
+        sortedEvents[i].left === sortedEvents[i - 1].left
+      ) {
+        rangedEventsGroups[group].push(sortedEvents[i]);
+      } else {
+        group++;
+        rangedEventsGroups[group] = [sortedEvents[i]];
+      }
     }
   }
   return rangedEventsGroups;

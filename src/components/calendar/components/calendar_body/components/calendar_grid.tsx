@@ -1,46 +1,39 @@
 import { Box, Divider } from "@mui/material";
+import { addWeeks, isBefore } from "date-fns";
 import {
   getEventsWithRange,
   partitionGridEventsOnRanges,
   transformEventsToComponents,
 } from "../../../helpers";
+import { useCalendar } from "../../../state_management/week_calendar_context";
 import type { CalendarEvent as CalendarEventType } from "../../../types";
 import { FlexCol, FlexRow } from "../../wrappers";
-import { useCalendar } from "../../../state_management/week_calendar_context";
-import { ReactElement, useMemo } from "react";
-import { addWeeks, isBefore } from "date-fns";
 
 export function CalendarGrid({ events }: { events: CalendarEventType[] }) {
   const { workWeek, currentFirstDayOfTheWeek } = useCalendar();
 
-  const filteredEvents = useMemo(() => {
-    const filtEvents: CalendarEventType[] = [];
-    events.forEach((event) => {
-      if (
-        isBefore(currentFirstDayOfTheWeek, event.start) &&
-        isBefore(event.start, addWeeks(currentFirstDayOfTheWeek, 1))
-      ) {
-        filtEvents.push(event);
-      } else if (
-        event.end &&
-        isBefore(currentFirstDayOfTheWeek, event.end) &&
-        isBefore(event.end, addWeeks(currentFirstDayOfTheWeek, 1))
-      ) {
-        filtEvents.push(event);
-      }
-    });
-    return filtEvents;
-  }, [currentFirstDayOfTheWeek]);
+  const filteredEvents: CalendarEventType[] = [];
+  events.forEach((event) => {
+    if (
+      isBefore(currentFirstDayOfTheWeek, event.start) &&
+      isBefore(event.start, addWeeks(currentFirstDayOfTheWeek, 1))
+    ) {
+      filteredEvents.push(event);
+    } else if (
+      event.end &&
+      isBefore(currentFirstDayOfTheWeek, event.end) &&
+      isBefore(event.end, addWeeks(currentFirstDayOfTheWeek, 1))
+    ) {
+      filteredEvents.push(event);
+    }
+  });
 
-  const eventsWithRange = useMemo(() => getEventsWithRange(filteredEvents), []);
-  const groupsOfOverlappingEvents = useMemo(
-    () => partitionGridEventsOnRanges(eventsWithRange),
-    [],
-  );
+  const eventsWithRange = getEventsWithRange(filteredEvents);
+  const groupsOfOverlappingEvents =
+    partitionGridEventsOnRanges(eventsWithRange);
 
-  const eventsComponents = useMemo(
-    () => transformEventsToComponents(groupsOfOverlappingEvents),
-    [],
+  const eventsComponents = transformEventsToComponents(
+    groupsOfOverlappingEvents,
   );
 
   return (

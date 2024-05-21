@@ -15,6 +15,9 @@ export const weekCalendarReducer = (
   produce(state, (draft: WeekCalendarState) => {
     if (action.type === "edit-workWeek") {
       draft.workWeek = action.workWeek;
+      if (action.workWeek) {
+        draft.startDay = "monday";
+      }
       draft.currentFirstDayOfTheWeek = startOfWeek(draft.today, {
         weekStartsOn: 1,
       });
