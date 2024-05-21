@@ -31,14 +31,14 @@ export const eventsFixture: CalendarEventType[] =  [
   },
   {
     title: "2 days event",
-    start: new Date(),
-    end: addDays(new Date(), 2),
+    start: addDays(new Date(), 2),
+    end: addDays(addDays(new Date(), 2), 2),
     color: "pink",
   },
   {
     title: "4 days event",
-    start: new Date(),
-    end: addDays(new Date(), 4),
+    start: addDays(new Date(), 1),
+    end: addDays(addDays(new Date(), 1), 4),
     color: "red",
   },
   {
@@ -78,5 +78,4 @@ export const eventsFixture: CalendarEventType[] =  [
     color: "teal",
   },
 ];
-
 `;
