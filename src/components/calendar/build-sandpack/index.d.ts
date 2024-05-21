@@ -7,8 +7,6 @@ import * as _emotion_styled from '@emotion/styled';
 import * as _mui_system from '@mui/system';
 import * as _mui_material_OverridableComponent from '@mui/material/OverridableComponent';
 
-declare function CalendarEntry(): react_jsx_runtime.JSX.Element;
-
 type StartDay = "monday" | "sunday";
 type CalendarEvent<T = undefined> = {
     /**
@@ -26,8 +24,6 @@ type CalendarEvent<T = undefined> = {
     color?: string;
     data?: T;
 };
-type OnChangeEventTime = (event: CalendarEvent, newStart: Date, newEnd: Date) => void;
-type OnSelectEvent = (event: CalendarEvent) => void;
 type CalendarEventWithRange = {
     start: number;
     end: number;
@@ -41,6 +37,8 @@ type WeekCalendarState = {
     today: Date;
     currentFirstDayOfTheWeek: Date;
 };
+
+declare function CalendarEntry(): react_jsx_runtime.JSX.Element;
 
 declare function CalendarBody({ gridEvents, }: {
     gridEvents: CalendarEvent[];
@@ -121,7 +119,7 @@ declare function mergeSx(...sxs: (Sx | null | undefined | boolean)[]): Sx;
 declare const variationsToColorRecord: Record<string, string>;
 declare const EventTypography: _emotion_styled.StyledComponent<_mui_material.TypographyOwnProps & _mui_material_OverridableComponent.CommonProps & Omit<Omit<react.DetailedHTMLProps<react.HTMLAttributes<HTMLSpanElement>, HTMLSpanElement>, "ref"> & {
     ref?: ((instance: HTMLSpanElement | null) => void) | react.RefObject<HTMLSpanElement> | null | undefined;
-}, "border" | "boxShadow" | "fontWeight" | "zIndex" | "alignContent" | "alignItems" | "alignSelf" | "bottom" | "boxSizing" | "color" | "columnGap" | "display" | "flexBasis" | "flexDirection" | "flexGrow" | "flexShrink" | "flexWrap" | "fontFamily" | "fontSize" | "fontStyle" | "gridAutoColumns" | "gridAutoFlow" | "gridAutoRows" | "gridTemplateAreas" | "gridTemplateColumns" | "gridTemplateRows" | "height" | "justifyContent" | "justifyItems" | "justifySelf" | "left" | "letterSpacing" | "lineHeight" | "marginBlockEnd" | "marginBlockStart" | "marginBottom" | "marginInlineEnd" | "marginInlineStart" | "marginLeft" | "marginRight" | "marginTop" | "maxHeight" | "maxWidth" | "minHeight" | "minWidth" | "order" | "paddingBlockEnd" | "paddingBlockStart" | "paddingBottom" | "paddingInlineEnd" | "paddingInlineStart" | "paddingLeft" | "paddingRight" | "paddingTop" | "position" | "right" | "rowGap" | "textAlign" | "textOverflow" | "textTransform" | "top" | "visibility" | "whiteSpace" | "width" | "borderBottom" | "borderColor" | "borderLeft" | "borderRadius" | "borderRight" | "borderTop" | "flex" | "gap" | "gridArea" | "gridColumn" | "gridRow" | "margin" | "marginBlock" | "marginInline" | "overflow" | "padding" | "paddingBlock" | "paddingInline" | "bgcolor" | "m" | "mt" | "mr" | "mb" | "ml" | "mx" | "marginX" | "my" | "marginY" | "p" | "pt" | "pr" | "pb" | "pl" | "px" | "paddingX" | "py" | "paddingY" | "typography" | "displayPrint" | "className" | "style" | "classes" | "children" | "align" | "gutterBottom" | "noWrap" | "paragraph" | "sx" | "variant" | "variantMapping"> & _mui_system.MUIStyledCommonProps<Theme>, {}, {}>;
+}, "className" | "style" | "classes" | "border" | "borderTop" | "borderRight" | "borderBottom" | "borderLeft" | "borderColor" | "borderRadius" | "display" | "displayPrint" | "overflow" | "textOverflow" | "visibility" | "whiteSpace" | "flexBasis" | "flexDirection" | "flexWrap" | "justifyContent" | "alignItems" | "alignContent" | "order" | "flex" | "flexGrow" | "flexShrink" | "alignSelf" | "justifyItems" | "justifySelf" | "gap" | "columnGap" | "rowGap" | "gridColumn" | "gridRow" | "gridAutoFlow" | "gridAutoColumns" | "gridAutoRows" | "gridTemplateColumns" | "gridTemplateRows" | "gridTemplateAreas" | "gridArea" | "bgcolor" | "color" | "zIndex" | "position" | "top" | "right" | "bottom" | "left" | "boxShadow" | "width" | "maxWidth" | "minWidth" | "height" | "maxHeight" | "minHeight" | "boxSizing" | "m" | "mt" | "mr" | "mb" | "ml" | "mx" | "my" | "p" | "pt" | "pr" | "pb" | "pl" | "px" | "py" | "margin" | "marginTop" | "marginRight" | "marginBottom" | "marginLeft" | "marginX" | "marginY" | "marginInline" | "marginInlineStart" | "marginInlineEnd" | "marginBlock" | "marginBlockStart" | "marginBlockEnd" | "padding" | "paddingTop" | "paddingRight" | "paddingBottom" | "paddingLeft" | "paddingX" | "paddingY" | "paddingInline" | "paddingInlineStart" | "paddingInlineEnd" | "paddingBlock" | "paddingBlockStart" | "paddingBlockEnd" | "typography" | "fontFamily" | "fontSize" | "fontStyle" | "fontWeight" | "letterSpacing" | "lineHeight" | "textAlign" | "textTransform" | "children" | "sx" | "align" | "gutterBottom" | "noWrap" | "paragraph" | "variant" | "variantMapping"> & _mui_system.MUIStyledCommonProps<Theme>, {}, {}>;
 /**
  * Receives events, calculates their ranges and returns an array of GridEventsWithRanges
  *
@@ -155,13 +153,8 @@ declare function transformEventsToComponents(groupsOfEvents: CalendarEventWithRa
  */
 declare function calculateEventProperties(start: Date, height: string, color: string, end?: Date): SxProps<Theme>;
 
-declare function WeekCalendar({ workWeek, startDay, today, onSelectEvent, onChangeEventTime, events, }: {
+declare function WeekCalendar({ events }: {
     events: CalendarEvent[];
-    workWeek?: boolean;
-    startDay?: StartDay;
-    today?: Date;
-    onChangeEventTime?: OnChangeEventTime;
-    onSelectEvent?: OnSelectEvent;
 }): react_jsx_runtime.JSX.Element;
 
 type WeekCalendarActionTypes = {
