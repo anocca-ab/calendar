@@ -49,21 +49,21 @@ export function WeekCalendar({
 
   return (
     <>
-      <WeekCalendarProvider
-        initialState={{
-          workWeek,
-          startDay,
-          today,
-          currentFirstDayOfTheWeek: startOfWeek(today, {
-            weekStartsOn: startDay === "monday" ? 1 : 0,
-          }),
+      <Box
+        sx={{
+          "*": {
+            all: "revert-layer",
+          },
         }}
       >
-        <Box
-          sx={{
-            "*": {
-              all: "revert-layer",
-            },
+        <WeekCalendarProvider
+          initialState={{
+            workWeek,
+            startDay,
+            today,
+            currentFirstDayOfTheWeek: startOfWeek(today, {
+              weekStartsOn: startDay === "monday" ? 1 : 0,
+            }),
           }}
         >
           <ScopedCssBaseline>
@@ -72,8 +72,8 @@ export function WeekCalendar({
               <CalendarBody gridEvents={gridEvents} />
             </FlexCol>
           </ScopedCssBaseline>
-        </Box>
-      </WeekCalendarProvider>
+        </WeekCalendarProvider>
+      </Box>
     </>
   );
 }

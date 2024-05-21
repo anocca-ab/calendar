@@ -71,6 +71,10 @@ declare function CalendarAllDayEvent({ title, start, end, color, sx, }: Calendar
     sx?: SxProps<Theme>;
 }): react_jsx_runtime.JSX.Element;
 
+/**
+ * The event height is calculated so it will be depracated
+ * @returns
+ */
 declare function CalendarFullDayEventBar({ events, eventHeight, }: {
     events: CalendarEvent[];
     eventHeight: number;

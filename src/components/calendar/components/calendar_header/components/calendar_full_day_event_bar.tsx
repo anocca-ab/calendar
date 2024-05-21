@@ -11,6 +11,10 @@ import type { CalendarEvent } from "../../../types";
 import { FlexCol, FlexRow } from "../../wrappers";
 import { CalendarAllDayEvent } from "./calendar_all_day_event";
 
+/**
+ * The event height is calculated so it will be depracated
+ * @returns
+ */
 export function CalendarFullDayEventBar({
   events,
   eventHeight,
@@ -56,14 +60,13 @@ export function CalendarFullDayEventBar({
     if (!sortedEvents[i].end) {
       throw new Error("A full day event must have an end date!");
     }
-    if (isBefore(sortedEvents[i].end as Date, sortedEvents[i - 1].start)) {
+    if (isAfter(sortedEvents[i].start, sortedEvents[i - 1].end as Date)) {
       rangedEventsGroups[allDayEventsRows].push(sortedEvents[i]);
     } else {
       allDayEventsRows++;
       rangedEventsGroups[allDayEventsRows] = [sortedEvents[i]];
     }
   }
-  // console.log(rangedEventsGroups);
 
   return (
     <Box pl={8}>
@@ -132,17 +135,16 @@ export function CalendarFullDayEventBar({
                   }}
                 >
                   {group.map((event, eventIndex) => {
+                    const leftPosition = differenceInCalendarDays(
+                      event.start,
+                      currentFirstDayOfTheWeek,
+                    );
+
                     return (
                       <Box
                         key={`event-${eventIndex}`}
                         pl="2px"
-                        left={`
-                          ${
-                            differenceInCalendarDays(
-                              currentFirstDayOfTheWeek,
-                              event.start,
-                            ) * 120
-                          }px`}
+                        gridColumn={`${leftPosition}`}
                       >
                         <CalendarAllDayEvent {...event} />
                         <Box sx={{ height: "1px" }} />

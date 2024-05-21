@@ -114,6 +114,33 @@ export function getEventsWithRange(
   return eventsWithRange;
 }
 
+export function getAllDayEventsWithRange(
+  events: CalendarEventType[],
+  day: Date,
+): {
+  left: string;
+  height: string;
+  event: CalendarEventType;
+}[] {
+  const eventsWithRange: {
+    left: string;
+    height: string;
+    event: CalendarEventType;
+  }[] = [];
+
+  events.forEach((e, i) => {
+    const diffInDays = differenceInCalendarDays(e.start, day);
+
+    eventsWithRange.push({
+      left: `${diffInDays * 120}px`,
+      height: "16px",
+      event: e,
+    });
+  });
+
+  return eventsWithRange;
+}
+
 /**
  * Receives an array of GridEventsWithRanges and returns an array of groups of events that overlap with each other
  *
