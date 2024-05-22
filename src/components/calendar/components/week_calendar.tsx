@@ -7,6 +7,7 @@ import {
   FormLabel,
   Radio,
   RadioGroup,
+  Typography,
 } from "@mui/material";
 import {
   useCalendar,
@@ -50,7 +51,12 @@ export function WeekCalendarWrapper({ events }: { events: CalendarEvent[] }) {
   return (
     <FlexCol gap={2} width={workWeek ? "664px" : "904px"}>
       <Card variant="outlined">
-        <CardHeader title="Week Calendar Settings" />
+        <CardHeader
+          title={
+            <Typography variant="body1">Week Calendar Settings</Typography>
+          }
+          subheader="During work weeks, it makes no sense to start from Sunday. The state will automatically set the starting day on Monday when working week is active"
+        />
         <CardContent>
           <FormControl>
             <FormLabel focused={false}>Week</FormLabel>
