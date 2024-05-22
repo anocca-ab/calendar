@@ -1,11 +1,14 @@
 import { Box, Divider } from "@mui/material";
-import { differenceInCalendarDays, differenceInMinutes } from "date-fns";
 import {
   filterWeekEvents,
+  getAllDayEventsWithRange,
   partitionAllDayEventsOnRanges,
 } from "../../../helpers";
 import { useCalendar } from "../../../state_management/week_calendar_context";
-import type { CalendarEvent } from "../../../types";
+import type {
+  CalendarEvent,
+  AllDayCalendarEventWithRange,
+} from "../../../types";
 import { FlexCol, FlexRow } from "../../wrappers";
 import { CalendarAllDayEvent } from "./calendar_all_day_event";
 
@@ -15,10 +18,8 @@ import { CalendarAllDayEvent } from "./calendar_all_day_event";
  */
 export function CalendarFullDayEventBar({
   events,
-  eventHeight,
 }: {
   events: CalendarEvent[];
-  eventHeight: number;
 }) {
   const { workWeek, currentFirstDayOfTheWeek } = useCalendar();
   const maxWidth = workWeek ? 600 : 840;
@@ -27,10 +28,15 @@ export function CalendarFullDayEventBar({
     events,
     currentFirstDayOfTheWeek,
   );
-
-  const rangedEventsGroups = partitionAllDayEventsOnRanges(filteredEvents);
-
-  // console.log(rangedEventsGroups);
+  const allDayEventsWithRange: AllDayCalendarEventWithRange[] =
+    getAllDayEventsWithRange(
+      filteredEvents,
+      currentFirstDayOfTheWeek,
+      maxWidth,
+    );
+  const rangedEventsGroups = partitionAllDayEventsOnRanges(
+    allDayEventsWithRange,
+  );
 
   return (
     <Box pl={8}>
@@ -38,7 +44,6 @@ export function CalendarFullDayEventBar({
         sx={{
           position: "relative",
           width: "100%",
-          // height: `${eventHeight * (16 + 1) + 1}px`,
           height: `${rangedEventsGroups.length * (16 + 1) + 1}px`,
         }}
       >
@@ -97,36 +102,6 @@ export function CalendarFullDayEventBar({
                   sx={{ height: "18px" }}
                 >
                   {group.map((event, eventIndex) => {
-                    const leftPosition =
-                      differenceInCalendarDays(
-                        event.start,
-                        currentFirstDayOfTheWeek,
-                      ) * 120;
-
-                    const eventDurationInMins = differenceInMinutes(
-                      event.end!,
-                      event.start,
-                      {
-                        roundingMethod: "floor",
-                      },
-                    );
-
-                    const eventDurationInHours = Math.floor(
-                      eventDurationInMins / 60,
-                    );
-                    const eventDurationInDays = Math.floor(
-                      eventDurationInHours / 24,
-                    );
-                    const eventWidth =
-                      eventDurationInDays > 1
-                        ? eventDurationInDays * 120 - 10
-                        : 110;
-                    const eventWidthWithLeft = eventWidth + leftPosition;
-                    const differenceWithMaxWidth =
-                      eventWidthWithLeft > maxWidth
-                        ? eventWidthWithLeft - maxWidth
-                        : 0;
-
                     return (
                       <Box
                         key={`event-${eventIndex}`}
@@ -134,14 +109,14 @@ export function CalendarFullDayEventBar({
                         height="16px"
                         position="absolute"
                         sx={{
-                          left: `${leftPosition}px`,
+                          left: `${event.left}px`,
                           top: `${groupIndex * 17}px`,
                         }}
                       >
                         <CalendarAllDayEvent
-                          {...event}
+                          {...event.event}
                           sx={{
-                            width: `${eventWidth - differenceWithMaxWidth}px`,
+                            width: `${event.width}px`,
                           }}
                         />
                       </Box>

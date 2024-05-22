@@ -20,6 +20,7 @@ export { eventsFixture, renderFixtureEvents } from "./fixtures";
 export {
   mergeSx,
   getEventsWithRange,
+  getAllDayEventsWithRange,
   calculateEventProperties,
   partitionGridEventsOnRanges,
   partitionAllDayEventsOnRanges,
@@ -39,4 +40,9 @@ export {
 export { weekCalendarReducer } from "./state_management/week_calendar_reducer";
 
 export type { WeekCalendarActionTypes } from "./state_management/week_calendar_reducer";
-export type { CalendarEvent } from "./types";
+export type {
+  CalendarEvent,
+  WeekCalendarState,
+  AllDayCalendarEventWithRange,
+  CalendarEventWithRange,
+} from "./types";

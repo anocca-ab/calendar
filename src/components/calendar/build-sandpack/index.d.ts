@@ -35,6 +35,11 @@ type CalendarEventWithRange = {
     height: string;
     event: CalendarEvent;
 };
+type AllDayCalendarEventWithRange = {
+    left: number;
+    width: number;
+    event: CalendarEvent;
+};
 type WeekCalendarState = {
     workWeek: boolean;
     startDay: StartDay;
@@ -85,9 +90,8 @@ declare function CalendarAllDayEvent({ title, start, end, color, sx, }: Calendar
  * The event height is calculated so it will be depracated
  * @returns
  */
-declare function CalendarFullDayEventBar({ events, eventHeight, }: {
+declare function CalendarFullDayEventBar({ events, }: {
     events: CalendarEvent[];
-    eventHeight: number;
 }): react_jsx_runtime.JSX.Element;
 
 declare function CalendarLayoutBar(): react_jsx_runtime.JSX.Element;
@@ -140,6 +144,15 @@ declare const EventTypography: _emotion_styled.StyledComponent<_mui_material.Typ
  */
 declare function getEventsWithRange(events: CalendarEvent[], currentFirstDayOfTheWeek: Date): CalendarEventWithRange[];
 /**
+ * Receives allDayEvents, calculates their width and left position and returns an array of AllDayCalendarEventWithRange
+ *
+ * @param events
+ * @param currentFirstDayOfTheWeek
+ * @param maxWidth
+ * @returns
+ */
+declare function getAllDayEventsWithRange(events: CalendarEvent[], currentFirstDayOfTheWeek: Date, maxWidth: number): AllDayCalendarEventWithRange[];
+/**
  * Receives an array of GridEventsWithRanges and returns an array of groups of events that overlap with each other
  *
  * @param events
@@ -151,7 +164,7 @@ declare function partitionGridEventsOnRanges(events: CalendarEventWithRange[]): 
  * @param filteredEvents
  * @returns
  */
-declare function partitionAllDayEventsOnRanges(filteredEvents: CalendarEvent[]): CalendarEvent[][];
+declare function partitionAllDayEventsOnRanges(filteredEvents: AllDayCalendarEventWithRange[]): AllDayCalendarEventWithRange[][];
 /**
  * Receives groups of grouped events, calculates the sx props
  * of overlapping groups and returns an array of events
@@ -203,4 +216,4 @@ declare function WeekCalendarProvider({ initialState, children, }: {
 declare function useCalendar(): WeekCalendarState;
 declare function useCalendarDispatch(): react.Dispatch<WeekCalendarActionTypes>;
 
-export { Calendar, CalendarAllDayEvent, CalendarBody, CalendarEntry, type CalendarEvent, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, WeekCalendar, type WeekCalendarActionTypes, WeekCalendarContext, WeekCalendarDispatchContext, WeekCalendarProvider, WeekCalendarWrapper, WeekChip, calculateEventProperties, formatDuration as calculateTitleDuration, eventsFixture, filterWeekEvents, getEventsWithRange, mergeSx, partitionAllDayEventsOnRanges, partitionGridEventsOnRanges, renderFixtureEvents, transformEventsToComponents, useCalendar, useCalendarDispatch, variationsToColorRecord, weekCalendarReducer };
+export { type AllDayCalendarEventWithRange, Calendar, CalendarAllDayEvent, CalendarBody, CalendarEntry, type CalendarEvent, type CalendarEventWithRange, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, WeekCalendar, type WeekCalendarActionTypes, WeekCalendarContext, WeekCalendarDispatchContext, WeekCalendarProvider, type WeekCalendarState, WeekCalendarWrapper, WeekChip, calculateEventProperties, formatDuration as calculateTitleDuration, eventsFixture, filterWeekEvents, getAllDayEventsWithRange, getEventsWithRange, mergeSx, partitionAllDayEventsOnRanges, partitionGridEventsOnRanges, renderFixtureEvents, transformEventsToComponents, useCalendar, useCalendarDispatch, variationsToColorRecord, weekCalendarReducer };

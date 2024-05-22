@@ -13,7 +13,7 @@ export function CalendarHeader({
     <FlexCol width="100%">
       <CalendarLayoutBar />
       <CalendarWeekViewBar />
-      <CalendarFullDayEventBar eventHeight={2} events={allDayEvents} />
+      <CalendarFullDayEventBar events={allDayEvents} />
     </FlexCol>
   );
 }

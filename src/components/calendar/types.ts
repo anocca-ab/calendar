@@ -34,6 +34,12 @@ export type CalendarEventWithRange = {
   event: CalendarEvent;
 };
 
+export type AllDayCalendarEventWithRange = {
+  left: number;
+  width: number;
+  event: CalendarEvent;
+};
+
 export type WeekCalendarState = {
   workWeek: boolean;
   startDay: StartDay;

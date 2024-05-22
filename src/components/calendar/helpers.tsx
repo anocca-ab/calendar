@@ -16,12 +16,14 @@ import {
   isBefore,
   isAfter,
   getMinutes,
+  differenceInCalendarWeeks,
 } from "date-fns";
 import { ReactElement } from "react";
 import { CalendarEvent } from "./components/calendar_body/components/calendar_event";
 import {
   CalendarEvent as CalendarEventType,
   CalendarEventWithRange,
+  AllDayCalendarEventWithRange,
 } from "./types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -128,6 +130,66 @@ export function getEventsWithRange(
 }
 
 /**
+ * Receives allDayEvents, calculates their width and left position and returns an array of AllDayCalendarEventWithRange
+ *
+ * @param events
+ * @param currentFirstDayOfTheWeek
+ * @param maxWidth
+ * @returns
+ */
+export function getAllDayEventsWithRange(
+  events: CalendarEventType[],
+  currentFirstDayOfTheWeek: Date,
+  maxWidth: number,
+): AllDayCalendarEventWithRange[] {
+  const eventsWithRange: AllDayCalendarEventWithRange[] = [];
+  if (events.length > 0) {
+    events.forEach((event, i) => {
+      const diffInWeeks = differenceInCalendarWeeks(
+        event.start,
+        currentFirstDayOfTheWeek,
+      );
+
+      const leftPosition =
+        differenceInCalendarDays(event.start, currentFirstDayOfTheWeek) * 120;
+
+      const eventDurationInMins = differenceInMinutes(event.end!, event.start, {
+        roundingMethod: "floor",
+      });
+
+      const eventDurationInHours = Math.floor(eventDurationInMins / 60);
+      const eventDurationInDays = Math.floor(eventDurationInHours / 24);
+
+      const eventWidth =
+        eventDurationInDays > 1 ? eventDurationInDays * 120 - 10 : 110;
+      const eventWidthWithLeft = eventWidth + leftPosition;
+      const differenceWithMaxWidth =
+        eventWidthWithLeft > maxWidth ? eventWidthWithLeft - maxWidth : 0;
+
+      if (diffInWeeks === 0) {
+        eventsWithRange.push({
+          left: 1 + leftPosition,
+          width: eventWidth - differenceWithMaxWidth,
+          event,
+        });
+      } else if (diffInWeeks === -1) {
+        eventsWithRange.push({
+          left: 1,
+          width:
+            (differenceInCalendarDays(event.end!, currentFirstDayOfTheWeek) +
+              1) *
+              120 -
+            10,
+
+          event,
+        });
+      }
+    });
+  }
+  return eventsWithRange;
+}
+
+/**
  * Receives an array of GridEventsWithRanges and returns an array of groups of events that overlap with each other
  *
  * @param events
@@ -142,7 +204,9 @@ export function partitionGridEventsOnRanges(
     const sortedEvents = events.sort(function (a, b) {
       const startA = a.event.start;
       const startB = b.event.start;
-      return compareAsc(startA, startB);
+      const comparison = compareAsc(startA, startB);
+      if (a.left > b.left) return comparison;
+      return -1;
     });
 
     rangedEventsGroups[group] = [sortedEvents[0]];
@@ -182,15 +246,25 @@ export function partitionGridEventsOnRanges(
  * @returns
  */
 export function partitionAllDayEventsOnRanges(
-  filteredEvents: CalendarEventType[],
-) {
-  const rangedEventsGroups: CalendarEventType[][] = [];
+  filteredEvents: AllDayCalendarEventWithRange[],
+): AllDayCalendarEventWithRange[][] {
+  const rangedEventsGroups: AllDayCalendarEventWithRange[][] = [];
   let allDayEventsRows = 0;
 
   const sortedEvents = filteredEvents.sort(function (a, b) {
-    if (isBefore(a.start, b.start) && a.end && b.end && isBefore(a.end, b.end))
+    if (
+      isBefore(a.event.start, b.event.start) &&
+      a.event.end &&
+      b.event.end &&
+      isBefore(a.event.end, b.event.end)
+    )
       return -1;
-    if (isAfter(a.start, b.start) && a.end && b.end && isAfter(a.end, b.end))
+    if (
+      isAfter(a.event.start, b.event.start) &&
+      a.event.end &&
+      b.event.end &&
+      isAfter(a.event.end, b.event.end)
+    )
       return 1;
     return 0;
   });
@@ -198,7 +272,7 @@ export function partitionAllDayEventsOnRanges(
   rangedEventsGroups[allDayEventsRows] = [sortedEvents[0]];
 
   for (let i = 1, l = sortedEvents.length; i < l; i++) {
-    if (isAfter(sortedEvents[i].start, sortedEvents[i - 1].end!)) {
+    if (isAfter(sortedEvents[i].event.start, sortedEvents[i - 1].event.end!)) {
       rangedEventsGroups[allDayEventsRows].push(sortedEvents[i]);
     } else {
       allDayEventsRows++;
@@ -253,32 +327,38 @@ export function transformEventsToComponents(
         const c = 110 - (0.8 * b) / 2;
         const a = (c / (n - 1)) * 1.5 - (0.8 * b) / 2 / 4;
 
-        group.forEach((event, i) => {
-          events.push(
-            <Box
-              key={numOfEvents + 1}
-              sx={{
-                top: event.start,
-                left: event.left + i * b,
-                position: "absolute",
-              }}
-            >
-              <CalendarEvent
-                {...event.event}
-                sx={mergeSx(
-                  calculateEventProperties(
-                    event.event.start,
-                    event.height,
-                    event.event.color ?? "orange",
-                    event.event.end,
-                  ),
-                  { width: n - 1 != i ? a : b },
-                )}
-              />
-            </Box>,
-          );
-          numOfEvents += 1;
-        });
+        group
+          .sort(function (a, b) {
+            const startA = a.event.start;
+            const startB = b.event.start;
+            return compareAsc(startA, startB);
+          })
+          .forEach((event, i) => {
+            events.push(
+              <Box
+                key={numOfEvents + 1}
+                sx={{
+                  top: event.start,
+                  left: event.left + i * b,
+                  position: "absolute",
+                }}
+              >
+                <CalendarEvent
+                  {...event.event}
+                  sx={mergeSx(
+                    calculateEventProperties(
+                      event.event.start,
+                      event.height,
+                      event.event.color ?? "orange",
+                      event.event.end,
+                    ),
+                    { width: n - 1 != i ? a : b },
+                  )}
+                />
+              </Box>,
+            );
+            numOfEvents += 1;
+          });
       }
     });
   }
