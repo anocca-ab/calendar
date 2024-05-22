@@ -24,6 +24,9 @@ export const weekCalendarReducer = (
     }
     if (action.type === "edit-startDay") {
       draft.startDay = action.startDay;
+      if (action.startDay === "sunday") {
+        draft.workWeek = false;
+      }
       draft.currentFirstDayOfTheWeek = startOfWeek(draft.today, {
         weekStartsOn: action.startDay === "monday" ? 1 : 0,
       });

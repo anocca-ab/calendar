@@ -1,6 +1,7 @@
 import "@fontsource/roboto";
 
 export { CalendarEntry } from "./calendar_entry";
+export { Calendar } from "./calendar";
 export { CalendarBody } from "./components/calendar_body/calendar_body";
 export { formatDuration as calculateTitleDuration } from "./components/calendar_body/components/calendar_event";
 export { CalendarGrid } from "./components/calendar_body/components/calendar_grid";
@@ -25,7 +26,7 @@ export {
   EventTypography,
   variationsToColorRecord,
 } from "./helpers";
-export { WeekCalendar } from "./week_calendar";
+export { WeekCalendar, WeekCalendarWrapper } from "./components/week_calendar";
 export {
   WeekCalendarContext,
   WeekCalendarDispatchContext,
@@ -33,8 +34,7 @@ export {
   useCalendar,
   useCalendarDispatch,
 } from "./state_management/week_calendar_context";
-
 export { weekCalendarReducer } from "./state_management/week_calendar_reducer";
-export type { WeekCalendarActionTypes } from "./state_management/week_calendar_reducer";
 
+export type { WeekCalendarActionTypes } from "./state_management/week_calendar_reducer";
 export type { CalendarEvent } from "./types";

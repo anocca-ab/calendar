@@ -1,12 +1,12 @@
 export const AppTsx = `
 import { Box } from "@mui/material"
-import { WeekCalendar } from "@anocca/calendar";
+import { Calendar } from "@anocca/calendar";
 import { eventsFixture } from './fixtures.tsx';
 
 export default function App () {
   return (
     <Box p={4}>
-      <WeekCalendar events={eventsFixture} />
+      <Calendar variant="week" events={eventsFixture} />
     </Box>
   );
 }
