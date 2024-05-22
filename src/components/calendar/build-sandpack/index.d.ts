@@ -138,7 +138,7 @@ declare const EventTypography: _emotion_styled.StyledComponent<_mui_material.Typ
  * @param events
  * @returns
  */
-declare function getEventsWithRange(events: CalendarEvent[]): CalendarEventWithRange[];
+declare function getEventsWithRange(events: CalendarEvent[], currentFirstDayOfTheWeek: Date): CalendarEventWithRange[];
 /**
  * Receives an array of GridEventsWithRanges and returns an array of groups of events that overlap with each other
  *
@@ -146,6 +146,12 @@ declare function getEventsWithRange(events: CalendarEvent[]): CalendarEventWithR
  * @returns
  */
 declare function partitionGridEventsOnRanges(events: CalendarEventWithRange[]): CalendarEventWithRange[][];
+/**
+ *
+ * @param filteredEvents
+ * @returns
+ */
+declare function partitionAllDayEventsOnRanges(filteredEvents: CalendarEvent[]): CalendarEvent[][];
 /**
  * Receives groups of grouped events, calculates the sx props
  * of overlapping groups and returns an array of events
@@ -164,6 +170,7 @@ declare function transformEventsToComponents(groupsOfEvents: CalendarEventWithRa
  * @returns
  */
 declare function calculateEventProperties(start: Date, height: string, color: string, end?: Date): SxProps<Theme>;
+declare function filterWeekEvents(events: CalendarEvent[], currentFirstDayOfTheWeek: Date): CalendarEvent[];
 
 declare function WeekCalendar({ events }: {
     events: CalendarEvent[];
@@ -196,4 +203,4 @@ declare function WeekCalendarProvider({ initialState, children, }: {
 declare function useCalendar(): WeekCalendarState;
 declare function useCalendarDispatch(): react.Dispatch<WeekCalendarActionTypes>;
 
-export { Calendar, CalendarAllDayEvent, CalendarBody, CalendarEntry, type CalendarEvent, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, WeekCalendar, type WeekCalendarActionTypes, WeekCalendarContext, WeekCalendarDispatchContext, WeekCalendarProvider, WeekCalendarWrapper, WeekChip, calculateEventProperties, formatDuration as calculateTitleDuration, eventsFixture, getEventsWithRange, mergeSx, partitionGridEventsOnRanges, renderFixtureEvents, transformEventsToComponents, useCalendar, useCalendarDispatch, variationsToColorRecord, weekCalendarReducer };
+export { Calendar, CalendarAllDayEvent, CalendarBody, CalendarEntry, type CalendarEvent, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, WeekCalendar, type WeekCalendarActionTypes, WeekCalendarContext, WeekCalendarDispatchContext, WeekCalendarProvider, WeekCalendarWrapper, WeekChip, calculateEventProperties, formatDuration as calculateTitleDuration, eventsFixture, filterWeekEvents, getEventsWithRange, mergeSx, partitionAllDayEventsOnRanges, partitionGridEventsOnRanges, renderFixtureEvents, transformEventsToComponents, useCalendar, useCalendarDispatch, variationsToColorRecord, weekCalendarReducer };

@@ -1,3 +1,4 @@
+import { CalendarEvent as CalendarEventType } from "@/types";
 import { Box, SxProps, Theme } from "@mui/material";
 import { differenceInMinutes } from "date-fns";
 import {
@@ -5,7 +6,6 @@ import {
   mergeSx,
   variationsToColorRecord,
 } from "../../../helpers";
-import { CalendarEvent as CalendarEventType } from "@/types";
 
 export function CalendarAllDayEvent({
   title = "(No title)",
@@ -35,10 +35,10 @@ export function CalendarAllDayEvent({
           padding: "0px 8px",
           height: "16px",
           borderRadius: "4px",
-          width:
-            eventDurationInDays > 1
-              ? `${eventDurationInDays * 120 - 10}px`
-              : "110px",
+          // width:
+          //   eventDurationInDays > 1
+          //     ? `${eventDurationInDays * 120 - 10}px`
+          //     : "110px",
         },
         sx,
       )}

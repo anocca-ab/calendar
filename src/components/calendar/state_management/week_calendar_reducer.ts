@@ -1,6 +1,6 @@
 import { startOfWeek } from "date-fns";
-import { StartDay, WeekCalendarState } from "../types";
 import { produce } from "immer";
+import { StartDay, WeekCalendarState } from "../types";
 
 export type WeekCalendarActionTypes =
   | { type: "edit-workWeek"; workWeek: boolean }

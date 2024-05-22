@@ -8,8 +8,8 @@ export function SandPackPlayground({ files }: { files: SandpackFiles }) {
       template="react-ts"
       theme="auto"
       options={{
-        editorHeight: 600,
-        editorWidthPercentage: 40,
+        editorHeight: 800,
+        editorWidthPercentage: 25,
         rtl: true,
       }}
       customSetup={{

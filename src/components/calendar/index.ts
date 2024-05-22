@@ -22,7 +22,9 @@ export {
   getEventsWithRange,
   calculateEventProperties,
   partitionGridEventsOnRanges,
+  partitionAllDayEventsOnRanges,
   transformEventsToComponents,
+  filterWeekEvents,
   EventTypography,
   variationsToColorRecord,
 } from "./helpers";

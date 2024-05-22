@@ -6,9 +6,15 @@ import {
   type Theme,
 } from "@mui/material";
 import {
+  addMinutes,
+  addWeeks,
+  areIntervalsOverlapping,
+  compareAsc,
   differenceInCalendarDays,
   differenceInMinutes,
   getHours,
+  isBefore,
+  isAfter,
   getMinutes,
 } from "date-fns";
 import { ReactElement } from "react";
@@ -69,11 +75,14 @@ export const EventTypography = styled(Typography)(({ theme }) => ({
  */
 export function getEventsWithRange(
   events: CalendarEventType[],
+  currentFirstDayOfTheWeek: Date,
 ): CalendarEventWithRange[] {
   const eventsWithRange: CalendarEventWithRange[] = [];
 
   if (events.length > 0) {
     events.forEach((e, i) => {
+      const leftPosition =
+        differenceInCalendarDays(e.start, currentFirstDayOfTheWeek) * 120;
       const hours = getHours(e.start);
       const minutes = getMinutes(e.start);
       const eventDurationInMinutes = e.end
@@ -89,14 +98,14 @@ export function getEventsWithRange(
         eventsWithRange.push({
           start: topPosition,
           end: 1439,
-          left: 1,
+          left: 1 + leftPosition,
           height: `${1439 - topPosition}px`,
           event: e,
         });
         eventsWithRange.push({
           start: 1,
           end: 1 + eventDurationInMinutes - (1439 - topPosition),
-          left: 121,
+          left: 121 + leftPosition,
           height: `${1 + eventDurationInMinutes - (1439 - topPosition) - 1}px`,
           event: e,
         });
@@ -104,7 +113,7 @@ export function getEventsWithRange(
         eventsWithRange.push({
           start: topPosition,
           end: topPosition + eventDurationInMinutes,
-          left: 1,
+          left: 1 + leftPosition,
           height:
             eventDurationInMinutes <= 15
               ? "15px"
@@ -131,18 +140,30 @@ export function partitionGridEventsOnRanges(
   let group = 0;
   if (events.length > 0) {
     const sortedEvents = events.sort(function (a, b) {
-      if (a.start < b.start && a.left < b.left) return -1;
-      if (a.start > b.start && a.left > b.left) return 1;
-      return 0;
+      const startA = a.event.start;
+      const startB = b.event.start;
+      return compareAsc(startA, startB);
     });
 
     rangedEventsGroups[group] = [sortedEvents[0]];
 
     for (let i = 1, l = sortedEvents.length; i < l; i++) {
-      const maxEnd = getMaxEnd(rangedEventsGroups[group]);
       if (
-        sortedEvents[i].start >= sortedEvents[i - 1].start &&
-        sortedEvents[i].start < maxEnd &&
+        areIntervalsOverlapping(
+          {
+            start: sortedEvents[i].event.start,
+            end:
+              sortedEvents[i].event.end ??
+              addMinutes(sortedEvents[i].event.start, 15),
+          },
+          {
+            start: sortedEvents[i - 1].event.start,
+            end:
+              sortedEvents[i - 1].event.end ??
+              addMinutes(sortedEvents[i - 1].event.start, 15),
+          },
+          { inclusive: true },
+        ) &&
         sortedEvents[i].left === sortedEvents[i - 1].left
       ) {
         rangedEventsGroups[group].push(sortedEvents[i]);
@@ -155,17 +176,37 @@ export function partitionGridEventsOnRanges(
   return rangedEventsGroups;
 }
 
-function getMaxEnd(events: CalendarEventWithRange[]): number {
-  const sortedEvents = events.sort(function (a, b) {
-    if (a.end < b.end) {
-      return 1;
-    }
-    if (a.end > b.end) {
+/**
+ *
+ * @param filteredEvents
+ * @returns
+ */
+export function partitionAllDayEventsOnRanges(
+  filteredEvents: CalendarEventType[],
+) {
+  const rangedEventsGroups: CalendarEventType[][] = [];
+  let allDayEventsRows = 0;
+
+  const sortedEvents = filteredEvents.sort(function (a, b) {
+    if (isBefore(a.start, b.start) && a.end && b.end && isBefore(a.end, b.end))
       return -1;
-    }
+    if (isAfter(a.start, b.start) && a.end && b.end && isAfter(a.end, b.end))
+      return 1;
     return 0;
   });
-  return sortedEvents[0].end;
+
+  rangedEventsGroups[allDayEventsRows] = [sortedEvents[0]];
+
+  for (let i = 1, l = sortedEvents.length; i < l; i++) {
+    if (isAfter(sortedEvents[i].start, sortedEvents[i - 1].end!)) {
+      rangedEventsGroups[allDayEventsRows].push(sortedEvents[i]);
+    } else {
+      allDayEventsRows++;
+      rangedEventsGroups[allDayEventsRows] = [sortedEvents[i]];
+    }
+  }
+
+  return rangedEventsGroups;
 }
 
 /**
@@ -189,7 +230,7 @@ export function transformEventsToComponents(
               key={numOfEvents + 1}
               sx={{
                 top: event.start,
-                left: event.left,
+                left: event.left, //+ leftPosition,
                 position: "absolute",
               }}
             >
@@ -321,4 +362,24 @@ export function calculateEventProperties(
   }
 
   return baseSxProps;
+}
+
+export function filterWeekEvents(
+  events: CalendarEventType[],
+  currentFirstDayOfTheWeek: Date,
+) {
+  const filteredEvents: CalendarEventType[] = [];
+  events.forEach((event) => {
+    const doesWeekOverlapWithEvent = areIntervalsOverlapping(
+      {
+        start: currentFirstDayOfTheWeek,
+        end: addWeeks(currentFirstDayOfTheWeek, 1),
+      },
+      { start: event.start, end: event.end! },
+    );
+    if (doesWeekOverlapWithEvent) {
+      filteredEvents.push(event);
+    }
+  });
+  return filteredEvents;
 }

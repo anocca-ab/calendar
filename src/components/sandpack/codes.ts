@@ -49,8 +49,8 @@ export const eventsFixture: CalendarEventType[] =  [
   },
   {
     title: "15min event",
-    start: subHours(new Date(), 2),
-    end: addMinutes(subHours(new Date(), 2), 10),
+    start: addDays(new Date(), 2),
+    end: addMinutes(addDays(new Date(), 2), 15),
     color: "red",
   },
   {
@@ -73,8 +73,8 @@ export const eventsFixture: CalendarEventType[] =  [
   },
   {
     title: "Overnight event",
-    start: addHours(new Date(), 10),
-    end: addHours(addHours(new Date(), 14), 8),
+    start: addHours(new Date(), 1),
+    end: addHours(addHours(new Date(), 1), 22),
     color: "teal",
   },
 ];

@@ -6,20 +6,27 @@ import {
   getEventsWithRange,
   partitionGridEventsOnRanges,
 } from "./helpers";
+import { startOfWeek } from "date-fns";
 import type { CalendarEvent as CalendarEventType } from "./types";
 
 export function renderFixtureEvents(numberOfEvents: number, color: string) {
   const events: React.JSX.Element[] = [];
 
   for (let i = 1; i <= numberOfEvents; i++) {
-    const eventsWithRange = getEventsWithRange([
-      {
-        title: "event",
-        start: new Date(),
-        end: addMinutes(new Date(), i * 15),
-        color,
-      },
-    ]);
+    const eventsWithRange = getEventsWithRange(
+      [
+        {
+          title: "event",
+          start: new Date(),
+          end: addMinutes(new Date(), i * 15),
+          color,
+        },
+      ],
+      startOfWeek(new Date(), {
+        weekStartsOn: 1,
+      }),
+    );
+
     const groupsOfOverlappingEvents =
       partitionGridEventsOnRanges(eventsWithRange);
 
@@ -77,8 +84,8 @@ export const eventsFixture: CalendarEventType[] = [
   },
   {
     title: "15min event",
-    start: subHours(new Date(), 2),
-    end: addMinutes(subHours(new Date(), 2), 10),
+    start: addDays(new Date(), 2),
+    end: addMinutes(addDays(new Date(), 2), 15),
     color: "red",
   },
   {
@@ -101,8 +108,8 @@ export const eventsFixture: CalendarEventType[] = [
   },
   {
     title: "Overnight event",
-    start: addHours(new Date(), 10),
-    end: addHours(addHours(new Date(), 14), 8),
+    start: addHours(new Date(), 1),
+    end: addHours(addHours(new Date(), 1), 22),
     color: "teal",
   },
 ];

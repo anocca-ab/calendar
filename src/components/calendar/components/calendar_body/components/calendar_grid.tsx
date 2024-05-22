@@ -1,6 +1,6 @@
 import { Box, Divider } from "@mui/material";
-import { addWeeks, isBefore } from "date-fns";
 import {
+  filterWeekEvents,
   getEventsWithRange,
   partitionGridEventsOnRanges,
   transformEventsToComponents,
@@ -12,23 +12,15 @@ import { FlexCol, FlexRow } from "../../wrappers";
 export function CalendarGrid({ events }: { events: CalendarEventType[] }) {
   const { workWeek, currentFirstDayOfTheWeek } = useCalendar();
 
-  const filteredEvents: CalendarEventType[] = [];
-  events.forEach((event) => {
-    if (
-      isBefore(currentFirstDayOfTheWeek, event.start) &&
-      isBefore(event.start, addWeeks(currentFirstDayOfTheWeek, 1))
-    ) {
-      filteredEvents.push(event);
-    } else if (
-      event.end &&
-      isBefore(currentFirstDayOfTheWeek, event.end) &&
-      isBefore(event.end, addWeeks(currentFirstDayOfTheWeek, 1))
-    ) {
-      filteredEvents.push(event);
-    }
-  });
+  const filteredEvents: CalendarEventType[] = filterWeekEvents(
+    events,
+    currentFirstDayOfTheWeek,
+  );
 
-  const eventsWithRange = getEventsWithRange(filteredEvents);
+  const eventsWithRange = getEventsWithRange(
+    filteredEvents,
+    currentFirstDayOfTheWeek,
+  );
   const groupsOfOverlappingEvents =
     partitionGridEventsOnRanges(eventsWithRange);
 
