@@ -1,5 +1,11 @@
-import { WeekCalendarState } from "@/types";
-import { ReactNode, createContext, useContext, useReducer } from "react";
+import { WeekCalendarState } from "../types";
+import {
+  ReactNode,
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+} from "react";
 import {
   WeekCalendarActionTypes,
   weekCalendarReducer,
@@ -24,6 +30,14 @@ export function WeekCalendarProvider({
   children: ReactNode;
 }) {
   const [state, dispatch] = useReducer(weekCalendarReducer, initialState);
+  useEffect(() => {
+    // call the update function every 1 minute, which will re-run the hook useEffect
+    const minute = setInterval(
+      () => dispatch({ type: "edit-today", today: new Date() }),
+      10000,
+    );
+    return () => clearInterval(minute);
+  }, []);
 
   return (
     <WeekCalendarContext.Provider value={state}>

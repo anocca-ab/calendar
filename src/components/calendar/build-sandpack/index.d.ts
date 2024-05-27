@@ -1,6 +1,6 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
 import * as _mui_material from '@mui/material';
-import { GridProps, SxProps, Theme, BoxProps } from '@mui/material';
+import { GridProps, SxProps, Theme, BoxProps, SvgIconProps } from '@mui/material';
 import * as react from 'react';
 import { ReactElement, ReactNode } from 'react';
 import * as _emotion_styled from '@emotion/styled';
@@ -216,4 +216,6 @@ declare function WeekCalendarProvider({ initialState, children, }: {
 declare function useCalendar(): WeekCalendarState;
 declare function useCalendarDispatch(): react.Dispatch<WeekCalendarActionTypes>;
 
-export { type AllDayCalendarEventWithRange, Calendar, CalendarAllDayEvent, CalendarBody, CalendarEntry, type CalendarEvent, type CalendarEventWithRange, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, WeekCalendar, type WeekCalendarActionTypes, WeekCalendarContext, WeekCalendarDispatchContext, WeekCalendarProvider, type WeekCalendarState, WeekCalendarWrapper, WeekChip, calculateEventProperties, formatDuration as calculateTitleDuration, eventsFixture, filterWeekEvents, getAllDayEventsWithRange, getEventsWithRange, mergeSx, partitionAllDayEventsOnRanges, partitionGridEventsOnRanges, renderFixtureEvents, transformEventsToComponents, useCalendar, useCalendarDispatch, variationsToColorRecord, weekCalendarReducer };
+declare const TimeIndicator: (props: SvgIconProps) => react_jsx_runtime.JSX.Element;
+
+export { type AllDayCalendarEventWithRange, Calendar, CalendarAllDayEvent, CalendarBody, CalendarEntry, type CalendarEvent, type CalendarEventWithRange, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, TimeIndicator, WeekCalendar, type WeekCalendarActionTypes, WeekCalendarContext, WeekCalendarDispatchContext, WeekCalendarProvider, type WeekCalendarState, WeekCalendarWrapper, WeekChip, calculateEventProperties, formatDuration as calculateTitleDuration, eventsFixture, filterWeekEvents, getAllDayEventsWithRange, getEventsWithRange, mergeSx, partitionAllDayEventsOnRanges, partitionGridEventsOnRanges, renderFixtureEvents, transformEventsToComponents, useCalendar, useCalendarDispatch, variationsToColorRecord, weekCalendarReducer };

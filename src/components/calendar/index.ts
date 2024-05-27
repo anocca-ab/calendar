@@ -38,7 +38,7 @@ export {
   useCalendarDispatch,
 } from "./state_management/week_calendar_context";
 export { weekCalendarReducer } from "./state_management/week_calendar_reducer";
-
+export { TimeIndicator } from "./components/calendar_body/components/time_indicator";
 export type { WeekCalendarActionTypes } from "./state_management/week_calendar_reducer";
 export type {
   CalendarEvent,
