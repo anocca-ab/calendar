@@ -1,6 +1,7 @@
 import {
   Box,
   Typography,
+  TypographyProps,
   styled,
   type SxProps,
   type Theme,
@@ -17,6 +18,7 @@ import {
   isAfter,
   getMinutes,
   differenceInCalendarWeeks,
+  format,
 } from "date-fns";
 import { ReactElement } from "react";
 import { CalendarEvent } from "./components/calendar_body/components/calendar_event";
@@ -462,4 +464,35 @@ export function filterWeekEvents(
     }
   });
   return filteredEvents;
+}
+
+/**
+ * This function compiles and returns the title/duration information shown on the event component.
+ *
+ * @param start
+ * @param end
+ * @returns
+ */
+export function formatDuration(start: Date, end?: Date) {
+  if (!end) {
+    return format(start, "h:mm");
+  }
+
+  const eventDurationInMinutes = differenceInMinutes(end, start, {
+    roundingMethod: "floor",
+  });
+  const eventDurationInHours = Math.floor(eventDurationInMinutes / 60);
+  const eventDurationInDays = Math.floor(eventDurationInHours / 24);
+
+  const updatedStart = format(start, "h:mmaaa");
+  const updatedEnd = format(end, "h:mmaaa");
+
+  const formattedDuration =
+    eventDurationInDays >= 1
+      ? ""
+      : eventDurationInMinutes >= 30
+        ? `${format(start, "h:mm")} - ${updatedEnd}`
+        : updatedStart;
+
+  return formattedDuration;
 }

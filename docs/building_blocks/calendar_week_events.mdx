@@ -1,0 +1,30 @@
+---
+sidebar_position: 2
+---
+
+# Calendar Week Events
+
+```jsx live noInline
+/**
+ * to avoid having the page crashing on parsing code we use the noInline
+ * therefore the function `render` is required
+ */
+
+const CalendarWeekEvents = () => {
+  return (
+    <FlexRow height="100px" width="400px" gap={1}>
+      <FlexCol width="120px" gap={1}>
+        {renderFixtureWeekEvents("normal")}
+      </FlexCol>
+      <FlexCol width="120px" gap={1}>
+        {renderFixtureWeekEvents("hover")}
+      </FlexCol>
+      <FlexCol width="120px" gap={1}>
+        {renderFixtureWeekEvents("selected")}
+      </FlexCol>
+    </FlexRow>
+  );
+};
+
+render(<CalendarWeekEvents />);
+```

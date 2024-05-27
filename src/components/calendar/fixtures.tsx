@@ -1,12 +1,19 @@
 import { Box } from "@mui/material";
-import { addDays, addHours, addMinutes, subHours, subMinutes } from "date-fns";
+import {
+  addDays,
+  addHours,
+  addMinutes,
+  startOfWeek,
+  subHours,
+  subMinutes,
+} from "date-fns";
 import { CalendarEvent } from "./components/calendar_body/components/calendar_event";
+import { WeekCalendarEvent } from "./components/calendar_body/components/week_calendar_event";
 import {
   calculateEventProperties,
   getEventsWithRange,
   partitionGridEventsOnRanges,
 } from "./helpers";
-import { startOfWeek } from "date-fns";
 import type { CalendarEvent as CalendarEventType } from "./types";
 
 export function renderFixtureEvents(numberOfEvents: number, color: string) {
@@ -49,6 +56,53 @@ export function renderFixtureEvents(numberOfEvents: number, color: string) {
   }
 
   return events;
+}
+
+export function renderFixtureWeekEvents(
+  state: "normal" | "hover" | "selected",
+) {
+  return [
+    <WeekCalendarEvent
+      key="red"
+      title="event"
+      start={new Date()}
+      end={addMinutes(new Date(), 15)}
+      color="red"
+      state={state}
+    />,
+    <WeekCalendarEvent
+      key="orange"
+      title="event"
+      start={new Date()}
+      end={addMinutes(new Date(), 15)}
+      color="orange"
+      state={state}
+    />,
+    <WeekCalendarEvent
+      key="indigo"
+      title="event"
+      start={new Date()}
+      end={addMinutes(new Date(), 15)}
+      color="indigo"
+      state={state}
+    />,
+    <WeekCalendarEvent
+      key="teal"
+      title="event"
+      start={new Date()}
+      end={addMinutes(new Date(), 15)}
+      color="teal"
+      state={state}
+    />,
+    <WeekCalendarEvent
+      key="pink"
+      title="event"
+      start={new Date()}
+      end={addMinutes(new Date(), 15)}
+      color="pink"
+      state={state}
+    />,
+  ];
 }
 
 export const eventsFixture: CalendarEventType[] = [

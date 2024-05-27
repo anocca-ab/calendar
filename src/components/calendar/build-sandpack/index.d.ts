@@ -61,15 +61,6 @@ declare function CalendarBody({ gridEvents, }: {
     gridEvents: CalendarEvent[];
 }): react_jsx_runtime.JSX.Element;
 
-/**
- * This function compiles and returns the title/duration information shown on the event component.
- *
- * @param start
- * @param end
- * @returns
- */
-declare function formatDuration(start: Date, end?: Date): string;
-
 declare function CalendarGrid({ events }: {
     events: CalendarEvent[];
 }): react_jsx_runtime.JSX.Element;
@@ -124,6 +115,7 @@ declare function FlexCol(props: BoxProps): react_jsx_runtime.JSX.Element;
 declare function FlexRow(props: BoxProps): react_jsx_runtime.JSX.Element;
 
 declare function renderFixtureEvents(numberOfEvents: number, color: string): react.JSX.Element[];
+declare function renderFixtureWeekEvents(state: "normal" | "hover" | "selected"): react_jsx_runtime.JSX.Element[];
 declare const eventsFixture: CalendarEvent[];
 
 type Sx = SxProps<any>;
@@ -184,6 +176,14 @@ declare function transformEventsToComponents(groupsOfEvents: CalendarEventWithRa
  */
 declare function calculateEventProperties(start: Date, height: string, color: string, end?: Date): SxProps<Theme>;
 declare function filterWeekEvents(events: CalendarEvent[], currentFirstDayOfTheWeek: Date): CalendarEvent[];
+/**
+ * This function compiles and returns the title/duration information shown on the event component.
+ *
+ * @param start
+ * @param end
+ * @returns
+ */
+declare function formatDuration(start: Date, end?: Date): string;
 
 declare function WeekCalendar({ events }: {
     events: CalendarEvent[];
@@ -218,4 +218,9 @@ declare function useCalendarDispatch(): react.Dispatch<WeekCalendarActionTypes>;
 
 declare const TimeIndicator: (props: SvgIconProps) => react_jsx_runtime.JSX.Element;
 
-export { type AllDayCalendarEventWithRange, Calendar, CalendarAllDayEvent, CalendarBody, CalendarEntry, type CalendarEvent, type CalendarEventWithRange, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, TimeIndicator, WeekCalendar, type WeekCalendarActionTypes, WeekCalendarContext, WeekCalendarDispatchContext, WeekCalendarProvider, type WeekCalendarState, WeekCalendarWrapper, WeekChip, calculateEventProperties, formatDuration as calculateTitleDuration, eventsFixture, filterWeekEvents, getAllDayEventsWithRange, getEventsWithRange, mergeSx, partitionAllDayEventsOnRanges, partitionGridEventsOnRanges, renderFixtureEvents, transformEventsToComponents, useCalendar, useCalendarDispatch, variationsToColorRecord, weekCalendarReducer };
+declare function WeekCalendarEvent({ title, start, end, color, state, sx, }: CalendarEvent & {
+    sx?: SxProps<Theme>;
+    state: "normal" | "hover" | "selected";
+}): react_jsx_runtime.JSX.Element;
+
+export { type AllDayCalendarEventWithRange, Calendar, CalendarAllDayEvent, CalendarBody, CalendarEntry, type CalendarEvent, type CalendarEventWithRange, CalendarFullDayEventBar, CalendarGrid, CalendarGridAmPmSidebar, CalendarHeader, CalendarLayoutBar, CalendarWeekViewBar, DayNumberStackDate, EventTypography, FlexCol, FlexRow, HourCalendarCell, MonthYearRowDate, TimeIndicator, WeekCalendar, type WeekCalendarActionTypes, WeekCalendarContext, WeekCalendarDispatchContext, WeekCalendarEvent, WeekCalendarProvider, type WeekCalendarState, WeekCalendarWrapper, WeekChip, calculateEventProperties, eventsFixture, filterWeekEvents, formatDuration, getAllDayEventsWithRange, getEventsWithRange, mergeSx, partitionAllDayEventsOnRanges, partitionGridEventsOnRanges, renderFixtureEvents, renderFixtureWeekEvents, transformEventsToComponents, useCalendar, useCalendarDispatch, variationsToColorRecord, weekCalendarReducer };
