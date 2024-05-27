@@ -4,7 +4,7 @@ import { CalendarFullDayEventBar } from "./components/calendar_full_day_event_ba
 import { CalendarLayoutBar } from "./components/calendar_layout_bar";
 import { CalendarWeekViewBar } from "./components/calendar_week_view_bar";
 
-export function CalendarHeader({
+export function WeekCalendarHeader({
   allDayEvents,
 }: {
   allDayEvents: CalendarEvent[];

@@ -14,11 +14,11 @@ import {
   useCalendarDispatch,
 } from "../state_management/calendar_context";
 import { CalendarEvent } from "../types";
-import { WeekCalendarBody } from "./calendar_body/week_calendar_body";
-import { WeekCalendarHeader } from "./calendar_header/week_calendar_header";
+import { MonthCalendarBody } from "./calendar_body/month_calendar_body";
+import { MonthCalendarHeader } from "./calendar_header/month_calendar_header";
 import { FlexCol } from "./wrappers";
 
-export function WeekCalendar({ events }: { events: CalendarEvent[] }) {
+export function StackedWeekCalendars({ events }: { events: CalendarEvent[] }) {
   const { workWeek } = useCalendar();
   const allDayEvents: CalendarEvent[] = [];
   const gridEvents: CalendarEvent[] = [];
@@ -35,16 +35,19 @@ export function WeekCalendar({ events }: { events: CalendarEvent[] }) {
       gridEvents.push(event);
     }
   });
-
   return (
     <FlexCol width={workWeek ? "664px" : "904px"}>
-      <WeekCalendarHeader allDayEvents={allDayEvents} />
-      <WeekCalendarBody gridEvents={gridEvents} />
+      <MonthCalendarHeader />
+      <MonthCalendarBody gridEvents={gridEvents} allDayEvents={allDayEvents} />
     </FlexCol>
   );
 }
 
-export function WeekCalendarWrapper({ events }: { events: CalendarEvent[] }) {
+export function StackedWeekCalendarsWrapper({
+  events,
+}: {
+  events: CalendarEvent[];
+}) {
   const { startDay, workWeek } = useCalendar();
   const dispatch = useCalendarDispatch();
 
@@ -107,7 +110,7 @@ export function WeekCalendarWrapper({ events }: { events: CalendarEvent[] }) {
         </CardContent>
       </Card>
 
-      <WeekCalendar events={events} />
+      <StackedWeekCalendars events={events} />
     </FlexCol>
   );
 }

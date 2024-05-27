@@ -40,7 +40,7 @@ export type AllDayCalendarEventWithRange = {
   event: CalendarEvent;
 };
 
-export type WeekCalendarState = {
+export type CalendarState = {
   workWeek: boolean;
   startDay: StartDay;
   today: Date;

@@ -6,12 +6,12 @@ import {
   partitionGridEventsOnRanges,
   transformEventsToComponents,
 } from "../../../helpers";
-import { useCalendar } from "../../../state_management/week_calendar_context";
+import { useCalendar } from "../../../state_management/calendar_context";
 import type { CalendarEvent as CalendarEventType } from "../../../types";
 import { FlexCol, FlexRow } from "../../wrappers";
 import { TimeIndicator } from "./time_indicator";
 
-export function CalendarGrid({ events }: { events: CalendarEventType[] }) {
+export function WeekCalendarGrid({ events }: { events: CalendarEventType[] }) {
   const { workWeek, currentFirstDayOfTheWeek, today } = useCalendar();
 
   const filteredEvents: CalendarEventType[] = filterWeekEvents(

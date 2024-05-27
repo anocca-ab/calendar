@@ -12,14 +12,17 @@ sidebar_position: 2
 
 const CalendarWeekEvents = () => {
   return (
-    <FlexRow height="100px" width="400px" gap={1}>
+    <FlexRow height="200px" width="100%" justifyContent="space-between">
       <FlexCol width="120px" gap={1}>
+        Normal
         {renderFixtureWeekEvents("normal")}
       </FlexCol>
       <FlexCol width="120px" gap={1}>
+        Hover
         {renderFixtureWeekEvents("hover")}
       </FlexCol>
       <FlexCol width="120px" gap={1}>
+        Selected
         {renderFixtureWeekEvents("selected")}
       </FlexCol>
     </FlexRow>

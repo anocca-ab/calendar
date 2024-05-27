@@ -1,18 +1,18 @@
 import { startOfWeek } from "date-fns";
 import { produce } from "immer";
-import { StartDay, WeekCalendarState } from "../types";
+import { StartDay, CalendarState } from "../types";
 
-export type WeekCalendarActionTypes =
+export type CalendarActionTypes =
   | { type: "edit-workWeek"; workWeek: boolean }
   | { type: "edit-startDay"; startDay: StartDay }
   | { type: "edit-today"; today: Date }
   | { type: "edit-currentFirstDayOfTheWeek"; currentFirstDayOfTheWeek: Date };
 
-export const weekCalendarReducer = (
-  state: WeekCalendarState,
-  action: WeekCalendarActionTypes,
+export const CalendarReducer = (
+  state: CalendarState,
+  action: CalendarActionTypes,
 ) =>
-  produce(state, (draft: WeekCalendarState) => {
+  produce(state, (draft: CalendarState) => {
     if (action.type === "edit-workWeek") {
       draft.workWeek = action.workWeek;
       if (action.workWeek) {

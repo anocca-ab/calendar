@@ -4,7 +4,7 @@ import {
   getAllDayEventsWithRange,
   partitionAllDayEventsOnRanges,
 } from "../../../helpers";
-import { useCalendar } from "../../../state_management/week_calendar_context";
+import { useCalendar } from "../../../state_management/calendar_context";
 import type {
   CalendarEvent,
   AllDayCalendarEventWithRange,

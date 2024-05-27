@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
 import { addDays } from "date-fns";
-import { useCalendar } from "../../../state_management/week_calendar_context";
+import { useCalendar } from "../../../state_management/calendar_context";
 import { DayNumberStackDate } from "./day_number_stack_date";
 
 export function CalendarWeekViewBar() {

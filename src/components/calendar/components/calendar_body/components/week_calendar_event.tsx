@@ -43,7 +43,6 @@ export function WeekCalendarEvent({
           <EventDot color={color} />
         </FlexCol>
         <FlexRow gap="6px" alignItems="center">
-          {/* <EventTypography lightText> */}
           <Typography
             sx={{
               color: " var(--Light-Text-Primary, rgba(0, 0, 0, 0.87))",
@@ -58,7 +57,7 @@ export function WeekCalendarEvent({
           >
             {`${format(start, "h:mm")} - ${format(end!, "h:mmaaa")}`}
           </Typography>
-          {/* </EventTypography> */}
+
           <Typography
             sx={{
               color: "var(--Light-Text-Primary, rgba(0, 0, 0, 0.87))",

@@ -5,12 +5,8 @@
     "baseUrl": ".",
     "strict": true,
     "paths": {
-      "@/*": [
-        "./src/components/calendar/*"
-      ],
-      "@site/*": [
-        "./*"
-      ]
-    },
-  },
+      "@/*": ["./src/components/calendar/*"],
+      "@site/*": ["./*"]
+    }
+  }
 }

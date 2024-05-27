@@ -1,6 +1,6 @@
 import { Box, ScopedCssBaseline } from "@mui/material";
 import { startOfWeek } from "date-fns";
-import { WeekCalendarProvider } from "./state_management/week_calendar_context";
+import { CalendarProvider } from "./state_management/calendar_context";
 import {
   CalendarEvent,
   OnChangeEventTime,
@@ -8,6 +8,7 @@ import {
   StartDay,
 } from "./types";
 import { WeekCalendarWrapper } from "./components/week_calendar";
+import { StackedWeekCalendarsWrapper } from "./components/stacked_week_calendars";
 
 export function Calendar({
   variant = "week",
@@ -24,7 +25,7 @@ export function Calendar({
   events,
 }: {
   events: CalendarEvent[];
-  variant?: "week" | "month";
+  variant?: "week" | "week-stacked" | "month";
   workWeek?: boolean;
   startDay?: StartDay;
   today?: Date;
@@ -41,7 +42,7 @@ export function Calendar({
         }}
       >
         <ScopedCssBaseline>
-          <WeekCalendarProvider
+          <CalendarProvider
             initialState={{
               workWeek,
               startDay,
@@ -51,8 +52,12 @@ export function Calendar({
               }),
             }}
           >
-            <WeekCalendarWrapper events={events} />
-          </WeekCalendarProvider>
+            {variant === "week" ? (
+              <WeekCalendarWrapper events={events} />
+            ) : (
+              <StackedWeekCalendarsWrapper events={events} />
+            )}
+          </CalendarProvider>
         </ScopedCssBaseline>
       </Box>
     </>

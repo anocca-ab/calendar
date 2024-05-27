@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# Week Calendar
+# Week Stacked Calendars
 
 import { WeekCalendar } from "@site/src/components/calendar/components/week_calendar";
 import { eventsFixture } from "@site/src/components/calendar/fixtures";
@@ -10,15 +10,13 @@ import { SandPackPlayground } from "@site/src/components/sandpack/SandPackPlaygr
 import { CustomSandPackPlayground } from "@site/src/components/sandpack/CustomSandPackPlayground";
 import { CalendarEntry } from "@site/src/components/calendar/calendar_entry";
 import {
-  WeekCalendarTsx,
+  WeekStackedCalendarsTsx,
   FixturesTsx,
 } from "@site/src/components/sandpack/codes.ts";
 
 <SandPackPlayground
   files={{
-    "/App.tsx": { code: WeekCalendarTsx },
+    "/App.tsx": { code: WeekStackedCalendarsTsx },
     "/fixtures.tsx": { code: FixturesTsx },
   }}
 />
-
-{/* <WeekCalendar events={eventsFixture} /> */}
