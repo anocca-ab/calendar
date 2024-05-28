@@ -12,10 +12,10 @@ export function MonthDayEventsCard({
   filteredGridEvents: CalendarEvent[];
   filteredAllDayEvents: CalendarEvent[];
 }) {
-  const allDayEvents = filteredGridEvents.map((e) => (
+  const allDayEvents = filteredAllDayEvents.map((e) => (
     <CalendarAllDayEvent {...e} sx={{ width: "118px" }} />
   ));
-  const gridEvents = filteredAllDayEvents.map((e) => (
+  const gridEvents = filteredGridEvents.map((e) => (
     <MonthCalendarEvent {...e} state="normal" />
   ));
 
@@ -34,9 +34,6 @@ export function MonthDayEventsCard({
             return events[i];
           })
         : events}
-      {/* {allDayEvents[0]}
-      {gridEvents[0]}
-      {gridEvents[1]} */}
     </FlexCol>
   );
 }
