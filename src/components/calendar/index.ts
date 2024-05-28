@@ -46,7 +46,7 @@ export {
 } from "./state_management/calendar_context";
 export { CalendarReducer } from "./state_management/calendar_reducer";
 export { TimeIndicator } from "./components/calendar_body/components/time_indicator";
-export { WeekCalendarEvent } from "./components/calendar_body/components/week_calendar_event";
+export { MonthCalendarEvent } from "./components/calendar_body/components/month_calendar_event";
 
 export type { CalendarActionTypes } from "./state_management/calendar_reducer";
 export type {

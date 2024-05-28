@@ -8,7 +8,7 @@ import { FlexRow } from "../../wrappers";
 import { MonthYearRowDate } from "./month_year_row_date";
 import { WeekChip } from "./week_chip";
 
-const ChevronLeft = (props: React.ComponentProps<"svg">) => (
+export const ChevronLeft = (props: React.ComponentProps<"svg">) => (
   <SvgIcon>
     <svg
       xmlns="http://www.w3.org/2000/svg"

@@ -1,10 +1,10 @@
 import { SxProps, Theme, Typography, Paper } from "@mui/material";
 import { format } from "date-fns";
-import { FlexCol, FlexRow } from "../../../components/wrappers";
+import { FlexCol, FlexRow } from "../../wrappers";
 import type { CalendarEvent } from "../../../types";
 import { EventDot } from "./event_dot";
 
-export function WeekCalendarEvent({
+export function MonthCalendarEvent({
   title = "(No title)",
   start,
   end,
@@ -18,14 +18,14 @@ export function WeekCalendarEvent({
   return (
     <Paper
       elevation={state === "selected" ? undefined : 0}
-      sx={{ width: "110px", height: "16px" }}
+      sx={{ width: "110px", height: "16px", ml: "2px" }}
     >
       <FlexRow
         sx={{
           backgroundColor:
             state === "hover"
               ? "var(--Light-Primary-Shades-8p, rgba(25, 118, 210, 0.08))"
-              : "white",
+              : undefined,
 
           alignItems: "center",
           gap: "6px",

@@ -8,7 +8,7 @@ import {
   subMinutes,
 } from "date-fns";
 import { CalendarEvent } from "./components/calendar_body/components/calendar_event";
-import { WeekCalendarEvent } from "./components/calendar_body/components/week_calendar_event";
+import { MonthCalendarEvent } from "./components/calendar_body/components/month_calendar_event";
 import {
   calculateEventProperties,
   getEventsWithRange,
@@ -62,7 +62,7 @@ export function renderFixtureWeekEvents(
   state: "normal" | "hover" | "selected",
 ) {
   return [
-    <WeekCalendarEvent
+    <MonthCalendarEvent
       key="red"
       title="event"
       start={new Date()}
@@ -70,7 +70,7 @@ export function renderFixtureWeekEvents(
       color="red"
       state={state}
     />,
-    <WeekCalendarEvent
+    <MonthCalendarEvent
       key="orange"
       title="event"
       start={new Date()}
@@ -78,7 +78,7 @@ export function renderFixtureWeekEvents(
       color="orange"
       state={state}
     />,
-    <WeekCalendarEvent
+    <MonthCalendarEvent
       key="indigo"
       title="event"
       start={new Date()}
@@ -86,7 +86,7 @@ export function renderFixtureWeekEvents(
       color="indigo"
       state={state}
     />,
-    <WeekCalendarEvent
+    <MonthCalendarEvent
       key="teal"
       title="event"
       start={new Date()}
@@ -94,7 +94,7 @@ export function renderFixtureWeekEvents(
       color="teal"
       state={state}
     />,
-    <WeekCalendarEvent
+    <MonthCalendarEvent
       key="pink"
       title="event"
       start={new Date()}
