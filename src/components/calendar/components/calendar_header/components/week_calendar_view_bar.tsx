@@ -3,7 +3,7 @@ import { addDays } from "date-fns";
 import { useCalendar } from "../../../state_management/calendar_context";
 import { DayNumberStackDate } from "./day_number_stack_date";
 
-export function CalendarWeekViewBar() {
+export function WeekCalendarViewBar() {
   const { workWeek, currentFirstDayOfTheWeek } = useCalendar();
   const daysInWeek = workWeek ? 5 : 7;
 

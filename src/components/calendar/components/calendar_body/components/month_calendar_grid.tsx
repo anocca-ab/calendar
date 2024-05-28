@@ -3,7 +3,6 @@ import { filterWeekEvents } from "../../../helpers";
 import { useCalendar } from "../../../state_management/calendar_context";
 import type { CalendarEvent } from "../../../types";
 import { FlexCol, FlexRow } from "../../wrappers";
-import { MonthCalendarEvent } from "./month_calendar_event";
 import { MonthDayEventsCard } from "./month_day_events_card";
 
 export function MonthCalendarGrid({
@@ -24,17 +23,6 @@ export function MonthCalendarGrid({
     allDayEvents,
     currentFirstDayOfTheWeek,
   );
-
-  //   const eventsWithRange = getEventsWithRange(
-  //     filteredEvents,
-  //     currentFirstDayOfTheWeek,
-  //   );
-  //   const groupsOfOverlappingEvents =
-  //     partitionGridEventsOnRanges(eventsWithRange);
-
-  //   const eventsComponents = transformEventsToComponents(
-  //     groupsOfOverlappingEvents,
-  //   );
 
   return (
     <Box
@@ -81,6 +69,7 @@ export function MonthCalendarGrid({
               orientation="vertical"
               sx={{
                 opacity: i === 0 ? 0 : 1,
+                width: "1px",
               }}
             />
           );

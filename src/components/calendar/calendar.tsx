@@ -55,7 +55,9 @@ export function Calendar({
             {variant === "week" ? (
               <WeekCalendarWrapper events={events} />
             ) : (
-              <StackedWeekCalendarsWrapper events={events} />
+              <StackedWeekCalendarsWrapper
+                calendarsEvents={{ ["first"]: events, ["second"]: events }}
+              />
             )}
           </CalendarProvider>
         </ScopedCssBaseline>

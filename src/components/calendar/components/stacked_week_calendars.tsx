@@ -17,36 +17,49 @@ import { CalendarEvent } from "../types";
 import { MonthCalendarBody } from "./calendar_body/month_calendar_body";
 import { MonthCalendarHeader } from "./calendar_header/month_calendar_header";
 import { FlexCol } from "./wrappers";
+import { ReactElement } from "react";
 
-export function StackedWeekCalendars({ events }: { events: CalendarEvent[] }) {
+export function StackedWeekCalendars({
+  calendarsEvents,
+}: {
+  calendarsEvents: Record<string, CalendarEvent[]>;
+}) {
   const { workWeek } = useCalendar();
-  const allDayEvents: CalendarEvent[] = [];
-  const gridEvents: CalendarEvent[] = [];
+  const calendars: ReactElement[] = [];
+  Object.keys(calendarsEvents).forEach((calendar, i) => {
+    const allDayEvents: CalendarEvent[] = [];
+    const gridEvents: CalendarEvent[] = [];
 
-  events.forEach((event) => {
-    if (
-      event.start &&
-      event.end &&
-      (event.end.getTime() - event.start.getTime()) % (24 * 60 * 60 * 1000) ===
-        0
-    ) {
-      allDayEvents.push(event);
-    } else {
-      gridEvents.push(event);
-    }
+    calendarsEvents[calendar].forEach((event) => {
+      if (
+        event.start &&
+        event.end &&
+        (event.end.getTime() - event.start.getTime()) %
+          (24 * 60 * 60 * 1000) ===
+          0
+      ) {
+        allDayEvents.push(event);
+      } else {
+        gridEvents.push(event);
+      }
+    });
+    calendars.push(
+      <MonthCalendarBody gridEvents={gridEvents} allDayEvents={allDayEvents} />,
+    );
   });
+
   return (
     <FlexCol width={workWeek ? "664px" : "904px"}>
       <MonthCalendarHeader />
-      <MonthCalendarBody gridEvents={gridEvents} allDayEvents={allDayEvents} />
+      <FlexCol gap="2px">{calendars}</FlexCol>
     </FlexCol>
   );
 }
 
 export function StackedWeekCalendarsWrapper({
-  events,
+  calendarsEvents,
 }: {
-  events: CalendarEvent[];
+  calendarsEvents: Record<string, CalendarEvent[]>;
 }) {
   const { startDay, workWeek } = useCalendar();
   const dispatch = useCalendarDispatch();
@@ -110,7 +123,7 @@ export function StackedWeekCalendarsWrapper({
         </CardContent>
       </Card>
 
-      <StackedWeekCalendars events={events} />
+      <StackedWeekCalendars calendarsEvents={calendarsEvents} />
     </FlexCol>
   );
 }

@@ -11,13 +11,13 @@ export function MonthDayEventsCard({
   filteredAllDayEvents: CalendarEvent[];
 }) {
   const allDayEvents = filteredGridEvents.map((e) => (
-    <CalendarAllDayEvent {...e} sx={{ width: "119px" }} />
+    <CalendarAllDayEvent {...e} sx={{ width: "118px" }} />
   ));
   const gridEvents = filteredAllDayEvents.map((e) => (
     <MonthCalendarEvent {...e} state="normal" />
   ));
   return (
-    <FlexCol height="85px" gap={1}>
+    <FlexCol height="85px" gap={1} p="1px">
       <FlexCol>{allDayEvents[0]}</FlexCol>
       <FlexCol>
         {gridEvents[0]}

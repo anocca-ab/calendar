@@ -1,10 +1,10 @@
 import { Box, Divider, Typography } from "@mui/material";
 import { addDays, format } from "date-fns";
 import { useCalendar } from "../../../state_management/calendar_context";
-import { FlexRow } from "../../../components/wrappers";
+import { FlexRow } from "../../wrappers";
 import { ReactElement } from "react";
 
-export function CalendarMonthViewBar() {
+export function MonthCalendarViewBar() {
   const { workWeek, currentFirstDayOfTheWeek } = useCalendar();
   const daysInWeek = workWeek ? 5 : 7;
 
@@ -25,20 +25,14 @@ export function CalendarMonthViewBar() {
     weekDays.push(
       <FlexRow
         sx={{
-          alignSelf: "stretch",
+          position: "absolute",
+          alignItems: "stretch",
           justifyContent: "flex-start",
-          alignItems: "flex-end",
+          inset: 0,
+          gap: "119px",
         }}
       >
-        <Divider
-          key={index}
-          orientation="vertical"
-          sx={
-            {
-              // opacity: workWeek && i === 5 ? 0 : !workWeek && i == 7 ? 0 : 1,
-            }
-          }
-        />
+        <Divider key={index} orientation="vertical" sx={{ width: "1px" }} />
       </FlexRow>,
     );
   });
@@ -48,6 +42,7 @@ export function CalendarMonthViewBar() {
       <Box
         sx={{
           display: "flex",
+          width: workWeek ? "600px" : "840px",
         }}
       >
         {weekDays}
