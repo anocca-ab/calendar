@@ -44,7 +44,11 @@ export function StackedWeekCalendars({
       }
     });
     calendars.push(
-      <MonthCalendarBody gridEvents={gridEvents} allDayEvents={allDayEvents} />,
+      <MonthCalendarBody
+        gridEvents={gridEvents}
+        allDayEvents={allDayEvents}
+        calendarTitle={calendar}
+      />,
     );
   });
 

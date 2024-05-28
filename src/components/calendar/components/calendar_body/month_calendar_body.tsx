@@ -1,14 +1,18 @@
-import { Box } from "@mui/material";
 import type { CalendarEvent as CalendarEventType } from "../../types";
 import { FlexRow } from "../wrappers";
 import { MonthCalendarGrid } from "./components/month_calendar_grid";
+import { WeekIndicator } from "./components/week_indicator";
 
 export function MonthCalendarBody({
   gridEvents,
   allDayEvents,
+  calendarTitle,
+  color = "teal",
 }: {
   gridEvents: CalendarEventType[];
   allDayEvents: CalendarEventType[];
+  calendarTitle: string;
+  color?: string;
 }) {
   return (
     <FlexRow
@@ -17,7 +21,7 @@ export function MonthCalendarBody({
         width: "100%",
       }}
     >
-      <Box width="20px" />
+      <WeekIndicator title={calendarTitle} color={color} />
       <MonthCalendarGrid gridEvents={gridEvents} allDayEvents={allDayEvents} />
     </FlexRow>
   );
