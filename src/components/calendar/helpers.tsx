@@ -1,7 +1,6 @@
 import {
   Box,
   Typography,
-  TypographyProps,
   styled,
   type SxProps,
   type Theme,
@@ -11,21 +10,22 @@ import {
   addWeeks,
   areIntervalsOverlapping,
   compareAsc,
+  compareDesc,
   differenceInCalendarDays,
-  differenceInMinutes,
-  getHours,
-  isBefore,
-  isAfter,
-  getMinutes,
   differenceInCalendarWeeks,
+  differenceInMinutes,
   format,
+  getHours,
+  getMinutes,
+  isAfter,
+  isBefore,
 } from "date-fns";
 import { ReactElement } from "react";
 import { CalendarEvent } from "./components/calendar_body/components/calendar_event";
 import {
+  AllDayCalendarEventWithRange,
   CalendarEvent as CalendarEventType,
   CalendarEventWithRange,
-  AllDayCalendarEventWithRange,
 } from "./types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -205,9 +205,18 @@ export function partitionGridEventsOnRanges(
   if (events.length > 0) {
     const sortedEvents = events.sort(function (a, b) {
       const startA = a.event.start;
+      const endA = a.event.end;
       const startB = b.event.start;
-      const comparison = compareAsc(startA, startB);
-      if (a.left > b.left) return comparison;
+      const endB = b.event.end;
+      // const comparison = compareAsc(startA, startB);
+      const comparisonOnStart = compareAsc(startA, startB);
+      const comparisonOnEnd = compareDesc(
+        endA ?? addMinutes(startA, 15),
+        endB ?? addMinutes(startB, 15),
+      );
+      if (a.left > b.left) {
+        return comparisonOnStart === 0 ? comparisonOnEnd : comparisonOnStart;
+      }
       return -1;
     });
 
@@ -324,24 +333,75 @@ export function transformEventsToComponents(
           numOfEvents += 1;
         });
       } else {
-        const n = group.length;
+        let rangedEventsGroups: CalendarEventWithRange[][] = [];
+
+        let groupNr = 1;
+
+        const sortedgroup = group.sort(function (a, b) {
+          const startA = a.event.start;
+          const endA = a.event.end;
+
+          const startB = b.event.start;
+          const endB = b.event.end;
+          const comparisonOnStart = compareAsc(startA, startB);
+          const comparisonOnEnd = compareDesc(
+            endA ?? addMinutes(startA, 15),
+            endB ?? addMinutes(startB, 15),
+          );
+          if (comparisonOnStart === 0) {
+            return comparisonOnEnd;
+          }
+          return comparisonOnStart;
+        });
+
+        if (sortedgroup.length > 0) {
+          rangedEventsGroups[0] = [sortedgroup[0]];
+          rangedEventsGroups[1] = [sortedgroup[1]];
+
+          for (let i = 2, l = sortedgroup.length - 1; i <= l; i++) {
+            if (
+              sortedgroup[i] &&
+              !areIntervalsOverlapping(
+                {
+                  start: sortedgroup[i].event.start,
+                  end:
+                    sortedgroup[i].event.end ??
+                    addMinutes(sortedgroup[i].event.start, 15),
+                },
+                {
+                  start: sortedgroup[i - 1].event.start,
+                  end:
+                    sortedgroup[i - 1].event.end ??
+                    addMinutes(sortedgroup[i - 1].event.start, 15),
+                },
+                { inclusive: true },
+              )
+            ) {
+              if (rangedEventsGroups[groupNr]) {
+                rangedEventsGroups[groupNr].push(sortedgroup[i]);
+              } else {
+                rangedEventsGroups[groupNr] = [sortedgroup[i]];
+              }
+            } else {
+              groupNr++;
+              rangedEventsGroups[groupNr] = [sortedgroup[i]];
+            }
+          }
+        }
+
+        const n = rangedEventsGroups.length;
         const b = 110 / n;
         const c = 110 - (0.8 * b) / 2;
         const a = (c / (n - 1)) * 1.5 - (0.8 * b) / 2 / 4;
 
-        group
-          .sort(function (a, b) {
-            const startA = a.event.start;
-            const startB = b.event.start;
-            return compareAsc(startA, startB);
-          })
-          .forEach((event, i) => {
+        rangedEventsGroups.forEach((groupedEvents, groupIndex) => {
+          groupedEvents.forEach((event, eventIndex) => {
             events.push(
               <Box
                 key={numOfEvents + 1}
                 sx={{
                   top: event.start,
-                  left: event.left + i * b,
+                  left: event.left + groupIndex * b,
                   position: "absolute",
                 }}
               >
@@ -354,13 +414,14 @@ export function transformEventsToComponents(
                       event.event.color ?? "orange",
                       event.event.end,
                     ),
-                    { width: n - 1 != i ? a : b },
+                    { width: n - 1 != groupIndex ? a : b },
                   )}
                 />
               </Box>,
             );
             numOfEvents += 1;
           });
+        });
       }
     });
   }

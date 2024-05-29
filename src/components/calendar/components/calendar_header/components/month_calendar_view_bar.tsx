@@ -13,6 +13,7 @@ export function MonthCalendarViewBar() {
     const dayOfWeek = format(addDays(currentFirstDayOfTheWeek, index), "EEE");
     weekDays.push(
       <FlexRow
+        key={`weekday-${index}`}
         width="119px"
         height="20px"
         justifyContent="center"
@@ -24,6 +25,7 @@ export function MonthCalendarViewBar() {
 
     weekDays.push(
       <FlexRow
+        key={`divider-${index}`}
         sx={{
           position: "absolute",
           alignItems: "stretch",

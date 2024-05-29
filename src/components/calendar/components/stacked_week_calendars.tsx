@@ -30,7 +30,7 @@ export function StackedWeekCalendars({
     const allDayEvents: CalendarEvent[] = [];
     const gridEvents: CalendarEvent[] = [];
 
-    calendarsEvents[calendar].forEach((event) => {
+    calendarsEvents[calendar].forEach((event, i) => {
       if (
         event.start &&
         event.end &&
@@ -45,6 +45,7 @@ export function StackedWeekCalendars({
     });
     calendars.push(
       <MonthCalendarBody
+        key={`calendar-${i}`}
         gridEvents={gridEvents}
         allDayEvents={allDayEvents}
         calendarTitle={calendar}

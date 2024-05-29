@@ -1,4 +1,3 @@
-import { Box } from "@mui/material";
 import { FlexCol } from "../../../components/wrappers";
 import { CalendarEvent } from "../../../types";
 import { CalendarAllDayEvent } from "../../calendar_header/components/calendar_all_day_event";
@@ -12,11 +11,15 @@ export function MonthDayEventsCard({
   filteredGridEvents: CalendarEvent[];
   filteredAllDayEvents: CalendarEvent[];
 }) {
-  const allDayEvents = filteredAllDayEvents.map((e) => (
-    <CalendarAllDayEvent {...e} sx={{ width: "118px" }} />
+  const allDayEvents = filteredAllDayEvents.map((e, i) => (
+    <CalendarAllDayEvent
+      key={`allDayEvent-${i}`}
+      {...e}
+      sx={{ width: "118px" }}
+    />
   ));
-  const gridEvents = filteredGridEvents.map((e) => (
-    <MonthCalendarEvent {...e} state="normal" />
+  const gridEvents = filteredGridEvents.map((e, i) => (
+    <MonthCalendarEvent key={`gridEvent-${i}`} {...e} state="normal" />
   ));
 
   const events = [...allDayEvents, ...gridEvents];
@@ -26,9 +29,10 @@ export function MonthDayEventsCard({
         ? [...Array(7)].map((_, i) => {
             if (i === 6) {
               return (
-                // <Box position="absolute" bottom="0px" sx={{ height: "16px" }}>
-                <MoreEventsButton number={events.length - 6} />
-                // </Box>
+                <MoreEventsButton
+                  key={`moreEventsButton-${i}`}
+                  number={events.length - 6}
+                />
               );
             }
             return events[i];
