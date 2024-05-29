@@ -143,7 +143,7 @@ export const eventsFixture: CalendarEventType[] = [
     color: "red",
   },
   {
-    title: "36min event",
+    title: "36 min event",
     start: addMinutes(new Date(), 15),
     end: addMinutes(addMinutes(new Date(), 15), 36),
     color: "teal",
