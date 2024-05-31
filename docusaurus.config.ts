@@ -68,7 +68,7 @@ const config: Config = {
       title: "Anocca Calendar",
       logo: {
         alt: "Anocca calendar logo",
-        src: "img/logo.svg",
+        src: "img/anocca_calendar_logo.png",
       },
       items: [
         {
@@ -78,6 +78,13 @@ const config: Config = {
           label: "Tutorial",
         },
         { to: "/blog", label: "Blog", position: "left" },
+        {
+          to: "/docs/api",
+          label: "API",
+          position: "left",
+          type: "docSidebar",
+          sidebarId: "apiSidebar",
+        },
         {
           href: "https://github.com/facebook/docusaurus",
           label: "GitHub",
@@ -128,7 +135,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `MIT © ${new Date().getFullYear()}. Built at Anocca AB.`,
     },
     prism: {
       theme: prismThemes.github,

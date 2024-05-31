@@ -5,25 +5,36 @@ import Heading from "@theme/Heading";
 import Layout from "@theme/Layout";
 import clsx from "clsx";
 import styles from "./index.module.css";
+import hero from "@site/static/img/hero.png";
+import CalendarSvg from "@site/static/img/anocca_calendar.svg";
+import { Box, Typography } from "@mui/material";
 
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
   return (
-    <header className={clsx("hero hero--primary", styles.heroBanner)}>
-      <div className="container">
-        <Heading as="h1" className="hero__title">
-          {siteConfig.title}
-        </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
-        <div className={styles.buttons}>
-          <Link
-            className="button button--secondary button--lg"
-            to="/docs/intro"
-          >
-            Calendar Tutorial - 5min ⏱️
-          </Link>
-        </div>
-      </div>
+    <header className={""}>
+      <Box position="relative">
+        <Box
+          component={"img"}
+          src={hero}
+          alt="Anocca Calendar Logo"
+          position={"absolute"}
+          sx={{ inset: 0 }}
+        />
+        <Box
+          sx={{
+            position: "relative",
+            inset: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="h2" color="white" sx={{ pt: 4 }}>
+            {siteConfig.title}
+          </Typography>
+        </Box>
+      </Box>
     </header>
   );
 }
