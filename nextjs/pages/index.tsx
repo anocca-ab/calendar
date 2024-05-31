@@ -4,6 +4,7 @@ import { Roboto } from "next/font/google";
 import { Button, Typography, useMediaQuery, useTheme } from "@mui/material";
 import mbp from "@/public/mbp.png";
 import wave from "@/public/wave.png";
+import planet from "@/public/planet.png";
 
 const inter = Inter({ subsets: ["latin"] });
 const roboto = Roboto({
@@ -21,13 +22,23 @@ export default function Home() {
         <div className="flex gap-8 max-w-[1280px] items-center flex-col-reverse md:flex-row">
           <div className="flex flex-col gap-4 md:gap-8 xl:gap-20 items-center md:items-start">
             <div>
-              <Typography variant="h1" className="text-[min(4vw,80px)] flex">Get started in 5 minutes</Typography>
+              <Typography variant="h1" className="text-[min(4vw,80px)] flex">
+                Get started in 5 minutes
+              </Typography>
             </div>
             <div className="flex gap-2">
-              <Button variant="contained" color="primary" className="whitespace-nowrap">
+              <Button
+                variant="contained"
+                color="primary"
+                className="whitespace-nowrap"
+              >
                 Tutorial
               </Button>
-              <Button variant="outlined" color="primary" className="whitespace-nowrap">
+              <Button
+                variant="outlined"
+                color="primary"
+                className="whitespace-nowrap"
+              >
                 API Docs
               </Button>
             </div>
@@ -65,7 +76,11 @@ export default function Home() {
         </div>
       </div>
       <div className="absolute bottom-0 pointer-events-none">
-        <Image src={wave} alt="An artistic wave" className="w-[100vw]" />
+        <Image
+          src={theme.palette.mode === "light" ? wave : planet}
+          alt="Some art"
+          className="w-[100vw]"
+        />
       </div>
     </main>
   );
