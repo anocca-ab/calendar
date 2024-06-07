@@ -1,4 +1,4 @@
-import { Box, Button, Divider, Typography } from "@mui/material";
+import { Box, Button, Divider, Typography, useTheme } from "@mui/material";
 import {
   StartOfWeekOptions,
   addDays,
@@ -179,15 +179,135 @@ export function WeekCalendar(props: {
   );
 }
 
-function WeekCalendarHeader({ events }: { events: CalendarEvent[] }) {
+function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
   const { workWeek, startOfWeek, now, onCreateEvent } = useCalendar();
   const daysInWeek = workWeek ? 5 : 7;
+  const [draggedEvent, setDraggedEvent] = React.useState<
+    { dragged: CalendarEvent | undefined; source: CalendarEvent } | undefined
+  >(undefined);
+
+  const events = [...props.events];
+  if (draggedEvent) {
+    if (draggedEvent.dragged) {
+      events.push(draggedEvent.dragged);
+    }
+  }
 
   const overlaps = getAllDayOverlaps(startOfWeek, daysInWeek, events);
 
   const maxOverlaps = Math.max(...Object.values(overlaps).map((o) => o.length));
 
   const totalHeight = 17 * maxOverlaps;
+
+  React.useEffect(() => {
+    const state: {
+      down: boolean;
+      pos: { x: number; y: number; scrollX: number } | undefined;
+      pos0: { x: number; y: number; scrollX: number } | undefined;
+    } = {
+      down: false,
+      pos: undefined,
+      pos0: undefined,
+    };
+    let dragged:
+      | undefined
+      | {
+          event: CalendarEvent;
+          x: number;
+          y: number;
+          w: number;
+          elX: number;
+        } = undefined;
+    const mouseDown = (ev: MouseEvent) => {
+      if (ev.target instanceof HTMLElement) {
+        if (ev.target.dataset.type === "week-calendar-event") {
+          state.down = true;
+          state.pos0 = {
+            x: ev.clientX,
+            y: ev.clientY,
+            scrollX: window.scrollX,
+          };
+          const data: { index: number; x: number; y: number; w: number } =
+            JSON.parse(ev.target.dataset.calendarEvent!);
+          const event = events[data.index];
+          const rect = ev.target.getBoundingClientRect();
+          dragged = {
+            event,
+            x: data.x,
+            y: data.y,
+            w: data.w,
+            elX: rect.x,
+          };
+        }
+      }
+    };
+    const mouseMove = (ev: MouseEvent) => {
+      state.pos = {
+        x: ev.clientX,
+        y: ev.clientY,
+        scrollX: window.scrollX,
+      };
+      update();
+    };
+    const mouseUp = (ev: MouseEvent) => {
+      state.down = false;
+      state.pos = undefined;
+      state.pos0 = undefined;
+      setDraggedEvent(undefined);
+    };
+    const scroll = (ev: Event) => {
+      if (!state.pos) {
+        return;
+      }
+      state.pos = {
+        ...state.pos,
+        scrollX: window.scrollX,
+      };
+      update();
+    };
+    window.addEventListener("mouseup", mouseUp);
+    window.addEventListener("mousemove", mouseMove);
+    window.addEventListener("mousedown", mouseDown);
+    window.addEventListener("scroll", scroll);
+
+    function update() {
+      if (state.pos && state.down && state.pos0 && dragged) {
+        if (state.pos.x !== state.pos0.x) {
+          const rawDelta =
+            state.pos.x +
+            (state.pos0.x - dragged.elX) -
+            state.pos0.x +
+            state.pos.scrollX -
+            state.pos0.scrollX;
+          const delta = Math.min(
+            Math.max(Math.floor(rawDelta / 120), -dragged.x),
+            daysInWeek - dragged.x - 1,
+          );
+          const hoverredDay = dragged.x + delta;
+          setDraggedEvent({
+            source: dragged.event,
+            dragged:
+              hoverredDay !== dragged.x
+                ? {
+                    ...dragged.event,
+                    start: addDays(dragged.event.start, delta),
+                    end: addDays(
+                      dragged.event.end ?? endOfDay(dragged.event.start),
+                      delta,
+                    ),
+                  }
+                : undefined,
+          });
+        }
+      }
+    }
+    return () => {
+      window.removeEventListener("mouseup", mouseUp);
+      window.removeEventListener("mousemove", mouseMove);
+      window.removeEventListener("mousedown", mouseDown);
+      window.removeEventListener("scroll", scroll);
+    };
+  }, []);
 
   const weekDays = [...Array(daysInWeek)].map((_, index) => {
     const day = addDays(startOfWeek, index);
@@ -228,6 +348,8 @@ function WeekCalendarHeader({ events }: { events: CalendarEvent[] }) {
     );
   });
 
+  const theme = useTheme();
+
   return (
     <FlexCol width="100%">
       <Box pl={8}>
@@ -248,40 +370,57 @@ function WeekCalendarHeader({ events }: { events: CalendarEvent[] }) {
               differenceInDays(start, startOfDay(startOfWeek)),
               0,
             );
-            const y = overlaps[x].indexOf(event) * 17;
+            const y = overlaps[x].indexOf(event);
             const maxWidth = daysInWeek - x;
             const width = Math.min(differenceInDays(end, start) + 1, maxWidth);
+
+            const style = {
+              height: 16,
+              width: 119 * width - 8,
+            };
+            const color = event.color ?? "hsl(0 50 50)";
 
             return (
               <Box
                 key={index}
-                sx={{
-                  position: "absolute",
-                  background: "hsl(0 50 50)",
-                  bottom: totalHeight - y - 16,
-                  left: x * 120 + 2,
-                  height: 16,
-                  width: 119 * width - 8,
-                  display: "flex",
-                  justifyContent: "flex-start",
-                  px: 1,
-                  alignItems: "center",
-                  borderRadius: 1,
-                }}
-                onDragStart={(e) => {
-                  e.preventDefault();
-                  console.log(event);
-                }}
-                component={"div"}
+                component={"button"}
+                data-type="week-calendar-event"
+                data-calendar-event={JSON.stringify({ x, y, index, w: width })}
+                sx={mergeSx(
+                  {
+                    border: 0,
+                    p: 0,
+                    m: 0,
+                    cursor: "pointer",
+                    position: "absolute",
+                    background: color,
+                    bottom: totalHeight - y * 17 - 16,
+                    left: x * 120 + 2,
+                    display: "flex",
+                    justifyContent: "flex-start",
+                    px: 1,
+                    alignItems: "center",
+                    borderRadius: 1,
+                    ...style,
+                  },
+                  draggedEvent?.source === event && {
+                    opacity: 0.5,
+                  },
+                  draggedEvent?.dragged === event && {
+                    opacity: 0.75,
+                    boxShadow: theme.shadows[4],
+                  },
+                )}
               >
                 <Typography
                   color={(theme) => theme.palette.primary.contrastText}
                   sx={{
-                    fontFamily: "Roboto",
+                    fontFamily: (theme) => theme.typography.fontFamily,
                     fontSize: "10px",
                     fontStyle: "normal",
                     fontWeight: "500",
                     lineHeight: "14px",
+                    pointerEvents: "none",
                   }}
                 >
                   {event.title}

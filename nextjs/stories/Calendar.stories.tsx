@@ -140,8 +140,17 @@ export const WithAllDayEvents: Story = {
         start: startOfDay(
           subDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 2),
         ),
-        end: endOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)),
+        end: endOfDay(
+          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14),
+        ),
         title: "A loong day event",
+      },
+      {
+        start: startOfDay(
+          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3),
+        ),
+        end: endOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+        title: "All day event",
       },
     ],
   },

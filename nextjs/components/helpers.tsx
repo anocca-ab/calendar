@@ -33,13 +33,13 @@ export function mergeSx(...sxs: (Sx | null | undefined | boolean)[]): Sx {
   return sx;
 }
 
-export function getAllDayOverlaps(
+export function getAllDayOverlaps<T extends CalendarEvent>(
   startOfWeek: Date,
   daysInWeek: number,
-  events: CalendarEvent[],
+  events: T[],
 ) {
-  const overlaps: { [key: string]: (CalendarEvent | undefined)[] } = {};
-  const eventYSlots = new WeakMap<CalendarEvent, number>();
+  const overlaps: { [key: string]: (T | undefined)[] } = {};
+  const eventYSlots = new WeakMap<T, number>();
   for (let i = 0; i < daysInWeek; i++) {
     const eventsOnThisDay = events.filter((event) => {
       const dayStart = startOfDay(addDays(startOfDay(startOfWeek), i));
@@ -53,7 +53,7 @@ export function getAllDayOverlaps(
     /**
      * The y-position slots
      */
-    const slots: (CalendarEvent | undefined)[] = [];
+    const slots: (T | undefined)[] = [];
 
     let maxSlot: number | undefined = undefined;
 
