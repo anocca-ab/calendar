@@ -1,14 +1,20 @@
 import { ThemeProvider, createTheme, useMediaQuery } from "@mui/material";
 import React from "react";
 
-export function Theme({ children }: { children: React.ReactNode }) {
+export function Theme({
+  children,
+  theme,
+}: {
+  children: React.ReactNode;
+  theme?: "dark" | "light";
+}) {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
 
-  const theme = React.useMemo(
+  const muiTheme = React.useMemo(
     () =>
       createTheme({
         palette: {
-          mode: prefersDarkMode ? "dark" : "light",
+          mode: theme ?? (prefersDarkMode ? "dark" : "light"),
         },
         components: {
           MuiToggleButton: {
@@ -37,8 +43,8 @@ export function Theme({ children }: { children: React.ReactNode }) {
           },
         },
       }),
-    [prefersDarkMode],
+    [prefersDarkMode, theme],
   );
 
-  return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
+  return <ThemeProvider theme={muiTheme}>{children}</ThemeProvider>;
 }
