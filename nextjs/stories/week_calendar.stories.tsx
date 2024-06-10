@@ -5,7 +5,7 @@ import { Box } from "@mui/material";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import type { Meta, StoryObj } from "@storybook/react";
-import { addDays, endOfDay, startOfDay, startOfWeek, subDays } from "date-fns";
+import { addDays, addHours, endOfDay, startOfDay, startOfWeek, subDays } from "date-fns";
 import React from "react";
 import { WeekCalendar } from "../components/week_calendar/week_calendar";
 
@@ -99,6 +99,28 @@ export const WithAllDayEvents: Story = {
     return <InteractiveDemo {...props} />;
   },
 };
+
+
+export const WithSubDayEvents: Story = {
+  args: {
+    events: [
+      {
+        start: addHours(startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })), 2),
+        end: addHours(startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })), 4),
+        title: "A two hour event",
+      },
+      {
+        start: addHours(startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })), 1),
+        end: addHours(startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })), 4),
+        title: "A three hour event",
+      },
+    ],
+  },
+  render: (props) => {
+    return <InteractiveDemo {...props} />;
+  },
+};
+
 
 function InteractiveDemo(
   props: React.ComponentPropsWithRef<typeof WeekCalendar>,

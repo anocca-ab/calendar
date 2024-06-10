@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`fullDayEvents overlapping 1`] = `
+exports[`all day event overlapping 1`] = `
 {
   "0": [
     {

@@ -3,7 +3,7 @@ import { getAllDayOverlaps } from "./helpers";
 
 jest.useFakeTimers().setSystemTime(new Date("2024-06-05"));
 
-test("fullDayEvents overlapping", () => {
+test("all day event overlapping", () => {
   const result = getAllDayOverlaps(
     startOfWeek(new Date(), { weekStartsOn: 1 }),
     7,

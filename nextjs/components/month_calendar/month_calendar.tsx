@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { CalendarEvent } from "../types";
+import { CalendarEvent, StartDay } from "../types";
 
 export function MonthCalendar(props: {
   /**
@@ -7,6 +7,11 @@ export function MonthCalendar(props: {
    * @default []
    */
   events?: CalendarEvent[];
+  /**
+   * start week on monday or sunday
+   * @default 'monday'
+   */
+  startDay?: StartDay;
   /**
    * Some date during the week. We use the date-fns `startOfWeek` to derive the first day of the week
    * @default new Date()

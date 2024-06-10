@@ -16,3 +16,5 @@ export type CalendarEvent<T = undefined> = {
   color?: string;
   data?: T;
 };
+
+export type StartDay = "monday" | "sunday";

@@ -14,6 +14,11 @@ const meta = {
         disable: true,
       },
     },
+    onMoveEvent: {
+      table: {
+        disable: true,
+      },
+    },
     events: {
       table: {
         disable: true,
@@ -28,6 +33,7 @@ const meta = {
   },
   args: {
     startOfMonth: new Date(),
+    startDay: "monday",
     now: new Date(),
   },
 } satisfies Meta<typeof MonthCalendar>;

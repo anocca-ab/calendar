@@ -6,6 +6,7 @@ import {
   areIntervalsOverlapping,
   differenceInCalendarDays,
   differenceInDays,
+  differenceInMinutes,
   endOfDay,
   startOfWeek as fnsStartOfWeek,
   format,
@@ -13,20 +14,12 @@ import {
   getMinutes,
   isSameDay,
   startOfDay,
-  subMilliseconds,
 } from "date-fns";
-import { Roboto } from "next/font/google";
 import React from "react";
-import { CalendarEvent } from "../types";
+import { CalendarEvent, StartDay } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
+import { getAllDayOverlaps, isAllDayEvent, mergeSx } from "./helpers";
 import { TimeIndicator } from "./time_indicator";
-import {
-  getAllDayOverlaps as getAllDayOverlaps,
-  isAllDayEvent,
-  mergeSx,
-} from "./helpers";
-
-type StartDay = "monday" | "sunday";
 
 export const CalendarConfigContext = React.createContext<
   | undefined
@@ -51,11 +44,6 @@ const useCalendar = () => {
   }
   return ctx;
 };
-
-const roboto = Roboto({
-  weight: ["300", "400", "500", "700"],
-  subsets: ["latin"],
-});
 
 const parseDefaultProps = (
   props: React.ComponentPropsWithRef<typeof WeekCalendar>,
@@ -176,19 +164,7 @@ export function WeekCalendar(props: {
         onMoveEvent,
       }}
     >
-      <FlexCol
-        width={workWeek ? "664px" : "904px"}
-        sx={{
-          color: "rgba(0, 0, 0, 0.87)",
-          WebkitFontSmoothing: "antialiased",
-          // Antialiasing.
-          MozOsxFontSmoothing: "grayscale",
-          "& *": {
-            boxSizing: "border-box",
-          },
-        }}
-        className={roboto.className}
-      >
+      <FlexCol width={workWeek ? "664px" : "904px"}>
         <FlexCol>
           <Box sx={{ width: 64 }}></Box>
           <WeekCalendarHeader events={allDayEvents} />
@@ -611,8 +587,32 @@ function TimeSidebar() {
   );
 }
 
-function WeekCalendarGrid({ events }: { events: CalendarEvent[] }) {
+function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
   const { workWeek, now, startOfWeek } = useCalendar();
+  const events: CalendarEvent[] = [];
+
+  const overlaps = new Map<number, Map<number, CalendarEvent>>();
+  events.forEach((event, index) => {
+    events.forEach((otherEvent, otherIndex) => {
+      if (event === otherEvent) {
+        return;
+      }
+      if (
+        areIntervalsOverlapping(
+          {
+            start: event.start,
+            end: event.end ?? addMinutes(event.start, 15),
+          },
+          {
+            start: otherEvent.start,
+            end: otherEvent.end ?? addMinutes(otherEvent.start, 15),
+          },
+        )
+      ) {
+        // overlaps.set(index, new Map());
+      }
+    });
+  });
 
   return (
     <Box
@@ -683,6 +683,35 @@ function WeekCalendarGrid({ events }: { events: CalendarEvent[] }) {
         >
           <TimeIndicator />
         </Box>
+      </Box>
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+        }}
+      >
+        {events.map((event, index) => {
+          const height = event.end
+            ? differenceInMinutes(event.end, event.start)
+            : 15;
+          const color = event.color ?? "hsl(0 50 50)";
+          const top = differenceInMinutes(event.start, startOfDay(event.start));
+          return (
+            <Box
+              key={index}
+              sx={{
+                position: "absolute",
+                top,
+                height: height,
+                background: color,
+              }}
+            >
+              <Typography color={(theme) => theme.palette.primary.contrastText}>
+                {event.title ?? "(No name)"}
+              </Typography>
+            </Box>
+          );
+        })}
       </Box>
     </Box>
   );
