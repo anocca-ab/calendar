@@ -17,8 +17,8 @@ import {
 } from "date-fns";
 import { Roboto } from "next/font/google";
 import React from "react";
-import { CalendarEvent } from "./types";
-import { FlexCol, FlexRow } from "./wrappers";
+import { CalendarEvent } from "../types";
+import { FlexCol, FlexRow } from "../wrappers";
 import { TimeIndicator } from "./time_indicator";
 import {
   getAllDayOverlaps as getAllDayOverlaps,
@@ -36,6 +36,11 @@ export const CalendarConfigContext = React.createContext<
       startOfWeek: Date;
       now: Date;
       onCreateEvent?: (start: Date, end: Date) => void;
+      onMoveEvent?: (
+        event: CalendarEvent,
+        newStart: Date,
+        newEnd: Date | undefined,
+      ) => void;
     }
 >(undefined);
 
@@ -75,6 +80,7 @@ const parseDefaultProps = (
     startOfWeek,
     now,
     onCreateEvent: props.onCreateEvent,
+    onMoveEvent: props.onMoveEvent,
   };
 };
 
@@ -112,9 +118,29 @@ export function WeekCalendar(props: {
    * @returns void
    */
   onCreateEvent?: (start: Date, end: Date) => void;
+
+  /**
+   * Triggered when an event is moved
+   * @param event a calendar event
+   * @param newStart new start date for the event
+   * @param newEnd new end date for the event
+   * @returns void
+   */
+  onMoveEvent?: (
+    event: CalendarEvent,
+    newStart: Date,
+    newEnd: Date | undefined,
+  ) => void;
 }) {
-  const { events, startDay, workWeek, startOfWeek, now, onCreateEvent } =
-    parseDefaultProps(props);
+  const {
+    events,
+    startDay,
+    workWeek,
+    startOfWeek,
+    now,
+    onCreateEvent,
+    onMoveEvent,
+  } = parseDefaultProps(props);
 
   const allDayEvents: CalendarEvent[] = [];
   const gridEvents: CalendarEvent[] = [];
@@ -147,6 +173,7 @@ export function WeekCalendar(props: {
         startOfWeek,
         now,
         onCreateEvent,
+        onMoveEvent,
       }}
     >
       <FlexCol
@@ -179,18 +206,29 @@ export function WeekCalendar(props: {
   );
 }
 
+type DraggedEvent = {
+  /**
+   * The new event that is being dragged (source event with new start/end)
+   */
+  dragged: CalendarEvent | undefined;
+  /**
+   * The event that is dragged
+   */
+  source: CalendarEvent;
+};
+
 function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
-  const { workWeek, startOfWeek, now, onCreateEvent } = useCalendar();
+  const { workWeek, startOfWeek, now, onCreateEvent, onMoveEvent } =
+    useCalendar();
   const daysInWeek = workWeek ? 5 : 7;
-  const [draggedEvent, setDraggedEvent] = React.useState<
-    { dragged: CalendarEvent | undefined; source: CalendarEvent } | undefined
-  >(undefined);
 
   const events = [...props.events];
-  if (draggedEvent) {
-    if (draggedEvent.dragged) {
-      events.push(draggedEvent.dragged);
-    }
+  const [draggedEvent, setDraggedEvent] = React.useState<
+    DraggedEvent | undefined
+  >(undefined);
+
+  if (draggedEvent?.dragged) {
+    events.splice(events.indexOf(draggedEvent.source), 1, draggedEvent.dragged);
   }
 
   const overlaps = getAllDayOverlaps(startOfWeek, daysInWeek, events);
@@ -199,7 +237,13 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
 
   const totalHeight = 17 * maxOverlaps;
 
+  const effectRefs = React.useRef({ onMoveEvent, events });
+  effectRefs.current = { onMoveEvent, events };
+
   React.useEffect(() => {
+    /**
+     * Mouse state
+     */
     const state: {
       down: boolean;
       pos: { x: number; y: number; scrollX: number } | undefined;
@@ -209,6 +253,9 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
       pos: undefined,
       pos0: undefined,
     };
+    /**
+     * Data regarding the dragged mouse event
+     */
     let dragged:
       | undefined
       | {
@@ -218,6 +265,12 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
           w: number;
           elX: number;
         } = undefined;
+
+    /**
+     * Same as the React.state draggedEvent, but outside the context of react state
+     * A "live" version, whereas the state version is only updated after react component updates
+     */
+    let draggedEvent: DraggedEvent | undefined = undefined;
     const mouseDown = (ev: MouseEvent) => {
       if (ev.target instanceof HTMLElement) {
         if (ev.target.dataset.type === "week-calendar-event") {
@@ -229,7 +282,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
           };
           const data: { index: number; x: number; y: number; w: number } =
             JSON.parse(ev.target.dataset.calendarEvent!);
-          const event = events[data.index];
+          const event = effectRefs.current.events[data.index];
           const rect = ev.target.getBoundingClientRect();
           dragged = {
             event,
@@ -253,6 +306,18 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
       state.down = false;
       state.pos = undefined;
       state.pos0 = undefined;
+      if (draggedEvent) {
+        if (draggedEvent.dragged) {
+          if (effectRefs.current.onMoveEvent) {
+            effectRefs.current.onMoveEvent(
+              draggedEvent.source,
+              draggedEvent.dragged.start,
+              draggedEvent.dragged.end,
+            );
+          }
+        }
+      }
+      draggedEvent = undefined;
       setDraggedEvent(undefined);
     };
     const scroll = (ev: Event) => {
@@ -273,18 +338,23 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
     function update() {
       if (state.pos && state.down && state.pos0 && dragged) {
         if (state.pos.x !== state.pos0.x) {
+          // we have moved the mouse sideways
           const rawDelta =
             state.pos.x +
             (state.pos0.x - dragged.elX) -
             state.pos0.x +
             state.pos.scrollX -
             state.pos0.scrollX;
+          // each event is 120px wide, so we can calculate how many days we have moved
           const delta = Math.min(
             Math.max(Math.floor(rawDelta / 120), -dragged.x),
             daysInWeek - dragged.x - 1,
           );
           const hoverredDay = dragged.x + delta;
-          setDraggedEvent({
+          /**
+           * Update the "live" dragged event
+           */
+          draggedEvent = {
             source: dragged.event,
             dragged:
               hoverredDay !== dragged.x
@@ -297,7 +367,8 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                     ),
                   }
                 : undefined,
-          });
+          };
+          setDraggedEvent(draggedEvent);
         }
       }
     }
@@ -307,7 +378,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
       window.removeEventListener("mousedown", mouseDown);
       window.removeEventListener("scroll", scroll);
     };
-  }, []);
+  }, [daysInWeek, setDraggedEvent]);
 
   const weekDays = [...Array(daysInWeek)].map((_, index) => {
     const day = addDays(startOfWeek, index);

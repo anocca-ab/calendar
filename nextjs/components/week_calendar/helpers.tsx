@@ -1,5 +1,5 @@
 import type { SxProps } from "@mui/material";
-import { CalendarEvent } from "./types";
+import { CalendarEvent } from "../types";
 import {
   addDays,
   areIntervalsOverlapping,
@@ -7,7 +7,6 @@ import {
   startOfDay,
 } from "date-fns";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Sx = SxProps<any>;
 type ArrayType<T> = T extends ReadonlyArray<infer U> ? U[] : never;
 type SxArray = ArrayType<Sx>;

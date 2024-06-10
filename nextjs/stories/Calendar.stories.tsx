@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { fn } from "@storybook/test";
-import { WeekCalendar } from "../components/calendar";
+import { WeekCalendar } from "../components/week_calendar/week_calendar";
 import { createRoot } from "react-dom/client";
 import {
   Box,
@@ -51,7 +51,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import { TimeField } from "@mui/x-date-pickers/TimeField";
 import { CalendarEvent } from "@/components/types";
-import { isAllDayEvent } from "@/components/helpers";
+import { isAllDayEvent } from "@/components/week_calendar/helpers";
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
@@ -181,6 +181,25 @@ function InteractiveDemo(
     }
   };
 
+  const onMoveEvent = (
+    event: CalendarEvent,
+    newStart: Date,
+    newEnd: Date | undefined,
+  ) => {
+    setEvents((prev) => {
+      return prev.map((ev) => {
+        if (ev === event) {
+          return {
+            ...ev,
+            start: newStart,
+            end: newEnd,
+          };
+        }
+        return ev;
+      });
+    });
+  };
+
   return (
     <>
       <Theme>
@@ -199,6 +218,7 @@ function InteractiveDemo(
             {...props}
             events={events}
             onCreateEvent={onCreateEvent}
+            onMoveEvent={onMoveEvent}
           />
         </LocalizationProvider>
       </Theme>
