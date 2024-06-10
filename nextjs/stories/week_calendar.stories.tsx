@@ -9,19 +9,14 @@ import { addDays, endOfDay, startOfDay, startOfWeek, subDays } from "date-fns";
 import React from "react";
 import { WeekCalendar } from "../components/week_calendar/week_calendar";
 
-// More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
   title: "Week Calendar",
   component: WeekCalendar,
   parameters: {
-    // Optional parameter to center the component in the Canvas. More info: https://storybook.js.org/docs/configure/story-layout
     layout: "centered",
   },
-  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
   tags: ["autodocs"],
-  // More on argTypes: https://storybook.js.org/docs/api/argtypes
   argTypes: {
-    // backgroundColor: { control: "color" },
     onCreateEvent: {
       table: {
         disable: true,
@@ -42,34 +37,18 @@ const meta = {
       control: "date",
     },
   },
-  // Use `fn` to spy on the onClick arg, which will appear in the actions panel once invoked: https://storybook.js.org/docs/essentials/actions#action-args
   args: {
     workWeek: false,
     startDay: "monday",
     startOfWeek: new Date(),
     now: new Date(),
   },
-  decorators: [
-    (Story, { globals: { backgrounds } }) => {
-      return (
-        <Theme theme={backgrounds?.value === "#333333" ? "dark" : "light"}>
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <Box
-              sx={{ background: (theme) => theme.palette.background.default }}
-            >
-              <Story />
-            </Box>
-          </LocalizationProvider>
-        </Theme>
-      );
-    },
-  ],
+  decorators: [],
 } satisfies Meta<typeof WeekCalendar>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const EmptyCalendar: Story = {
   args: {},
 };
