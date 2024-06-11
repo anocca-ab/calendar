@@ -29,7 +29,6 @@ export function Theme({
             fontStyle: "normal",
             fontWeight: "500",
             lineHeight: "14px",
-            pointerEvents: "none",
           },
         },
         components: {
