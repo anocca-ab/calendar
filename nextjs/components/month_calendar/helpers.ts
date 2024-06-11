@@ -74,7 +74,7 @@ export function getEventsPerWeekAndDay(
   });
 
   // init the record with empty weeks & days
-  [...Array(weeksOfMonth - 1)].forEach((_, week) => {
+  [...Array(weeksOfMonth)].forEach((_, week) => {
     calendarWeeksEvents[`${week}`] = {};
     [...Array(7)].forEach((_, day) => {
       calendarWeeksEvents[`${week}`][`${day}`] = {

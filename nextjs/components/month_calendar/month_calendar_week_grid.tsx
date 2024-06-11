@@ -3,9 +3,11 @@ import type { CalendarEvent } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { MonthDayEventsCard } from "./month_day_events_card";
 import { useMonthCalendar } from "./month_calendar";
+import { addDays, addWeeks, getDate, startOfWeek } from "date-fns";
 
 export function MonthCalendarWeekGrid({
   weekEvents,
+  weekNumber,
 }: {
   weekEvents: Record<
     string,
@@ -14,8 +16,9 @@ export function MonthCalendarWeekGrid({
       allDayEvents: CalendarEvent[];
     }
   >;
+  weekNumber: number;
 }) {
-  const { startDay } = useMonthCalendar();
+  const { startDay, startOfMonth } = useMonthCalendar();
 
   // date-fns considers 0 to be always Sunday when using getDay
   // so we have to shift the first value of the array to the end
@@ -86,11 +89,18 @@ export function MonthCalendarWeekGrid({
         }}
       >
         {orderedDays.map((day, i) => {
+          const beginningOfCurrentWeek = addWeeks(
+            startOfWeek(startOfMonth),
+            weekNumber,
+          );
+
+          const dayNumber = getDate(addDays(beginningOfCurrentWeek, i + 1));
           return (
             <MonthDayEventsCard
               key={i}
               filteredAllDayEvents={day.allDayEvents}
               filteredGridEvents={day.gridEvents}
+              dayNumber={dayNumber}
             />
           );
         })}

@@ -28,7 +28,7 @@ export function MonthCalendarWeekBody({
       }}
     >
       <WeekIndicator title={calendarTitle} color={color} />
-      <MonthCalendarWeekGrid weekEvents={weekEvents} />
+      <MonthCalendarWeekGrid weekEvents={weekEvents} weekNumber={weekNumber} />
     </FlexRow>
   );
 }

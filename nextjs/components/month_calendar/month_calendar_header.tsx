@@ -40,7 +40,9 @@ function MonthCalendarViewBar() {
         justifyContent="center"
         alignItems="center"
       >
-        <Typography variant="caption">{dayOfWeek}</Typography>
+        <Box width="24px" height="24px">
+          <Typography variant="caption">{dayOfWeek}</Typography>
+        </Box>
       </FlexRow>,
     );
 
@@ -61,48 +63,43 @@ function MonthCalendarViewBar() {
   });
 
   return (
-    <Box>
-      <Box
+    <Box
+      sx={{
+        display: "flex",
+        width: "100%",
+      }}
+    >
+      <FlexCol
         sx={{
+          // backgroundColor: variationsToColorRecord[color],
+          backgroundColor: "var(--Blue-Gray-50, #ECEFF1);",
           display: "flex",
-          // width: workWeek ? "600px" : "840px",
-          width: "840px",
+          width: "20px",
+          height: "20px",
+          padding: "4px 0px",
+          flexDirection: "column",
+          justifyContent: "flex-start",
+          alignItems: "center",
+          gap: "10px",
+          borderRadius: "4px",
         }}
       >
-        {/* <Box width="20px"> */}
         <FlexCol
           sx={{
-            // backgroundColor: variationsToColorRecord[color],
-            backgroundColor: "var(--Blue-Gray-50, #ECEFF1);",
-            display: "flex",
-            width: "20px",
-            height: "20px",
-            padding: "4px 0px",
-            flexDirection: "column",
-            justifyContent: "flex-start",
+            // transform: "rotate(-90deg)",
+            justifyContent: "center",
             alignItems: "center",
-            gap: "10px",
-            borderRadius: "4px",
           }}
         >
-          <FlexCol
-            sx={{
-              // transform: "rotate(-90deg)",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
+          <Typography
+            variant="body2"
+            color="var(--Light-Text-Primary, rgba(0, 0, 0, 0.87));"
           >
-            <Typography
-              variant="body2"
-              color="var(--Light-Text-Primary, rgba(0, 0, 0, 0.87));"
-            >
-              W
-            </Typography>
-          </FlexCol>
+            W
+          </Typography>
         </FlexCol>
-        {/* </Box> */}
-        {weekDays}
-      </Box>
+      </FlexCol>
+      {weekDays}
     </Box>
   );
 }
