@@ -1,6 +1,6 @@
 /**
  * * `if (startOfDay(event.start) === event.start && endOfDay(event.start) === event.end)` the event is considered to be an all-day event
- * * `if (differenceInDays(event.end, event.start) === >= 1)` the event is considered to be an all-day event
+ * * `if (differenceInCalendarDays(event.end, event.start) === >= 1)` the event is considered to be an all-day event
  */
 export type CalendarEvent<T = undefined> = {
   start: Date;

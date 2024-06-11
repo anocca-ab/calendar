@@ -104,6 +104,7 @@ export const WithAllDayEvents: Story = {
 export const WithSubDayEvents: Story = {
   args: {
     events: [
+      // 2 overlapping on monday
       {
         start: addHours(startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })), 2),
         end: addHours(startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })), 4),
@@ -114,6 +115,44 @@ export const WithSubDayEvents: Story = {
         end: addHours(startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })), 4),
         title: "A three hour event",
       },
+
+      // 3 (+1) overlapping on tuesday
+      {
+        start: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 2),
+        end: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 4),
+        title: "A two hour event",
+      },
+      {
+        start: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 1),
+        end: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 4),
+        title: "A three hour event",
+      },
+
+
+      // 3 (+1) overlapping on tuesday
+      {
+        start: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 7),
+        end: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 9),
+        title: "A two hour event",
+      },
+      {
+        start: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 6),
+        end: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 9),
+        title: "A three hour event",
+      },
+      {
+        start: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 7),
+        end: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 9),
+        title: "A one hour event",
+      },
+
+      // last event that overlapps all on tuesday
+      {
+        start: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 1),
+        end: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 10),
+        title: "A big event",
+      },
+
     ],
   },
   render: (props) => {

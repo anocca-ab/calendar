@@ -20,6 +20,12 @@ import { CalendarEvent, StartDay } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { getAllDayOverlaps, isAllDayEvent, mergeSx } from "./helpers";
 import { TimeIndicator } from "./time_indicator";
+import {
+  Graph,
+  findAllCliques,
+  findConnectedComponents,
+} from "./find_sub_day_event_overlaps";
+import { subDayEventSize } from "./sub_day_event_size";
 
 export const CalendarConfigContext = React.createContext<
   | undefined
@@ -173,7 +179,7 @@ export function WeekCalendar(props: {
           <TimeSidebar />
           <Box width="100%">
             <FlexRow width="100%">
-              <WeekCalendarGrid events={events} />
+              <WeekCalendarGrid events={gridEvents} />
             </FlexRow>
           </Box>
         </FlexRow>
@@ -414,12 +420,12 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
             const end = event.end ?? endOfDay(event.start);
 
             const x = Math.max(
-              differenceInDays(start, startOfDay(startOfWeek)),
+              differenceInCalendarDays(start, startOfDay(startOfWeek)),
               0,
             );
             const y = overlaps[x].indexOf(event);
             const maxWidth = daysInWeek - x;
-            const width = Math.min(differenceInDays(end, start) + 1, maxWidth);
+            const width = Math.min(differenceInCalendarDays(end, start) + 1, maxWidth);
 
             const style = {
               height: 16,
@@ -589,13 +595,22 @@ function TimeSidebar() {
 
 function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
   const { workWeek, now, startOfWeek } = useCalendar();
-  const events: CalendarEvent[] = [];
+  const events: CalendarEvent[] = [...props.events];
 
-  const overlaps = new Map<number, Map<number, CalendarEvent>>();
+  /**
+   * index overlaps with what other indexes
+   */
+  const overlaps: Graph = [];
   events.forEach((event, index) => {
+    if (!overlaps[index]) {
+      overlaps[index] = [];
+    }
     events.forEach((otherEvent, otherIndex) => {
       if (event === otherEvent) {
         return;
+      }
+      if (!overlaps[otherIndex]) {
+        overlaps[otherIndex] = [];
       }
       if (
         areIntervalsOverlapping(
@@ -609,10 +624,99 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
           },
         )
       ) {
-        // overlaps.set(index, new Map());
+        if (!overlaps[index].includes(otherIndex)) {
+          overlaps[index].push(otherIndex);
+        }
+        if (!overlaps[otherIndex].includes(index)) {
+          overlaps[otherIndex].push(index);
+        }
       }
     });
   });
+
+  const components = findConnectedComponents(overlaps);
+  console.log("Connected Components:", components);
+
+  let maxCliques: number[][] = [];
+
+  let numCols: Record<
+    /**
+     * Event index
+     */
+    number,
+    /**
+     * Number of columns
+     */
+    number
+  > = {};
+
+  components.forEach((component, index) => {
+    const cliques = findAllCliques(overlaps, component);
+    // console.log(`All Cliques in Component ${index}:`, cliques);
+
+    const maxCliqueSizeForComponent = cliques.reduce((max, clique) => {
+      return clique.length > max ? clique.length : max;
+    }, 0);
+
+    component.forEach((index) => {
+      numCols[index] = maxCliqueSizeForComponent;
+
+      const cliquesForEvent = cliques.filter((clique) =>
+        clique.includes(index),
+      );
+      const maxCliqueForEvent = cliquesForEvent.reduce((max, clique) => {
+        return clique.length > max.length ? clique : max;
+      }, []);
+      // console.log("Max Clique for Event", index, maxClique);
+
+      maxCliqueForEvent.sort(sortEvent);
+      if (
+        !maxCliques
+          .map((clique) => clique.join(""))
+          .includes(maxCliqueForEvent.join(""))
+      ) {
+        maxCliques.push(maxCliqueForEvent);
+      }
+    });
+  });
+
+  function sortEvent(a: number, b: number) {
+    const startTimeSort = events[a].start.getTime() - events[b].start.getTime();
+    if (startTimeSort === 0) {
+      return (
+        (events[a].end ?? addMinutes(events[a].start, 15)).getTime() -
+        (events[b].end ?? addMinutes(events[b].start, 15)).getTime()
+      );
+    }
+    return startTimeSort;
+  }
+
+  maxCliques.sort((a, b) => {
+    if (a.length === 0 || b.length === 0) {
+      return 0;
+    }
+    return sortEvent(a[0], b[0]);
+  });
+
+  const horizontalPositions: Record<
+    /**
+     * event index
+     */
+    number,
+    /**
+     * horizontal position
+     */
+    number
+  > = {};
+  maxCliques.forEach((clique) => {
+    clique.forEach((evIndex, horizontalPos) => {
+      if (typeof horizontalPositions[evIndex] === "undefined") {
+        horizontalPositions[evIndex] = horizontalPos;
+      }
+    });
+  });
+
+  console.log("@maxCliques", maxCliques, horizontalPositions, numCols);
 
   return (
     <Box
@@ -695,15 +799,25 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
             ? differenceInMinutes(event.end, event.start)
             : 15;
           const color = event.color ?? "hsl(0 50 50)";
-          const top = differenceInMinutes(event.start, startOfDay(event.start));
+          const top = differenceInMinutes(event.start, startOfDay(event.start)) + 1;
+          const left = differenceInCalendarDays(event.start, startOfWeek) * 120;
+          const n = numCols[index];
+          const horPos = horizontalPositions[index];
+          const rect = subDayEventSize(n, horPos);
           return (
             <Box
               key={index}
               sx={{
                 position: "absolute",
                 top,
-                height: height,
+                left: left + rect.x + 1,
+                height: height - 1,
                 background: color,
+                width: rect.w,
+                zIndex: horPos,
+                border: (theme) =>
+                  `1px solid ${theme.palette.primary.contrastText}`,
+                borderRadius: 1,
               }}
             >
               <Typography color={(theme) => theme.palette.primary.contrastText}>
