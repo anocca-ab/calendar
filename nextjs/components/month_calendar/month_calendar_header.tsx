@@ -15,7 +15,7 @@ import { useMonthCalendar } from "./month_calendar";
 export function MonthCalendarHeader() {
   return (
     <FlexCol width="100%">
-      <CalendarLayoutBar />
+      {/* <CalendarLayoutBar /> */}
       <MonthCalendarViewBar />
     </FlexCol>
   );
@@ -77,13 +77,9 @@ function MonthCalendarViewBar() {
     >
       <FlexCol
         sx={{
-          // backgroundColor: variationsToColorRecord[color],
           backgroundColor: "var(--Blue-Gray-50, #ECEFF1);",
-          display: "flex",
           width: "20px",
           height: "20px",
-          padding: "4px 0px",
-          flexDirection: "column",
           justifyContent: "flex-start",
           alignItems: "center",
           gap: "10px",
@@ -92,7 +88,6 @@ function MonthCalendarViewBar() {
       >
         <FlexCol
           sx={{
-            // transform: "rotate(-90deg)",
             justifyContent: "center",
             alignItems: "center",
           }}

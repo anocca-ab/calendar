@@ -1,4 +1,3 @@
-import { Box } from "@mui/material";
 import {
   StartOfWeekOptions,
   startOfWeek as fnsStartOfWeek,
@@ -126,9 +125,7 @@ export function MonthCalendar(props: {
         onMoveEvent,
       }}
     >
-      <Box>Month calendar</Box>
-      {/* <FlexCol width={workWeek ? "664px" : "904px"}> */}
-      <FlexCol width={"904px"}>
+      <FlexCol width="904px" gap="2px">
         <MonthCalendarHeader />
         <FlexCol gap="2px">{weeks}</FlexCol>
       </FlexCol>

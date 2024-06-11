@@ -32,7 +32,6 @@ export function MonthCalendarWeekGrid({
     <Box
       sx={{
         position: "relative",
-        // width: workWeek ? "600px" : "840px",
         width: "840px",
         height: "119px",
       }}

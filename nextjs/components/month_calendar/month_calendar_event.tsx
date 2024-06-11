@@ -1,7 +1,7 @@
-import { SxProps, Theme, Typography, Paper, SvgIcon } from "@mui/material";
-import { addMinutes, format } from "date-fns";
-import { FlexCol, FlexRow } from "../wrappers";
+import { Paper, SvgIcon, SxProps, Theme, Typography } from "@mui/material";
+import { format } from "date-fns";
 import type { CalendarEvent } from "../types";
+import { FlexCol, FlexRow } from "../wrappers";
 import { variationsToColorRecord } from "./helpers";
 
 export function MonthCalendarEvent({
@@ -55,7 +55,8 @@ export function MonthCalendarEvent({
               letterSpacing: "0.4px",
             }}
           >
-            {`${format(start, "h:mm")} - ${format(end ?? addMinutes(start, 15), "h:mmaaa")}`}
+            {/* {`${format(start, "h:mm")} - ${format(end ?? addMinutes(start, 15), "h:mmaaa")}`} */}
+            {`${format(start, "h:mm")}`}
           </Typography>
 
           <Typography
@@ -65,7 +66,7 @@ export function MonthCalendarEvent({
               fontFamily: "Roboto",
               fontSize: "10px",
               fontStyle: "normal",
-              fontWeight: 600,
+              fontWeight: 500,
               lineHeight: "100%" /* 10px */,
               letterSpacing: "0.14px",
             }}
