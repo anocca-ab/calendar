@@ -467,14 +467,15 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
               >
                 <Typography
                   color={(theme) => theme.palette.primary.contrastText}
-                  sx={{
-                    fontFamily: (theme) => theme.typography.fontFamily,
-                    fontSize: "10px",
-                    fontStyle: "normal",
-                    fontWeight: "500",
-                    lineHeight: "14px",
-                    pointerEvents: "none",
-                  }}
+                  variant="event"
+                  // sx={{
+                  //   fontFamily: (theme) => theme.typography.fontFamily,
+                  //   fontSize: "10px",
+                  //   fontStyle: "normal",
+                  //   fontWeight: "500",
+                  //   lineHeight: "14px",
+                  //   pointerEvents: "none",
+                  // }}
                 >
                   {event.title}
                 </Typography>

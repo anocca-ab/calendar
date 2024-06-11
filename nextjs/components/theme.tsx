@@ -1,4 +1,9 @@
-import { ThemeProvider, createTheme, useMediaQuery } from "@mui/material";
+import {
+  ThemeProvider,
+  createTheme,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import React from "react";
 
 export function Theme({
@@ -10,11 +15,22 @@ export function Theme({
 }) {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
 
+  const origTheme = useTheme();
   const muiTheme = React.useMemo(
     () =>
       createTheme({
         palette: {
           mode: theme ?? (prefersDarkMode ? "dark" : "light"),
+        },
+        typography: {
+          event: {
+            fontFamily: origTheme.typography.fontFamily,
+            fontSize: "10px",
+            fontStyle: "normal",
+            fontWeight: "500",
+            lineHeight: "14px",
+            pointerEvents: "none",
+          },
         },
         components: {
           MuiToggleButton: {
@@ -43,7 +59,7 @@ export function Theme({
           },
         },
       }),
-    [prefersDarkMode, theme],
+    [origTheme.typography.fontFamily, prefersDarkMode, theme],
   );
 
   return <ThemeProvider theme={muiTheme}>{children}</ThemeProvider>;
