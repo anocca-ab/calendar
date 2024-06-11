@@ -68,8 +68,9 @@ export function getEventsPerWeekAndDay(
       { gridEvents: CalendarEvent[]; allDayEvents: CalendarEvent[] }
     >
   > = {};
+  const weekStartsOn = startDay === "monday" ? 1 : 0;
   const weeksOfMonth = getWeeksInMonth(now, {
-    weekStartsOn: startDay == "sunday" ? 1 : 0,
+    weekStartsOn,
   });
 
   // init the record with empty weeks & days
@@ -85,15 +86,20 @@ export function getEventsPerWeekAndDay(
 
   events.map((event) => {
     const { start, end } = event;
-    const weekOfMonthStart = getWeekOfMonth(start);
-    const weekOfMonthEnd = getWeekOfMonth(end ?? addMinutes(start, 15));
+    const weekOfMonthStart = getWeekOfMonth(start, {
+      weekStartsOn,
+    });
+    const weekOfMonthEnd = getWeekOfMonth(end ?? addMinutes(start, 15), {
+      weekStartsOn,
+    });
 
     // does the event start and end in the same week
     if (weekOfMonthStart === weekOfMonthEnd) {
       // is same day event
       if (isSameDay(start, end ?? addMinutes(start, 15))) {
         const dayAsNumber = getDay(start);
-        // add event to week X on day Y
+        // check if it is an all day event
+        // then add event to week X on day Y
         if (
           start &&
           end &&
@@ -109,7 +115,14 @@ export function getEventsPerWeekAndDay(
         }
       } else {
         const startDayAsNumber = getDay(start);
-        const endDayAsNumber = getDay(end ?? addMinutes(start, 15));
+
+        // date-fns getDay will return 0 for Sundays.
+        // if start of the week is on Monday, then we need to do the following
+        const endDayAsNumber =
+          getDay(end ?? addMinutes(start, 15)) < startDayAsNumber
+            ? 6
+            : getDay(end ?? addMinutes(start, 15));
+
         for (let i = startDayAsNumber; i <= endDayAsNumber; i++) {
           if (
             start &&

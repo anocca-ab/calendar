@@ -1,20 +1,15 @@
 import { Box } from "@mui/material";
 import {
   StartOfWeekOptions,
-  addMinutes,
   startOfWeek as fnsStartOfWeek,
-  getDay,
-  getWeekOfMonth,
-  getWeeksInMonth,
-  isSameDay,
   setDate,
 } from "date-fns";
 import { ReactElement, createContext, useContext } from "react";
 import { CalendarEvent, StartDay } from "../types";
 import { FlexCol } from "../wrappers";
+import { getEventsPerWeekAndDay } from "./helpers";
 import { MonthCalendarHeader } from "./month_calendar_header";
 import { MonthCalendarWeekBody } from "./month_calendar_week_body";
-import { getEventsPerWeekAndDay } from "./helpers";
 
 export const MonthCalendarConfigContext = createContext<
   | undefined

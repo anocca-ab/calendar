@@ -26,7 +26,7 @@ function MonthCalendarViewBar() {
   const currentFirstDayOfTheWeek = startOfWeek(now, {
     weekStartsOn: startDay === "monday" ? 1 : 0,
   });
-  // const daysInWeek = workWeek ? 5 : 7;
+
   const daysInWeek = 7;
 
   const weekDays: ReactElement[] = [];

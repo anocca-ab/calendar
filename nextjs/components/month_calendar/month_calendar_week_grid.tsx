@@ -2,6 +2,7 @@ import { Box, Divider } from "@mui/material";
 import type { CalendarEvent } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { MonthDayEventsCard } from "./month_day_events_card";
+import { useMonthCalendar } from "./month_calendar";
 
 export function MonthCalendarWeekGrid({
   weekEvents,
@@ -14,6 +15,16 @@ export function MonthCalendarWeekGrid({
     }
   >;
 }) {
+  const { startDay } = useMonthCalendar();
+
+  // date-fns considers 0 to be always Sunday when using getDay
+  // so we have to shift the first value of the array to the end
+  // when starting day is Monday
+  let days = [...Object.values(weekEvents)];
+  const [first, ...rest] = days;
+  const orderedDays =
+    startDay === "monday" ? [...rest, first] : [first, ...rest];
+
   return (
     <Box
       sx={{
@@ -74,10 +85,10 @@ export function MonthCalendarWeekGrid({
           inset: 0,
         }}
       >
-        {Object.entries(weekEvents).map(([dayNr, day], i) => {
+        {orderedDays.map((day, i) => {
           return (
             <MonthDayEventsCard
-              key={dayNr}
+              key={i}
               filteredAllDayEvents={day.allDayEvents}
               filteredGridEvents={day.gridEvents}
             />
