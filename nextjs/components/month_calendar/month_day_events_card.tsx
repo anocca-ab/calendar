@@ -3,6 +3,8 @@ import { CalendarEvent } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarAllDayEvent } from "./calendar_all_day_event";
 import { MonthCalendarEvent } from "./month_calendar_event";
+import { useMonthCalendar } from "./month_calendar";
+import { getDate } from "date-fns";
 
 export function MonthDayEventsCard({
   filteredGridEvents,
@@ -13,6 +15,7 @@ export function MonthDayEventsCard({
   filteredAllDayEvents: CalendarEvent[];
   dayNumber: number;
 }) {
+  const { now } = useMonthCalendar();
   const allDayEvents = filteredAllDayEvents.map((e, i) => (
     <CalendarAllDayEvent
       key={`allDayEvent-${i}`}
@@ -25,26 +28,63 @@ export function MonthDayEventsCard({
   ));
 
   const events = [...allDayEvents, ...gridEvents];
+
+  const active = getDate(now) === dayNumber;
   return (
-    <FlexCol height="120px" width="120px" gap="1px" p="1px">
-      <FlexRow justifyContent="center" alignItems="center">
-        <Box width="24px" height="24px">
+    <FlexCol
+      height="120px"
+      width="120px"
+      gap="4px"
+      justifyContent="center"
+      alignItems="center"
+    >
+      {/* MonthDay */}
+
+      <FlexRow
+        width="24px"
+        height="24px"
+        justifyContent="center"
+        alignItems="center"
+      >
+        {active && (
+          <Box
+            sx={{
+              width: 24,
+              height: 24,
+              position: "absolute",
+              borderRadius: 24,
+              backgroundColor: (theme) => theme.palette.primary.main,
+            }}
+          ></Box>
+        )}
+        <Typography
+          zIndex={1}
+          color={
+            active
+              ? (theme) => theme.palette.primary.contrastText
+              : (theme) => theme.palette.text.primary
+          }
+        >
           {dayNumber}
-        </Box>
+        </Typography>
       </FlexRow>
-      {events.length > 5
-        ? [...Array(5)].map((_, i) => {
-            if (i === 4) {
-              return (
-                <MoreEventsButton
-                  key={`moreEventsButton-${i}`}
-                  number={events.length - 4}
-                />
-              );
-            }
-            return events[i];
-          })
-        : events}
+
+      {/* Events */}
+      <FlexCol height="87px" gap="1px" p="1px">
+        {events.length > 5
+          ? [...Array(5)].map((_, i) => {
+              if (i === 4) {
+                return (
+                  <MoreEventsButton
+                    key={`moreEventsButton-${i}`}
+                    number={events.length - 4}
+                  />
+                );
+              }
+              return events[i];
+            })
+          : events}
+      </FlexCol>
     </FlexCol>
   );
 }

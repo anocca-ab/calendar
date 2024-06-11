@@ -30,19 +30,25 @@ function MonthCalendarViewBar() {
   const daysInWeek = 7;
 
   const weekDays: ReactElement[] = [];
+
   [...Array(daysInWeek)].forEach((_, index) => {
     const dayOfWeek = format(addDays(currentFirstDayOfTheWeek, index), "EEE");
+    const active = format(now, "EEE") === dayOfWeek;
+
     weekDays.push(
       <FlexRow
         key={`weekday-${index}`}
-        width="119px"
+        width="120px"
         height="20px"
         justifyContent="center"
         alignItems="center"
       >
-        <Box width="24px" height="24px">
-          <Typography variant="caption">{dayOfWeek}</Typography>
-        </Box>
+        <FlexCol width="25px" justifyContent="flex-start" alignContent="center">
+          <Box height="19px">
+            <Typography variant="caption">{dayOfWeek}</Typography>
+          </Box>
+          {active && <Divider sx={{ height: "1px", width: "25px" }} />}
+        </FlexCol>
       </FlexRow>,
     );
 

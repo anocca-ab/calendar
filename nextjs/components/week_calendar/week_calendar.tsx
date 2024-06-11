@@ -425,7 +425,10 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
             );
             const y = overlaps[x].indexOf(event);
             const maxWidth = daysInWeek - x;
-            const width = Math.min(differenceInCalendarDays(end, start) + 1, maxWidth);
+            const width = Math.min(
+              differenceInCalendarDays(end, start) + 1,
+              maxWidth,
+            );
 
             const style = {
               height: 16,
@@ -800,7 +803,8 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
             ? differenceInMinutes(event.end, event.start)
             : 15;
           const color = event.color ?? "hsl(0 50 50)";
-          const top = differenceInMinutes(event.start, startOfDay(event.start)) + 1;
+          const top =
+            differenceInMinutes(event.start, startOfDay(event.start)) + 1;
           const left = differenceInCalendarDays(event.start, startOfWeek) * 120;
           const n = numCols[index];
           const horPos = horizontalPositions[index];
