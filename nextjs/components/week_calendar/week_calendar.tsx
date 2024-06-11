@@ -13,6 +13,7 @@ import {
   getHours,
   getMinutes,
   isSameDay,
+  max,
   min,
   startOfDay,
 } from "date-fns";
@@ -488,27 +489,23 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
           {events.map((event, index) => {
             const start = startOfDay(event.start);
             const end = parseAllDayEnd(event.end ?? endOfDay(event.start));
+            const endOfWeek = addDays(startOfWeek, daysInWeek);
 
-            const rawX = differenceInCalendarDays(
-              start,
-              startOfDay(startOfWeek),
-            );
-            let rawWidth = differenceInCalendarDays(end, start);
+            const rawX = differenceInCalendarDays(start, startOfWeek);
 
             const x = Math.max(rawX, 0);
             const y = overlaps[x].indexOf(event);
-            const maxWidth = daysInWeek - x;
-            const width = Math.min(rawWidth, maxWidth);
+            const width = differenceInCalendarDays(
+              min([end, endOfWeek]),
+              max([start, startOfWeek]),
+            );
 
             const style = {
               height: 16,
               width: 119 * width - 8,
             };
             const color = event.color ?? "hsl(0 50 50)";
-            const dayOverflowRight = differenceInCalendarDays(
-              end,
-              addDays(startOfWeek, daysInWeek),
-            );
+            const dayOverflowRight = differenceInCalendarDays(end, endOfWeek);
 
             return (
               <Box
@@ -531,7 +528,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                     display: "flex",
                     justifyContent: "stretch",
                     alignItems: "stretch",
-                    "& > * *": {
+                    "*": {
                       pointerEvents: "none",
                     },
                   },
@@ -992,7 +989,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
                 height: height - 1,
                 width: rect.w,
                 zIndex: horPos,
-                "& > * *": {
+                "*": {
                   pointerEvents: "none",
                 },
                 display: "flex",
@@ -1073,6 +1070,7 @@ function AllDayCalendarOverflow({
       sx={{
         display: "flex",
         flexDirection: direction === "right" ? "row-reverse" : "row",
+        pointerEvents: "none",
       }}
     >
       <Box
