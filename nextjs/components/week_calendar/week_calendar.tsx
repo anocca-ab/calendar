@@ -276,8 +276,8 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
 
   const totalHeight = 17 * maxOverlaps;
 
-  const effectRefs = React.useRef({ onMoveEvent, events });
-  effectRefs.current = { onMoveEvent, events };
+  const effectRefs = React.useRef({ onMoveEvent, events, onEditEvent });
+  effectRefs.current = { onMoveEvent, events, onEditEvent };
 
   React.useEffect(() => {
     /**
@@ -319,6 +319,11 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
             y: ev.clientY,
             scrollX: window.scrollX,
           };
+          state.pos = {
+            x: ev.clientX,
+            y: ev.clientY,
+            scrollX: window.scrollX,
+          };
           const data: { index: number; x: number; y: number; w: number } =
             JSON.parse(ev.target.dataset.calendarEvent!);
           const event = effectRefs.current.events[data.index];
@@ -332,6 +337,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
           };
         }
       }
+      update();
     };
     const mouseMove = (ev: MouseEvent) => {
       state.pos = {
@@ -342,6 +348,13 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
       update();
     };
     const mouseUp = (ev: MouseEvent) => {
+      let mouseMoved =
+        state.pos0 &&
+        state.pos &&
+        (state.pos0.x !== state.pos.x ||
+          state.pos0.y !== state.pos.y ||
+          state.pos0.scrollX !== state.pos.scrollX);
+
       state.down = false;
       state.pos = undefined;
       state.pos0 = undefined;
@@ -354,6 +367,9 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
               draggedEvent.dragged.end,
             );
           }
+        }
+        if (effectRefs.current.onEditEvent && !mouseMoved) {
+          effectRefs.current.onEditEvent(draggedEvent.source);
         }
       }
       draggedEvent = undefined;
@@ -376,39 +392,36 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
 
     function update() {
       if (state.pos && state.down && state.pos0 && dragged) {
-        if (state.pos.x !== state.pos0.x) {
-          // we have moved the mouse sideways
-          const rawDelta =
-            state.pos.x +
-            ((state.pos0.x - dragged.elX) % 120) -
-            state.pos0.x +
-            state.pos.scrollX -
-            state.pos0.scrollX;
-          // each event is 120px wide, so we can calculate how many days we have moved
-          const delta = Math.min(
-            Math.max(Math.floor(rawDelta / 120), -dragged.x - dragged.w + 1),
-            daysInWeek - dragged.x - 1,
-          );
-          const hoverredDay = dragged.x + delta;
-          /**
-           * Update the "live" dragged event
-           */
-          draggedEvent = {
-            source: dragged.event,
-            dragged:
-              hoverredDay !== dragged.x
-                ? {
-                    ...dragged.event,
-                    start: addDays(dragged.event.start, delta),
-                    end: addDays(
-                      dragged.event.end ?? endOfDay(dragged.event.start),
-                      delta,
-                    ),
-                  }
-                : undefined,
-          };
-          setDraggedEvent(draggedEvent);
-        }
+        const rawDelta =
+          state.pos.x +
+          ((state.pos0.x - dragged.elX) % 120) -
+          state.pos0.x +
+          state.pos.scrollX -
+          state.pos0.scrollX;
+        // each event is 120px wide, so we can calculate how many days we have moved
+        const delta = Math.min(
+          Math.max(Math.floor(rawDelta / 120), -dragged.x - dragged.w + 1),
+          daysInWeek - dragged.x - 1,
+        );
+        const hoverredDay = dragged.x + delta;
+        /**
+         * Update the "live" dragged event
+         */
+        draggedEvent = {
+          source: dragged.event,
+          dragged:
+            hoverredDay !== dragged.x
+              ? {
+                  ...dragged.event,
+                  start: addDays(dragged.event.start, delta),
+                  end: addDays(
+                    dragged.event.end ?? endOfDay(dragged.event.start),
+                    delta,
+                  ),
+                }
+              : undefined,
+        };
+        setDraggedEvent(draggedEvent);
       }
     }
     return () => {
@@ -499,15 +512,9 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
 
             return (
               <Box
+                className="all-day-event"
                 key={index}
                 component={Button}
-                onClick={
-                  onEditEvent
-                    ? () => {
-                        onEditEvent(event);
-                      }
-                    : undefined
-                }
                 data-type="week-calendar-event"
                 data-calendar-event={JSON.stringify({ x, y, index, w: width })}
                 sx={mergeSx(
