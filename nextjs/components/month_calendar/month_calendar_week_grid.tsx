@@ -90,11 +90,13 @@ export function MonthCalendarWeekGrid({
       >
         {orderedDays.map((day, i) => {
           const beginningOfCurrentWeek = addWeeks(
-            startOfWeek(startOfMonth),
+            startOfWeek(startOfMonth, {
+              weekStartsOn: startDay === "monday" ? 1 : 0,
+            }),
             weekNumber,
           );
 
-          const dayNumber = getDate(addDays(beginningOfCurrentWeek, i + 1));
+          const dayNumber = getDate(addDays(beginningOfCurrentWeek, i));
           return (
             <MonthDayEventsCard
               key={i}
