@@ -1,74 +1,51 @@
-
-import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
-import { WeekCalendar } from "../components/week_calendar/week_calendar";
-import { createRoot } from "react-dom/client";
+import { CalendarEvent } from "@/components/types";
+import { isAllDayEvent } from "@/components/week_calendar/helpers";
+import { FlexRow } from "@/components/wrappers";
 import {
   Box,
   Button,
   Checkbox,
-  ClickAwayListener,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
-  DialogTitle,
   FormControlLabel,
   FormGroup,
-  Menu,
   MenuItem,
   Paper,
   Popper,
   SvgIcon,
   TextField,
 } from "@mui/material";
-import React from "react";
-import { Theme } from "@/components/theme";
-import { FlexRow } from "@/components/wrappers";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { TimeField } from "@mui/x-date-pickers/TimeField";
 import {
   addDays,
   addHours,
   addMilliseconds,
   addMinutes,
-  differenceInDays,
-  differenceInHours,
   differenceInMilliseconds,
   differenceInMinutes,
-  differenceInQuarters,
   endOfDay,
   format,
   getHours,
   isSameDay,
-  roundToNearestHours,
   roundToNearestMinutes,
   setHours,
   startOfDay,
-  formatDistanceStrict,
-  startOfWeek,
-  subDays,
 } from "date-fns";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
-import { TimeField } from "@mui/x-date-pickers/TimeField";
-import { CalendarEvent } from "@/components/types";
-import { isAllDayEvent } from "@/components/week_calendar/helpers";
-
+import React from "react";
 
 export function CreateEvent({
-  createModalConfig: props,
-  setOnCloseCreateModal,
+  event,
+  onCloseModalRef,
   onSave,
 }: {
-  createModalConfig: {
-    start: Date;
-    end?: Date;
-  };
-  setOnCloseCreateModal: { current?: (cb: () => void) => void };
-  onSave: (event: CalendarEvent) => void;
+  event: CalendarEvent;
+  onCloseModalRef: { current?: (cb: () => void) => void };
+  onSave: (event: CalendarEvent, originalEvent: CalendarEvent) => void;
 }) {
-  const [start, setStart] = React.useState(props.start);
-  const [end, setEnd] = React.useState(props.end);
+  const [start, setStart] = React.useState(event.start);
+  const [end, setEnd] = React.useState(event.end);
 
   const allDay = isAllDayEvent({ start, end });
 
@@ -86,7 +63,7 @@ export function CreateEvent({
     undefined,
   );
 
-  setOnCloseCreateModal.current = (cb) => {
+  onCloseModalRef.current = (cb) => {
     if (!open) {
       cb();
     } else {
@@ -95,7 +72,7 @@ export function CreateEvent({
     }
   };
 
-  const [title, setTitle] = React.useState("");
+  const [title, setTitle] = React.useState(event.title ?? '');
 
   return (
     <React.Fragment>
@@ -360,11 +337,14 @@ export function CreateEvent({
             type="submit"
             variant="contained"
             onClick={() => {
-              onSave({
-                start,
-                end,
-                title,
-              });
+              onSave(
+                {
+                  start,
+                  end,
+                  title,
+                },
+                event,
+              );
               handleClose();
             }}
           >

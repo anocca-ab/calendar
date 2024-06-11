@@ -36,6 +36,7 @@ export const CalendarConfigContext = React.createContext<
       startOfWeek: Date;
       now: Date;
       onCreateEvent?: (start: Date, end: Date) => void;
+      onEditEvent?: (event: CalendarEvent) => void;
       onMoveEvent?: (
         event: CalendarEvent,
         newStart: Date,
@@ -76,6 +77,7 @@ const parseDefaultProps = (
     now,
     onCreateEvent: props.onCreateEvent,
     onMoveEvent: props.onMoveEvent,
+    onEditEvent: props.onEditEvent,
   };
 };
 
@@ -126,6 +128,13 @@ export function WeekCalendar(props: {
     newStart: Date,
     newEnd: Date | undefined,
   ) => void;
+
+  /**
+   * Triggered when an event clicked - open a modal or similar interface to edit the event
+   * @param event a calendar event
+   * @returns void
+   */
+  onEditEvent?: (event: CalendarEvent) => void;
 }) {
   const {
     events,
@@ -135,6 +144,7 @@ export function WeekCalendar(props: {
     now,
     onCreateEvent,
     onMoveEvent,
+    onEditEvent,
   } = parseDefaultProps(props);
 
   const allDayEvents: CalendarEvent[] = [];
@@ -168,6 +178,7 @@ export function WeekCalendar(props: {
         startOfWeek,
         now,
         onCreateEvent,
+        onEditEvent,
         onMoveEvent,
       }}
     >
@@ -240,8 +251,14 @@ const parseAllDayEnd = (end: Date) => {
 };
 
 function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
-  const { workWeek, startOfWeek, now, onCreateEvent, onMoveEvent } =
-    useCalendar();
+  const {
+    workWeek,
+    startOfWeek,
+    now,
+    onCreateEvent,
+    onEditEvent,
+    onMoveEvent,
+  } = useCalendar();
   const daysInWeek = workWeek ? 5 : 7;
 
   const events = [...props.events];
@@ -483,7 +500,14 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
             return (
               <Box
                 key={index}
-                component={"button"}
+                component={Button}
+                onClick={
+                  onEditEvent
+                    ? () => {
+                        onEditEvent(event);
+                      }
+                    : undefined
+                }
                 data-type="week-calendar-event"
                 data-calendar-event={JSON.stringify({ x, y, index, w: width })}
                 sx={mergeSx(
@@ -500,7 +524,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                     display: "flex",
                     justifyContent: "stretch",
                     alignItems: "stretch",
-                    "*": {
+                    "& > * *": {
                       pointerEvents: "none",
                     },
                   },
@@ -680,7 +704,7 @@ type CalendarGridEvent = {
 };
 
 function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
-  const { workWeek, now, startOfWeek } = useCalendar();
+  const { workWeek, now, startOfWeek, onEditEvent } = useCalendar();
   const events: CalendarGridEvent[] = props.events.flatMap((sourceEvent) => {
     const def = {
       sourceEvent,
@@ -942,62 +966,84 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
           );
           return (
             <Box
+              component={Button}
               key={index}
-              sx={mergeSx(
-                {
-                  position: "absolute",
-                  top: top + 1,
-                  left: left + rect.x + 1,
-                  height: height - 1,
-                  background: color,
-                  width: rect.w,
-                  zIndex: horPos,
-                  border: (theme) =>
-                    `1px solid ${theme.palette.primary.contrastText}`,
-                  borderRadius: 1,
-                  overflow: "hidden",
-                  px: "7px",
-                  py: height >= 35 ? "3px" : 0,
-                },
-
-                height < 35 && {
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                },
-              )}
-            >
-              <Typography
-                color={(theme) => theme.palette.primary.contrastText}
-                variant="event"
-                component="div"
-                sx={{
+              onClick={
+                onEditEvent
+                  ? () => {
+                      onEditEvent(event.sourceEvent);
+                    }
+                  : undefined
+              }
+              sx={mergeSx({
+                position: "absolute",
+                textAlign: "left",
+                padding: 0,
+                margin: 0,
+                top: top + 1,
+                left: left + rect.x + 1,
+                height: height - 1,
+                width: rect.w,
+                zIndex: horPos,
+                "& > * *": {
                   pointerEvents: "none",
-                  whiteSpace: "nowrap",
-                }}
+                },
+                display: "flex",
+                justifyContent: "stretch",
+                alignItems: "stretch",
+              })}
+            >
+              <Box
+                sx={mergeSx(
+                  {
+                    flex: 1,
+                    background: color,
+                    border: (theme) =>
+                      `1px solid ${theme.palette.primary.contrastText}`,
+                    borderRadius: 1,
+                    overflow: "hidden",
+                    px: "7px",
+                    py: height >= 35 ? "3px" : 0,
+                  },
+                  height < 35 && {
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                  },
+                )}
               >
-                {event.sourceEvent.title ?? "(No name)"}
-                {height < 30 ? (
-                  <Box component="span" sx={{ fontWeight: 400 }}>
-                    {", "}
-                    {time}
-                  </Box>
-                ) : null}
-              </Typography>
-              {height >= 30 && (
                 <Typography
-                  component="div"
                   color={(theme) => theme.palette.primary.contrastText}
                   variant="event"
+                  component="div"
                   sx={{
                     pointerEvents: "none",
                     whiteSpace: "nowrap",
-                    fontWeight: 400,
                   }}
                 >
-                  {time}
+                  {event.sourceEvent.title ?? "(No name)"}
+                  {height < 30 ? (
+                    <Box component="span" sx={{ fontWeight: 400 }}>
+                      {", "}
+                      {time}
+                    </Box>
+                  ) : null}
                 </Typography>
-              )}
+                {height >= 30 && (
+                  <Typography
+                    component="div"
+                    color={(theme) => theme.palette.primary.contrastText}
+                    variant="event"
+                    sx={{
+                      pointerEvents: "none",
+                      whiteSpace: "nowrap",
+                      fontWeight: 400,
+                    }}
+                  >
+                    {time}
+                  </Typography>
+                )}
+              </Box>
             </Box>
           );
         })}

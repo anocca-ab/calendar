@@ -32,6 +32,16 @@ const meta = {
         disable: true,
       },
     },
+    onMoveEvent: {
+      table: {
+        disable: true,
+      },
+    },
+    onEditEvent: {
+      table: {
+        disable: true,
+      },
+    },
     events: {
       table: {
         disable: true,
@@ -108,19 +118,20 @@ function InteractiveDemo(
   const [events, setEvents] = React.useState<CalendarEvent[]>(
     props.events ?? [],
   );
-  const [createModalOpen, setCreateModalOpen] = React.useState<
-    undefined | { start: Date; end?: Date; key: number }
+
+  const [editModalOpen, setEditModalOpen] = React.useState<
+    undefined | { event: CalendarEvent; key: number }
   >();
-  const onCloseCreateModal = React.useRef<
-    undefined | ((cb: () => void) => void)
-  >();
-  const onCreateEvent = (start: Date, end?: Date) => {
-    if (onCloseCreateModal.current) {
-      onCloseCreateModal.current(() => {
-        setCreateModalOpen({ start, end, key: Math.random() });
+
+  const onCloseModal = React.useRef<undefined | ((cb: () => void) => void)>();
+
+  const onEditEvent = (event: CalendarEvent) => {
+    if (onCloseModal.current) {
+      onCloseModal.current(() => {
+        setEditModalOpen({ event, key: Math.random() });
       });
     } else {
-      setCreateModalOpen({ start, end, key: Math.random() });
+      setEditModalOpen({ event, key: Math.random() });
     }
   };
 
@@ -145,20 +156,30 @@ function InteractiveDemo(
 
   return (
     <>
-      {createModalOpen && (
+      {editModalOpen && (
         <CreateEvent
-          createModalConfig={createModalOpen}
-          setOnCloseCreateModal={onCloseCreateModal}
-          onSave={(event: CalendarEvent) => {
-            setEvents([...events, event]);
+          event={editModalOpen.event}
+          onCloseModalRef={onCloseModal}
+          onSave={(event: CalendarEvent, originalEvent: CalendarEvent) => {
+            if (events.includes(originalEvent)) {
+              setEvents(
+                events.map((ev) => (ev === originalEvent ? event : ev)),
+              );
+            } else {
+              // create
+              setEvents([...events, event]);
+            }
           }}
-          key={createModalOpen.key}
+          key={editModalOpen.key}
         />
       )}
       <WeekCalendar
         {...props}
         events={events}
-        onCreateEvent={onCreateEvent}
+        onCreateEvent={(start, end) => {
+          onEditEvent({ start, end });
+        }}
+        onEditEvent={onEditEvent}
         onMoveEvent={onMoveEvent}
       />
     </>
