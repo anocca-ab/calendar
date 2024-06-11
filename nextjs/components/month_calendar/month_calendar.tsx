@@ -71,7 +71,7 @@ export function MonthCalendar(props: {
    */
   startDay?: StartDay;
   /**
-   * Some date during the week. We use the date-fns `startOfWeek` to derive the first day of the week
+   * Some date during the month. We use the date-fns `startOfMonth` to derive the first day of the month
    * @default new Date()
    */
   startOfMonth?: Date;
