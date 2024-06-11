@@ -1,8 +1,8 @@
-import { FlexCol } from "../wrappers";
+import { Button, Typography } from "@mui/material";
 import { CalendarEvent } from "../types";
+import { FlexCol } from "../wrappers";
 import { CalendarAllDayEvent } from "./calendar_all_day_event";
 import { MonthCalendarEvent } from "./month_calendar_event";
-import { Button, Typography } from "@mui/material";
 
 export function MonthDayEventsCard({
   filteredGridEvents,
@@ -24,7 +24,7 @@ export function MonthDayEventsCard({
 
   const events = [...allDayEvents, ...gridEvents];
   return (
-    <FlexCol height="120px" gap="1px" p="1px">
+    <FlexCol height="120px" width="120px" gap="1px" p="1px">
       {events.length > 7
         ? [...Array(7)].map((_, i) => {
             if (i === 6) {

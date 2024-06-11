@@ -1,5 +1,4 @@
 import { Typography } from "@mui/material";
-import { variationsToColorRecord } from "./helpers";
 import { FlexCol } from "../wrappers";
 
 export function WeekIndicator({
@@ -12,13 +11,14 @@ export function WeekIndicator({
   return (
     <FlexCol
       sx={{
-        backgroundColor: variationsToColorRecord[color],
+        // backgroundColor: variationsToColorRecord[color],
+        backgroundColor: "var(--Blue-Gray-50, #ECEFF1);",
         display: "flex",
         width: "20px",
         height: "119px",
         padding: "4px 0px",
         flexDirection: "column",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         alignItems: "center",
         gap: "10px",
         borderRadius: "4px",
@@ -26,14 +26,15 @@ export function WeekIndicator({
     >
       <FlexCol
         sx={{
-          transform: "rotate(-90deg)",
+          // transform: "rotate(-90deg)",
           justifyContent: "center",
           alignItems: "center",
         }}
       >
         <Typography
           variant="body2"
-          color="var(--Light-Primary-Contrast, #FFF);"
+          color="var(--Light-Text-Primary, rgba(0, 0, 0, 0.87));"
+          // color="var(--Light-Primary-Contrast, #FFF);"
         >
           {title}
         </Typography>

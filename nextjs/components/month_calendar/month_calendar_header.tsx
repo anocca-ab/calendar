@@ -1,6 +1,3 @@
-import { ReactElement } from "react";
-import { FlexCol, FlexRow } from "../wrappers";
-import { addDays, addWeeks, format, startOfWeek, subWeeks } from "date-fns";
 import {
   Box,
   Button,
@@ -10,6 +7,9 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material";
+import { addDays, format, startOfWeek } from "date-fns";
+import { ReactElement } from "react";
+import { FlexCol, FlexRow } from "../wrappers";
 import { useMonthCalendar } from "./month_calendar";
 
 export function MonthCalendarHeader() {
@@ -61,7 +61,7 @@ function MonthCalendarViewBar() {
   });
 
   return (
-    <Box pl="20px">
+    <Box>
       <Box
         sx={{
           display: "flex",
@@ -69,6 +69,38 @@ function MonthCalendarViewBar() {
           width: "840px",
         }}
       >
+        {/* <Box width="20px"> */}
+        <FlexCol
+          sx={{
+            // backgroundColor: variationsToColorRecord[color],
+            backgroundColor: "var(--Blue-Gray-50, #ECEFF1);",
+            display: "flex",
+            width: "20px",
+            height: "20px",
+            padding: "4px 0px",
+            flexDirection: "column",
+            justifyContent: "flex-start",
+            alignItems: "center",
+            gap: "10px",
+            borderRadius: "4px",
+          }}
+        >
+          <FlexCol
+            sx={{
+              // transform: "rotate(-90deg)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Typography
+              variant="body2"
+              color="var(--Light-Text-Primary, rgba(0, 0, 0, 0.87));"
+            >
+              W
+            </Typography>
+          </FlexCol>
+        </FlexCol>
+        {/* </Box> */}
         {weekDays}
       </Box>
     </Box>

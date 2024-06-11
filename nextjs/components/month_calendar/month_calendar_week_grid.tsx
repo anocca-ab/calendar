@@ -1,32 +1,19 @@
 import { Box, Divider } from "@mui/material";
-import { filterWeekEvents } from "./helpers";
 import type { CalendarEvent } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { MonthDayEventsCard } from "./month_day_events_card";
-import { useMonthCalendar } from "./month_calendar";
-import { startOfWeek } from "date-fns";
 
-export function MonthCalendarGrid({
-  gridEvents,
-  allDayEvents,
+export function MonthCalendarWeekGrid({
+  weekEvents,
 }: {
-  gridEvents: CalendarEvent[];
-  allDayEvents: CalendarEvent[];
+  weekEvents: Record<
+    string,
+    {
+      gridEvents: CalendarEvent[];
+      allDayEvents: CalendarEvent[];
+    }
+  >;
 }) {
-  const { now, startDay } = useMonthCalendar();
-  const currentFirstDayOfTheWeek = startOfWeek(now, {
-    weekStartsOn: startDay === "monday" ? 1 : 0,
-  });
-  const filteredGridEvents: CalendarEvent[] = filterWeekEvents(
-    gridEvents,
-    currentFirstDayOfTheWeek,
-  );
-
-  const filteredAllDayEvents: CalendarEvent[] = filterWeekEvents(
-    allDayEvents,
-    currentFirstDayOfTheWeek,
-  );
-
   return (
     <Box
       sx={{
@@ -56,6 +43,7 @@ export function MonthCalendarGrid({
           );
         })}
       </FlexCol>
+
       {/* Vertical lines */}
       <FlexRow
         sx={{
@@ -66,7 +54,6 @@ export function MonthCalendarGrid({
           gap: "119px",
         }}
       >
-        {/* {[...Array(workWeek ? 6 : 8)].map((_, i) => { */}
         {[...Array(8)].map((_, i) => {
           return (
             <Divider
@@ -80,23 +67,23 @@ export function MonthCalendarGrid({
           );
         })}
       </FlexRow>
-      {(filteredAllDayEvents.length > 0 || filteredGridEvents) && (
-        <>
-          <Box
-            sx={{
-              position: "absolute",
-              inset: 0,
-            }}
-          >
-            {/* {eventsComponents} */}
 
+      <FlexRow
+        sx={{
+          position: "absolute",
+          inset: 0,
+        }}
+      >
+        {Object.entries(weekEvents).map(([dayNr, day], i) => {
+          return (
             <MonthDayEventsCard
-              filteredAllDayEvents={filteredAllDayEvents}
-              filteredGridEvents={filteredGridEvents}
+              key={dayNr}
+              filteredAllDayEvents={day.allDayEvents}
+              filteredGridEvents={day.gridEvents}
             />
-          </Box>
-        </>
-      )}
+          );
+        })}
+      </FlexRow>
     </Box>
   );
 }

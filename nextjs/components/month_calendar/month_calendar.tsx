@@ -1,18 +1,20 @@
 import { Box } from "@mui/material";
-import { CalendarEvent, StartDay } from "../types";
 import {
   StartOfWeekOptions,
   addMinutes,
-  eachWeekOfInterval,
   startOfWeek as fnsStartOfWeek,
+  getDay,
   getWeekOfMonth,
   getWeeksInMonth,
+  isSameDay,
   setDate,
 } from "date-fns";
 import { ReactElement, createContext, useContext } from "react";
-import { MonthCalendarBody } from "./month_calendar_body";
+import { CalendarEvent, StartDay } from "../types";
 import { FlexCol } from "../wrappers";
 import { MonthCalendarHeader } from "./month_calendar_header";
+import { MonthCalendarWeekBody } from "./month_calendar_week_body";
+import { getEventsPerWeekAndDay } from "./helpers";
 
 export const MonthCalendarConfigContext = createContext<
   | undefined
@@ -104,47 +106,17 @@ export function MonthCalendar(props: {
   const { events, startDay, startOfMonth, now, onCreateEvent, onMoveEvent } =
     parseDefaultProps(props);
 
-  const calendarWeeksEvents: Record<string, CalendarEvent[]> = {};
-  const weeksOfMonth = getWeeksInMonth(now, {
-    weekStartsOn: startDay == "sunday" ? 1 : 0,
-  });
-
-  [...Array(weeksOfMonth - 1)].forEach((_, week) => {
-    calendarWeeksEvents[`${week}`] = [];
-  });
-
-  events.map((event) => {
-    const weekOfMonth = getWeekOfMonth(event.start);
-
-    calendarWeeksEvents[`${weekOfMonth - 1}`].push(event);
-  });
+  const calendarWeeksEvents = getEventsPerWeekAndDay(events, startDay, now);
 
   const weeks: ReactElement[] = [];
-  Object.keys(calendarWeeksEvents).forEach((week, i) => {
-    const allDayEvents: CalendarEvent[] = [];
-    const gridEvents: CalendarEvent[] = [];
 
-    if (calendarWeeksEvents[week] && calendarWeeksEvents[week].length > 0) {
-      calendarWeeksEvents[week].forEach((event, i) => {
-        if (
-          event.start &&
-          event.end &&
-          (event.end.getTime() - event.start.getTime()) %
-            (24 * 60 * 60 * 1000) ===
-            0
-        ) {
-          allDayEvents.push(event);
-        } else {
-          gridEvents.push(event);
-        }
-      });
-    }
+  Object.keys(calendarWeeksEvents).forEach((week, i) => {
     weeks.push(
-      <MonthCalendarBody
+      <MonthCalendarWeekBody
         key={`week-${i}`}
-        gridEvents={gridEvents}
-        allDayEvents={allDayEvents}
+        weekEvents={calendarWeeksEvents[week]}
         calendarTitle={`${i + 1}`}
+        weekNumber={i}
       />,
     );
   });
