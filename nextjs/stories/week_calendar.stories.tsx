@@ -5,9 +5,19 @@ import { Box } from "@mui/material";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import type { Meta, StoryObj } from "@storybook/react";
-import { addDays, addHours, endOfDay, startOfDay, startOfWeek, subDays } from "date-fns";
+import {
+  addDays,
+  addHours,
+  addMinutes,
+  endOfDay,
+  endOfWeek,
+  startOfDay,
+  startOfWeek,
+  subDays,
+} from "date-fns";
 import React from "react";
 import { WeekCalendar } from "../components/week_calendar/week_calendar";
+import { manyEvents } from "./many_events";
 
 const meta = {
   title: "Week Calendar",
@@ -61,105 +71,36 @@ export const CanCreateEvents: Story = {
 
 export const WithAllDayEvents: Story = {
   args: {
-    events: [
-      {
-        start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
-        end: endOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)),
-        title: "A two day event",
-      },
-      {
-        start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
-        end: endOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
-        title: "All day event",
-      },
-      {
-        start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
-        end: endOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 2)),
-        title: "A three day event",
-      },
-      {
-        start: startOfDay(
-          subDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 2),
-        ),
-        end: endOfDay(
-          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14),
-        ),
-        title: "A loong day event",
-      },
-      {
-        start: startOfDay(
-          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3),
-        ),
-        end: endOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
-        title: "All day event",
-      },
-    ],
+    events: manyEvents,
   },
   render: (props) => {
     return <InteractiveDemo {...props} />;
   },
 };
-
 
 export const WithSubDayEvents: Story = {
   args: {
+    events: manyEvents,
+  },
+  render: (props) => {
+    return <InteractiveDemo {...props} />;
+  },
+};
+export const WithHuuugeSubDayEvent: Story = {
+  args: {
     events: [
-      // 2 overlapping on monday
+      ...manyEvents,
       {
-        start: addHours(startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })), 2),
-        end: addHours(startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })), 4),
-        title: "A two hour event",
+        start: subDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 5),
+        end: addDays(endOfWeek(new Date(), { weekStartsOn: 1 }), 5),
+        title: "Huuuge event",
       },
-      {
-        start: addHours(startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })), 1),
-        end: addHours(startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })), 4),
-        title: "A three hour event",
-      },
-
-      // 3 (+1) overlapping on tuesday
-      {
-        start: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 2),
-        end: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 4),
-        title: "A two hour event",
-      },
-      {
-        start: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 1),
-        end: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 4),
-        title: "A three hour event",
-      },
-
-
-      // 3 (+1) overlapping on tuesday
-      {
-        start: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 7),
-        end: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 9),
-        title: "A two hour event",
-      },
-      {
-        start: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 6),
-        end: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 9),
-        title: "A three hour event",
-      },
-      {
-        start: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 7),
-        end: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 9),
-        title: "A one hour event",
-      },
-
-      // last event that overlapps all on tuesday
-      {
-        start: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 1),
-        end: addHours(startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)), 10),
-        title: "A big event",
-      },
-
     ],
   },
   render: (props) => {
     return <InteractiveDemo {...props} />;
   },
 };
-
 
 function InteractiveDemo(
   props: React.ComponentPropsWithRef<typeof WeekCalendar>,
