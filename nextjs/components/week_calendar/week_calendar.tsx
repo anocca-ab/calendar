@@ -551,6 +551,8 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                     direction="left"
                     value={rawX}
                     color={color}
+                    valueDate={start}
+                    compact={width <= 1}
                   />
                 ) : null}
                 <Box
@@ -569,7 +571,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                     paddingLeft: rawX < 0 ? 0 : 1,
                     pointerEvents: "none",
                     overflow: "hidden",
-                    flexShrink: 1,
+                    flexShrink: 0,
                   }}
                 >
                   <Typography
@@ -590,6 +592,8 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                     direction="right"
                     value={dayOverflowRight}
                     color={color}
+                    valueDate={end}
+                    compact={width <= 1}
                   />
                 ) : null}
               </Box>
@@ -1081,11 +1085,22 @@ function AllDayCalendarOverflow({
   direction,
   value,
   color,
+  valueDate,
+  compact,
 }: {
   direction: "left" | "right";
   value: number;
+  valueDate: Date;
   color: string;
+  compact?: boolean;
 }) {
+  const t = (
+    <>
+      {Math.sign(value) === -1 ? "-" : "+"}
+      {Math.abs(value)}d
+    </>
+  );
+  const d = <>({format(valueDate, "LLL do")})</>;
   return (
     <Box
       sx={{
@@ -1094,24 +1109,34 @@ function AllDayCalendarOverflow({
         pointerEvents: "none",
       }}
     >
+      <Triangle direction={direction} height={16} width={12} color={color} />
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           px: 0.5,
+          background: color,
         }}
       >
         <Typography
           variant="event"
-          color={(theme) => theme.palette.text.primary}
-          sx={{ whiteSpace: "nowrap" }}
+          color={(theme) => theme.palette.primary.contrastText}
+          sx={{
+            whiteSpace: "nowrap",
+            opacity: 0.7,
+            fontWeight: "regular",
+          }}
         >
-          {Math.sign(value) === -1 ? "-" : "+"}
-          {Math.abs(value)} days
+          {compact ? (
+            <>{t}</>
+          ) : (
+            <>
+              {t} {d}
+            </>
+          )}
         </Typography>
       </Box>
-      <Triangle direction={direction} height={16} width={12} color={color} />
     </Box>
   );
 }

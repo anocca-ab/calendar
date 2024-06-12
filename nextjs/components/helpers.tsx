@@ -1,11 +1,6 @@
 import type { SxProps } from "@mui/material";
+import { endOfDay, startOfDay } from "date-fns";
 import { CalendarEvent } from "./types";
-import {
-  addDays,
-  areIntervalsOverlapping,
-  endOfDay,
-  startOfDay,
-} from "date-fns";
 
 type Sx = SxProps<any>;
 type ArrayType<T> = T extends ReadonlyArray<infer U> ? U[] : never;
