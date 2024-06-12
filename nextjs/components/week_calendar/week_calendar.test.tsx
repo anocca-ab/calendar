@@ -1,5 +1,5 @@
 import { addDays, endOfDay, startOfDay, startOfWeek } from "date-fns";
-import { getAllDayOverlaps } from "../helpers";
+import { getAllDayOverlaps } from "./event_overlap_functions";
 
 jest.useFakeTimers().setSystemTime(new Date("2024-06-05"));
 
