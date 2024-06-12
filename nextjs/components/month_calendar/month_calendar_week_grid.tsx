@@ -3,7 +3,14 @@ import type { CalendarEvent } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { MonthDayEventsCard } from "./month_day_events_card";
 import { useMonthCalendar } from "./month_calendar";
-import { addDays, addWeeks, getDate, startOfWeek } from "date-fns";
+import {
+  addDays,
+  addWeeks,
+  format,
+  getDate,
+  getWeeksInMonth,
+  startOfWeek,
+} from "date-fns";
 
 export function MonthCalendarWeekGrid({
   weekEvents,
@@ -18,7 +25,11 @@ export function MonthCalendarWeekGrid({
   >;
   weekNumber: number;
 }) {
-  const { startDay, startOfMonth } = useMonthCalendar();
+  const { startDay, now, startOfMonth } = useMonthCalendar();
+  const weekStartsOn = startDay === "monday" ? 1 : 0;
+  const weeksOfMonth = getWeeksInMonth(now, {
+    weekStartsOn,
+  });
 
   // date-fns considers 0 to be always Sunday when using getDay
   // so we have to shift the first value of the array to the end
@@ -33,7 +44,7 @@ export function MonthCalendarWeekGrid({
       sx={{
         position: "relative",
         width: "840px",
-        height: "119px",
+        height: "120px",
       }}
     >
       {/* Horizontal lines */}
@@ -45,16 +56,12 @@ export function MonthCalendarWeekGrid({
           inset: 0,
         }}
       >
-        {[...Array(2)].map((_, i) => {
-          return (
-            <Divider
-              key={i}
-              sx={{
-                opacity: i === 0 ? 0 : 1,
-              }}
-            />
-          );
-        })}
+        <Divider
+          sx={{
+            opacity: 0,
+          }}
+        />
+        <Divider sx={{ opacity: weeksOfMonth === weekNumber + 1 ? 0 : 1 }} />
       </FlexCol>
 
       {/* Vertical lines */}
@@ -95,13 +102,17 @@ export function MonthCalendarWeekGrid({
             weekNumber,
           );
 
-          const dayNumber = getDate(addDays(beginningOfCurrentWeek, i));
+          const currentDate = addDays(beginningOfCurrentWeek, i);
+          const dayNumber = getDate(currentDate);
+          const monthName = format(currentDate, "MMM");
+
           return (
             <MonthDayEventsCard
               key={i}
               filteredAllDayEvents={day.allDayEvents}
               filteredGridEvents={day.gridEvents}
               dayNumber={dayNumber}
+              monthName={monthName}
             />
           );
         })}

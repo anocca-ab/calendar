@@ -1,4 +1,12 @@
-import { Paper, SvgIcon, SxProps, Theme, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Paper,
+  SvgIcon,
+  SxProps,
+  Theme,
+  Typography,
+} from "@mui/material";
 import { format } from "date-fns";
 import type { CalendarEvent } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
@@ -17,8 +25,14 @@ export function MonthCalendarEvent({
 }) {
   return (
     <Paper
+      component={Button}
       elevation={state === "selected" ? undefined : 0}
-      sx={{ width: "110px", height: "16px", ml: "2px" }}
+      sx={{
+        width: "110px",
+        height: "16px",
+        p: 0,
+        justifyContent: "flex-start",
+      }}
     >
       <FlexRow
         sx={{

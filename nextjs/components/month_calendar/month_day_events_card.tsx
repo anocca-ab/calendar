@@ -10,17 +10,19 @@ export function MonthDayEventsCard({
   filteredGridEvents,
   filteredAllDayEvents,
   dayNumber,
+  monthName,
 }: {
   filteredGridEvents: CalendarEvent[];
   filteredAllDayEvents: CalendarEvent[];
   dayNumber: number;
+  monthName: string;
 }) {
   const { now } = useMonthCalendar();
   const allDayEvents = filteredAllDayEvents.map((e, i) => (
     <CalendarAllDayEvent
       key={`allDayEvent-${i}`}
       {...e}
-      sx={{ width: "118px" }}
+      sx={{ width: "100%" }}
     />
   ));
   const gridEvents = filteredGridEvents.map((e, i) => (
@@ -30,6 +32,9 @@ export function MonthDayEventsCard({
   const events = [...allDayEvents, ...gridEvents];
 
   const active = getDate(now) === dayNumber;
+  const monthDay =
+    dayNumber === 1 ? `${monthName} ${dayNumber}` : `${dayNumber}`;
+
   return (
     <FlexCol
       height="120px"
@@ -41,7 +46,7 @@ export function MonthDayEventsCard({
       {/* MonthDay */}
 
       <FlexRow
-        width="24px"
+        // width="24px"
         height="24px"
         justifyContent="center"
         alignItems="center"
@@ -49,7 +54,7 @@ export function MonthDayEventsCard({
         {active && (
           <Box
             sx={{
-              width: 24,
+              // width: 24,
               height: 24,
               position: "absolute",
               borderRadius: 24,
@@ -65,12 +70,12 @@ export function MonthDayEventsCard({
               : (theme) => theme.palette.text.primary
           }
         >
-          {dayNumber}
+          {monthDay}
         </Typography>
       </FlexRow>
 
       {/* Events */}
-      <FlexCol height="87px" gap="1px" p="1px">
+      <FlexCol height="87px" width="117px" gap="1px">
         {events.length > 5
           ? [...Array(5)].map((_, i) => {
               if (i === 4) {
@@ -95,13 +100,12 @@ function MoreEventsButton({ number }: { number: number }) {
       variant="text"
       sx={{
         justifyContent: "flex-start",
-        padding: 0,
         py: "0px",
         px: "5px",
-        width: "42px",
+        width: "117px",
         height: "16px",
         position: "absolute",
-        bottom: "0px",
+        bottom: "1px",
         borderRadius: "4px",
       }}
     >

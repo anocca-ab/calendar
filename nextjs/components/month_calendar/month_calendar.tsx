@@ -125,9 +125,9 @@ export function MonthCalendar(props: {
         onMoveEvent,
       }}
     >
-      <FlexCol width="904px" gap="2px">
+      <FlexCol width="904px">
         <MonthCalendarHeader />
-        <FlexCol gap="2px">{weeks}</FlexCol>
+        <FlexCol>{weeks}</FlexCol>
       </FlexCol>
     </MonthCalendarConfigContext.Provider>
   );

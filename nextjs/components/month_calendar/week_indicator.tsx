@@ -12,6 +12,7 @@ export function WeekIndicator({
     <FlexCol
       sx={{
         // backgroundColor: variationsToColorRecord[color],
+        alignSelf: "flex-end",
         backgroundColor: "var(--Blue-Gray-50, #ECEFF1);",
         display: "flex",
         width: "20px",
