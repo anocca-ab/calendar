@@ -582,8 +582,6 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                       overflow: "hidden",
                     }}
                   >
-                    {index}
-                    {" - "}
                     {event.title ?? "(No name)"}
                   </Typography>
                 </Box>
@@ -764,7 +762,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
 
   /**
    * The clique of a graph is a subset of nodes where each node is connected to every other node, i.e. where each event overlaps with every other event
-   * Each event can be part of many cliques, but this represents the largest clique for an event, so the max over 
+   * Each event can be part of many cliques, but this represents the largest clique for an event, so the max over
    */
   let maxCliques: Clique[] = [];
 
@@ -831,7 +829,6 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
     }
     return sortEvent(a[0], b[0]);
   });
-
 
   /**
    * Which column should the event be placed in?
@@ -1049,8 +1046,6 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {index}
-                  {" - "}
                   {event.sourceEvent.title ?? "(No name)"}
                   {height < 30 ? (
                     <Box component="span" sx={{ fontWeight: 400 }}>
