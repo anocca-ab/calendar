@@ -711,6 +711,9 @@ function TimeSidebar() {
 function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
   const { workWeek, now, startOfWeek, onEditEvent } = useCalendar();
   const events: CalendarGridEvent[] = props.events.flatMap((sourceEvent) => {
+    /**
+     * Default event, unless split into multiple parts
+     */
     const def = {
       sourceEvent,
       start: sourceEvent.start,
