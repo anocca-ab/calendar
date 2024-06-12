@@ -1,7 +1,7 @@
 import type { CalendarEvent } from "../types";
 import { Box, SxProps, Theme } from "@mui/material";
 import { EventTypography, variationsToColorRecord } from "./helpers";
-import { mergeSx } from "../week_calendar/helpers";
+import { mergeSx } from "../helpers";
 
 export function CalendarAllDayEvent({
   title = "(No title)",

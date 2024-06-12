@@ -1,5 +1,5 @@
 import { SvgIcon, SvgIconProps } from "@mui/material";
-import { mergeSx } from "./helpers";
+import { mergeSx } from "../helpers";
 import React from "react";
 
 

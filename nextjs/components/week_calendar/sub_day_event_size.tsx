@@ -29,7 +29,7 @@ export const subDayEventSize = (
   const c = 110 - (0.8 * b) / 2;
   const a = (c / (n - 1)) * 1.5 - (0.8 * b) / 2 / 4;
   if (horPos + 1 === n) {
-    return { x: 88, w: b };
+    return { x: 110 - b, w: b };
   }
 
   const cardVisible = (c - a) / (n - 2);

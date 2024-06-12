@@ -1,5 +1,5 @@
 import { CalendarEvent } from "@/components/types";
-import { isAllDayEvent } from "@/components/week_calendar/helpers";
+import { isAllDayEvent } from "@/components/helpers";
 import { FlexRow } from "@/components/wrappers";
 import {
   Box,

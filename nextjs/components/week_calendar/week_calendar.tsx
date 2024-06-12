@@ -20,14 +20,18 @@ import {
 import React from "react";
 import { CalendarEvent, StartDay } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
-import { getAllDayOverlaps, isAllDayEvent, mergeSx } from "./helpers";
+import { isAllDayEvent, mergeSx } from "../helpers";
 import { TimeIndicator } from "./time_indicator";
 import {
+  Clique,
   Graph,
   findAllCliques,
   findConnectedComponents,
-} from "./find_sub_day_event_overlaps";
+  findEventOverlaps,
+  getAllDayOverlaps,
+} from "./event_overlap_functions";
 import { subDayEventSize } from "./sub_day_event_size";
+import { CalendarGridEvent } from "./types";
 
 export const CalendarConfigContext = React.createContext<
   | undefined
@@ -519,6 +523,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                     border: 0,
                     p: 0,
                     m: 0,
+                    minWidth: "auto",
                     background: "none",
                     cursor: "pointer",
                     position: "absolute",
@@ -577,6 +582,8 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                       overflow: "hidden",
                     }}
                   >
+                    {index}
+                    {" - "}
                     {event.title ?? "(No name)"}
                   </Typography>
                 </Box>
@@ -701,12 +708,6 @@ function TimeSidebar() {
   );
 }
 
-type CalendarGridEvent = {
-  sourceEvent: CalendarEvent;
-  start: Date;
-  end: Date;
-};
-
 function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
   const { workWeek, now, startOfWeek, onEditEvent } = useCalendar();
   const events: CalendarGridEvent[] = props.events.flatMap((sourceEvent) => {
@@ -718,6 +719,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
     let parts: { start: Date; end: Date }[] = [];
     if (differenceInCalendarDays(def.end, def.start) > 0) {
       // split event up into multiple events to not overflow a single day
+      // an event can't be longer than a day
 
       const part0 = {
         start: def.start,
@@ -746,47 +748,26 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
   });
 
   /**
-   * index overlaps with what other indexes
+   * Overlaps is a graph where each event is a node and each edge is an overlap between two events
+   * For each event, which other events is it overlapping with?
    */
-  const overlaps: Graph = [];
-  events.forEach((event, index) => {
-    if (!overlaps[index]) {
-      overlaps[index] = [];
-    }
-    events.forEach((otherEvent, otherIndex) => {
-      if (event === otherEvent) {
-        return;
-      }
-      if (!overlaps[otherIndex]) {
-        overlaps[otherIndex] = [];
-      }
-      if (
-        areIntervalsOverlapping(
-          {
-            start: event.start,
-            end: event.end,
-          },
-          {
-            start: otherEvent.start,
-            end: otherEvent.end,
-          },
-        )
-      ) {
-        if (!overlaps[index].includes(otherIndex)) {
-          overlaps[index].push(otherIndex);
-        }
-        if (!overlaps[otherIndex].includes(index)) {
-          overlaps[otherIndex].push(index);
-        }
-      }
-    });
-  });
+  const overlaps = findEventOverlaps(events);
 
+  /**
+   * Each component is an array of event indexes that are connected (like an island in a graph)
+   */
   const components = findConnectedComponents(overlaps);
   // console.log("Connected Components:", components);
 
-  let maxCliques: number[][] = [];
+  /**
+   * The clique of a graph is a subset of nodes where each node is connected to every other node, i.e. where each event overlaps with every other event
+   * Each event can be part of many cliques, but this represents the largest clique for an event, so the max over 
+   */
+  let maxCliques: Clique[] = [];
 
+  /**
+   * An improved lookup table for the number of columns for a given event
+   */
   let numCols: Record<
     /**
      * Event index
@@ -798,6 +779,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
     number
   > = {};
 
+  // create the numCols and find the maxCliques
   components.forEach((component, index) => {
     const cliques = findAllCliques(overlaps, component);
     // console.log(`All Cliques in Component ${index}:`, cliques);
@@ -828,6 +810,10 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
     });
   });
 
+  /**
+   * Our sorting algo for the events
+   * sort by start time and the by end time
+   */
   function sortEvent(a: number, b: number) {
     const startTimeSort = events[a].start.getTime() - events[b].start.getTime();
     if (startTimeSort === 0) {
@@ -843,6 +829,11 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
     return sortEvent(a[0], b[0]);
   });
 
+
+  /**
+   * Which column should the event be placed in?
+   * This is a lookup table for the horizontal position of an event
+   */
   const horizontalPositions: Record<
     /**
      * event index
@@ -853,12 +844,40 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
      */
     number
   > = {};
+
+  // construct the horizontal positions
   maxCliques.forEach((clique) => {
-    clique.forEach((evIndex, horizontalPos) => {
-      if (typeof horizontalPositions[evIndex] === "undefined") {
-        horizontalPositions[evIndex] = horizontalPos;
-      }
+    const novelPositions = clique.filter(
+      (evIndex) => typeof horizontalPositions[evIndex] === "undefined",
+    );
+    const fixedPositions = clique.filter(
+      (evIndex) => typeof horizontalPositions[evIndex] !== "undefined",
+    );
+
+    const horPos: (null | number)[] = [...clique].map(() => null);
+
+    // pin fixed positions
+    fixedPositions.forEach((evIndex) => {
+      horPos[horizontalPositions[evIndex]] = evIndex;
     });
+
+    // add novel positions
+    novelPositions.forEach((evIndex) => {
+      const nextPos = horPos.findIndex((pos) => pos === null);
+      horPos[nextPos] = evIndex;
+    });
+
+    horPos
+      .map((val) => {
+        isNumber(val);
+        return val;
+      })
+      .forEach((evIndex, horizontalPos) => {
+        if (typeof horizontalPositions[evIndex] === "undefined") {
+          // is novel
+          horizontalPositions[evIndex] = horizontalPos;
+        }
+      });
   });
 
   return (
@@ -970,6 +989,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
           );
           return (
             <Box
+              className={index === 5 ? "wef-five" : "grid-event"}
               component={Button}
               key={index}
               onClick={
@@ -982,6 +1002,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
               sx={mergeSx({
                 position: "absolute",
                 textAlign: "left",
+                minWidth: "auto",
                 padding: 0,
                 margin: 0,
                 top: top + 1,
@@ -1025,6 +1046,8 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
                     whiteSpace: "nowrap",
                   }}
                 >
+                  {index}
+                  {" - "}
                   {event.sourceEvent.title ?? "(No name)"}
                   {height < 30 ? (
                     <Box component="span" sx={{ fontWeight: 400 }}>
@@ -1093,4 +1116,10 @@ function AllDayCalendarOverflow({
       <Triangle direction={direction} height={16} width={12} color={color} />
     </Box>
   );
+}
+
+function isNumber(val: number | null): asserts val is number {
+  if (val === null) {
+    throw new Error("Expected a number");
+  }
 }
