@@ -83,7 +83,7 @@ export function getAllDayOverlaps<T extends CalendarEvent>(
 
 export type Graph = number[][];
 type Component = number[];
-type Clique = number[];
+export type Clique = number[];
 
 // Helper function to perform Depth-First Search (DFS)
 const dfs = (
