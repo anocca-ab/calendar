@@ -388,6 +388,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                   w: width,
                   h: 1,
                 })}
+                disableRipple={draggedEvent?.dragged === event}
                 sx={mergeSx(
                   {
                     border: 0,
@@ -753,17 +754,15 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
       horPos[nextPos] = evIndex;
     });
 
-    horPos
-      .map((val) => {
-        isNumber(val);
-        return val;
-      })
-      .forEach((evIndex, horizontalPos) => {
-        if (typeof horizontalPositions[evIndex] === "undefined") {
-          // is novel
-          horizontalPositions[evIndex] = horizontalPos;
-        }
-      });
+    horPos.forEach((evIndex, horizontalPos) => {
+      if (evIndex === null) {
+        return;
+      }
+      if (typeof horizontalPositions[evIndex] === "undefined") {
+        // is novel
+        horizontalPositions[evIndex] = horizontalPos;
+      }
+    });
   });
 
   // handle drag and drop
@@ -945,6 +944,12 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
                 w: rect.w,
                 h: 1,
               })}
+              disableRipple={
+                !!(
+                  draggedEvent?.dragged &&
+                  draggedEvent.source.sourceEvent === event.sourceEvent
+                )
+              }
               sx={mergeSx(
                 {
                   position: "absolute",
@@ -1002,6 +1007,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
                     whiteSpace: "nowrap",
                   }}
                 >
+                  {index} + {" - "}
                   {event.sourceEvent.title ?? "(No name)"}
                   {height < 30 ? (
                     <Box component="span" sx={{ fontWeight: 400 }}>
