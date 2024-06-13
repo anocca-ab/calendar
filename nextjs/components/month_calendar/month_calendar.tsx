@@ -1,8 +1,12 @@
-import { Box, Divider, Typography } from "@mui/material";
+import { Box, Button, Divider, Typography } from "@mui/material";
 import {
   StartOfWeekOptions,
+  addDays,
+  addWeeks,
   startOfWeek as fnsStartOfWeek,
+  getDate,
   setDate,
+  startOfWeek,
 } from "date-fns";
 import { createContext, useContext } from "react";
 import { CalendarEvent, StartDay } from "../types";
@@ -189,12 +193,76 @@ export function MonthCalendar(props: {
               })}
             </FlexRow>
 
-            <FlexRow
+            <Box
               sx={{
                 position: "absolute",
                 inset: 0,
               }}
             >
+              {[...Array(numberOfWeeks * 7)].map((_, i) => {
+                // Calculate the top position
+                const left = (i % 7) * 120;
+
+                // Calculate the top position
+                const top = Math.floor(i / 7) * 120;
+
+                const beginningOfCurrentWeek = addWeeks(
+                  startOfWeek(startOfMonth, {
+                    weekStartsOn: startDay === "monday" ? 1 : 0,
+                  }),
+                  Math.floor(i / 7),
+                );
+
+                const currentDate = addDays(beginningOfCurrentWeek, i % 7);
+                const dayNumber = getDate(currentDate);
+                const active = getDate(now) === dayNumber;
+
+                return (
+                  <FlexCol
+                    p={0}
+                    m={0}
+                    key={`day-${i}`}
+                    component={Button}
+                    position="absolute"
+                    width="119px"
+                    height="119px"
+                    left={`${left}px`}
+                    top={`${top}px`}
+                    justifyContent="flex-start"
+                    pt="4px"
+                  >
+                    <FlexRow
+                      width="24px"
+                      height="24px"
+                      justifyContent="center"
+                      alignItems="center"
+                    >
+                      {active && (
+                        <Box
+                          sx={{
+                            width: 24,
+                            height: 24,
+                            position: "absolute",
+                            borderRadius: 24,
+                            backgroundColor: (theme) =>
+                              theme.palette.primary.main,
+                          }}
+                        ></Box>
+                      )}
+                      <Typography
+                        zIndex={1}
+                        color={
+                          active
+                            ? (theme) => theme.palette.primary.contrastText
+                            : (theme) => theme.palette.text.primary
+                        }
+                      >
+                        {dayNumber}
+                      </Typography>
+                    </FlexRow>
+                  </FlexCol>
+                );
+              })}
               {/* {orderedDays.map((day, i) => {
               const beginningOfCurrentWeek = addWeeks(
                 startOfWeek(startOfMonth, {
@@ -217,7 +285,7 @@ export function MonthCalendar(props: {
                 />
               );
             })} */}
-            </FlexRow>
+            </Box>
           </Box>
         </FlexRow>
       </FlexCol>
