@@ -1,6 +1,6 @@
 import { CalendarEvent } from "../types";
 
-export type CalendarGridEvent = {
+export type ModifiableEvent = {
   sourceEvent: CalendarEvent;
   start: Date;
   end: Date;

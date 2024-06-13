@@ -424,7 +424,6 @@ function TimePicker(props: {
                   value={option.toJSON()}
                   selected={option.getTime() === props.value.getTime()}
                   onClick={() => {
-                    console.log("@options", option);
                     props.onChange(option);
                     setOpen(false);
                   }}

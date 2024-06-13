@@ -5,7 +5,7 @@ import {
   areIntervalsOverlapping,
 } from "date-fns";
 import { CalendarEvent } from "../types";
-import { CalendarGridEvent } from "./types";
+import { ModifiableEvent } from "./types";
 
 export function getAllDayOverlaps<T extends CalendarEvent>(
   startOfWeek: Date,
@@ -166,7 +166,7 @@ export const findAllCliques = (
   return cliques;
 };
 
-export function findEventOverlaps(events: CalendarGridEvent[]) {
+export function findEventOverlaps(events: ModifiableEvent[]) {
   /**
    * For each event, which other events is it overlapping with?
    * Overlaps is a graph where each event is a node and each edge is an overlap between two events

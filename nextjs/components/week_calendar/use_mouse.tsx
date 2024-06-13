@@ -1,5 +1,8 @@
 import React from "react";
 import { useCalendar } from "./context";
+import { CalendarEvent } from "../types";
+import { addMinutes, endOfDay } from "date-fns";
+import { ModifiableEvent } from "./types";
 
 export type DraggedEvent<T extends { start: Date; end?: Date | undefined }> = {
   /**
@@ -197,3 +200,42 @@ export function useMouse<T extends { start: Date; end?: Date | undefined }>(
     };
   }, [daysInWeek, effectRefs, target]);
 }
+
+export const useDragableEvents = (
+  events: CalendarEvent[],
+  type: "all-day" | "sub-day",
+) => {
+  const [draggedEvent, setDraggedEvent] = React.useState<
+    DraggedEvent<ModifiableEvent> | undefined
+  >(undefined);
+
+  /**
+   * All events, store reference to the source event and add modifiable start and end times (modified when dragged)
+   */
+  const allEvents: ModifiableEvent[] = events.map((sourceEvent) => ({
+    sourceEvent,
+    start: sourceEvent.start,
+    end:
+      sourceEvent.end ??
+      (type === "all-day"
+        ? endOfDay(sourceEvent.start)
+        : addMinutes(sourceEvent.start, 15)),
+  }));
+
+  /**
+   * Replace an existing event with the dragged event
+   */
+  if (draggedEvent?.dragged) {
+    allEvents.splice(
+      allEvents.findIndex(
+        (ev) => ev.sourceEvent === draggedEvent.source.sourceEvent,
+      ),
+      1,
+      {
+        ...draggedEvent.source,
+        ...draggedEvent.dragged,
+      },
+    );
+  }
+  return [allEvents, draggedEvent, setDraggedEvent] as const;
+};

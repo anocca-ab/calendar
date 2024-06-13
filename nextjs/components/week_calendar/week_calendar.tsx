@@ -31,9 +31,15 @@ import {
   getAllDayOverlaps,
 } from "./event_overlap_functions";
 import { subDayEventSize } from "./sub_day_event_size";
-import { CalendarGridEvent } from "./types";
+import { ModifiableEvent } from "./types";
 import { CalendarConfigContext, useCalendar } from "./context";
-import { DragPosition, DraggedEvent, MouseState, useMouse } from "./use_mouse";
+import {
+  DragPosition,
+  DraggedEvent,
+  MouseState,
+  useDragableEvents,
+  useMouse,
+} from "./use_mouse";
 
 const parseDefaultProps = (
   props: React.ComponentPropsWithRef<typeof WeekCalendar>,
@@ -232,17 +238,10 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
   } = useCalendar();
   const daysInWeek = workWeek ? 5 : 7;
 
-  const events = [...props.events];
-  const [draggedEvent, setDraggedEvent] = React.useState<
-    DraggedEvent<CalendarEvent> | undefined
-  >(undefined);
-
-  if (draggedEvent?.dragged) {
-    events.splice(events.indexOf(draggedEvent.source), 1, {
-      ...draggedEvent.source,
-      ...draggedEvent.dragged,
-    });
-  }
+  const [events, draggedEvent, setDraggedEvent] = useDragableEvents(
+    props.events,
+    "all-day",
+  );
 
   const overlaps = getAllDayOverlaps(startOfWeek, daysInWeek, events);
 
@@ -255,7 +254,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
    */
   function calculateNewTime(
     state: MouseState,
-    dragged: DragPosition<CalendarEvent>,
+    dragged: DragPosition<ModifiableEvent>,
   ) {
     if (state.pos && state.pos0) {
       const rawDelta =
@@ -372,7 +371,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
               height: 16,
               width: 119 * width - 8,
             };
-            const color = event.color ?? "hsl(0 50 50)";
+            const color = event.sourceEvent.color ?? "hsl(0 50 50)";
             const dayOverflowRight = differenceInCalendarDays(end, endOfWeek);
 
             return (
@@ -388,7 +387,10 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                   w: width,
                   h: 1,
                 })}
-                disableRipple={draggedEvent?.dragged === event}
+                disableRipple={
+                  draggedEvent?.dragged &&
+                  draggedEvent?.source.sourceEvent === event.sourceEvent
+                }
                 sx={mergeSx(
                   {
                     border: 0,
@@ -408,13 +410,14 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                       pointerEvents: "none",
                     },
                   },
-                  draggedEvent?.source === event && {
+                  draggedEvent?.source.sourceEvent === event.sourceEvent && {
                     opacity: 0.5,
                   },
-                  draggedEvent?.dragged === event && {
-                    opacity: 0.75,
-                    boxShadow: theme.shadows[4],
-                  },
+                  draggedEvent?.dragged &&
+                    draggedEvent?.source.sourceEvent === event.sourceEvent && {
+                      opacity: 0.75,
+                      boxShadow: theme.shadows[4],
+                    },
                 )}
               >
                 {rawX < 0 ? (
@@ -455,7 +458,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                       overflow: "hidden",
                     }}
                   >
-                    {event.title ?? "(No name)"}
+                    {event.sourceEvent.title ?? "(No name)"}
                   </Typography>
                 </Box>
                 {dayOverflowRight > 0 ? (
@@ -583,56 +586,45 @@ function TimeSidebar() {
 
 function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
   const { workWeek, now, startOfWeek, ...calendarProps } = useCalendar();
-  const allEvents = [...props.events];
-  const [draggedEvent, setDraggedEvent] = React.useState<
-    DraggedEvent<CalendarGridEvent> | undefined
-  >(undefined);
 
-  if (draggedEvent?.dragged) {
-    allEvents.splice(allEvents.indexOf(draggedEvent.source.sourceEvent), 1, {
-      ...draggedEvent.source.sourceEvent,
-      ...draggedEvent.dragged,
-    });
-  }
+  const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
+    props.events,
+    "sub-day",
+  );
 
-  const events: CalendarGridEvent[] = allEvents.flatMap((sourceEvent) => {
-    /**
-     * Default event, unless split into multiple parts
-     */
-    const def = {
-      sourceEvent,
-      start: sourceEvent.start,
-      end: sourceEvent.end ?? addMinutes(sourceEvent.start, 15),
-    };
+  /**
+   * Events that cross 12am are split into two events
+   */
+  const events: ModifiableEvent[] = allEvents.flatMap((defaultEvent) => {
     let parts: { start: Date; end: Date }[] = [];
-    if (differenceInCalendarDays(def.end, def.start) > 0) {
+    if (differenceInCalendarDays(defaultEvent.end, defaultEvent.start) > 0) {
       // split event up into multiple events to not overflow a single day
       // an event can't be longer than a day
 
       const part0 = {
-        start: def.start,
-        end: endOfDay(def.start),
+        start: defaultEvent.start,
+        end: endOfDay(defaultEvent.start),
       };
       parts.push(part0);
       while (true) {
         const startOfPrevious = parts[parts.length - 1].start;
         const nextDay = startOfDay(addDays(startOfPrevious, 1));
-        const nextDayEnd = min([endOfDay(nextDay), def.end]);
+        const nextDayEnd = min([endOfDay(nextDay), defaultEvent.end]);
         parts.push({
           start: nextDay,
           end: nextDayEnd,
         });
-        if (nextDayEnd.getTime() >= def.end.getTime()) {
+        if (nextDayEnd.getTime() >= defaultEvent.end.getTime()) {
           break;
         }
       }
       return parts.map((part) => ({
-        sourceEvent,
+        sourceEvent: defaultEvent.sourceEvent,
         start: part.start,
         end: part.end,
       }));
     }
-    return def;
+    return defaultEvent;
   });
 
   /**
@@ -645,7 +637,6 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
    * Each component is an array of event indexes that are connected (like an island in a graph)
    */
   const components = findConnectedComponents(overlaps);
-  // console.log("Connected Components:", components);
 
   /**
    * The clique of a graph is a subset of nodes where each node is connected to every other node, i.e. where each event overlaps with every other event
@@ -670,7 +661,6 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
   // create the numCols and find the maxCliques
   components.forEach((component, index) => {
     const cliques = findAllCliques(overlaps, component);
-    // console.log(`All Cliques in Component ${index}:`, cliques);
 
     const maxCliqueSizeForComponent = cliques.reduce((max, clique) => {
       return clique.length > max ? clique.length : max;
@@ -771,7 +761,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
    */
   function calculateNewTime(
     state: MouseState,
-    dragged: DragPosition<CalendarGridEvent>,
+    dragged: DragPosition<ModifiableEvent>,
   ) {
     if (state.pos && state.pos0) {
       const rawDelta =
@@ -792,13 +782,13 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
 
   const ome = calendarProps.onMoveEvent;
   const onMoveEvent = ome
-    ? (event: CalendarGridEvent, start: Date, end?: Date) => {
+    ? (event: ModifiableEvent, start: Date, end?: Date) => {
         ome(event.sourceEvent, start, end);
       }
     : undefined;
   const oev = calendarProps.onEditEvent;
   const onEditEvent = oev
-    ? (event: CalendarGridEvent) => {
+    ? (event: ModifiableEvent) => {
         oev(event.sourceEvent);
       }
     : undefined;
@@ -920,14 +910,23 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
           const n = numCols[index];
           const horPos = horizontalPositions[index];
           const rect = subDayEventSize(n, horPos);
+          /**
+           * if the event goes over 12am then the event might be split into multiple events
+           */
+          const events = allEvents
+            .filter((ev) => ev.sourceEvent === event.sourceEvent)
+            .sort((a, b) => a.start.getTime() - b.start.getTime());
+
+          const displayStart = events[0].start;
+          const displayEnd = events[events.length - 1].end;
           const time = (
             <>
               {format(
-                event.sourceEvent.start,
+                displayStart,
                 height >= 30 ? "h:mm" : "h:mmaaa",
               )}
               {event.sourceEvent.end && height >= 30 ? (
-                <> – {format(event.sourceEvent.end, "h:mmaaa")}</>
+                <> – {format(displayEnd, "h:mmaaa")}</>
               ) : null}
             </>
           );
@@ -945,10 +944,8 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
                 h: 1,
               })}
               disableRipple={
-                !!(
-                  draggedEvent?.dragged &&
-                  draggedEvent.source.sourceEvent === event.sourceEvent
-                )
+                draggedEvent?.dragged &&
+                draggedEvent.source.sourceEvent === event.sourceEvent
               }
               sx={mergeSx(
                 {
@@ -1007,7 +1004,6 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {index} + {" - "}
                   {event.sourceEvent.title ?? "(No name)"}
                   {height < 30 ? (
                     <Box component="span" sx={{ fontWeight: 400 }}>
