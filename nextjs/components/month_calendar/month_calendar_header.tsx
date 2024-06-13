@@ -69,9 +69,8 @@ function MonthCalendarViewBar() {
   });
 
   return (
-    <Box
+    <FlexRow
       sx={{
-        display: "flex",
         width: "100%",
       }}
     >
@@ -101,7 +100,7 @@ function MonthCalendarViewBar() {
         </FlexCol>
       </FlexCol>
       {weekDays}
-    </Box>
+    </FlexRow>
   );
 }
 

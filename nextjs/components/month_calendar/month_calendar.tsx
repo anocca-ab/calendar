@@ -1,14 +1,14 @@
+import { Box, Divider, Typography } from "@mui/material";
 import {
   StartOfWeekOptions,
   startOfWeek as fnsStartOfWeek,
   setDate,
 } from "date-fns";
-import { ReactElement, createContext, useContext } from "react";
+import { createContext, useContext } from "react";
 import { CalendarEvent, StartDay } from "../types";
-import { FlexCol } from "../wrappers";
+import { FlexCol, FlexRow } from "../wrappers";
 import { getEventsPerWeekAndDay } from "./helpers";
 import { MonthCalendarHeader } from "./month_calendar_header";
-import { MonthCalendarWeekBody } from "./month_calendar_week_body";
 
 export const MonthCalendarConfigContext = createContext<
   | undefined
@@ -102,18 +102,7 @@ export function MonthCalendar(props: {
 
   const calendarWeeksEvents = getEventsPerWeekAndDay(events, startDay, now);
 
-  const weeks: ReactElement[] = [];
-
-  Object.keys(calendarWeeksEvents).forEach((week, i) => {
-    weeks.push(
-      <MonthCalendarWeekBody
-        key={`week-${i}`}
-        weekEvents={calendarWeeksEvents[week]}
-        calendarTitle={`${i + 1}`}
-        weekNumber={i}
-      />,
-    );
-  });
+  const numberOfWeeks = Object.keys(calendarWeeksEvents).length;
 
   return (
     <MonthCalendarConfigContext.Provider
@@ -125,10 +114,142 @@ export function MonthCalendar(props: {
         onMoveEvent,
       }}
     >
-      <FlexCol width="904px">
+      <FlexCol width="904px" gap="1px">
         <MonthCalendarHeader />
-        <FlexCol>{weeks}</FlexCol>
+
+        {/* Week Indicator */}
+        <FlexRow width="100%">
+          <FlexCol
+            gap="1px"
+            sx={{
+              width: "20px",
+              height: `${numberOfWeeks * 120}px`,
+              alignItems: "stretch",
+            }}
+          >
+            {[...Array(numberOfWeeks)].map((_, i) => {
+              return (
+                <WeekIndicator
+                  key={`weekIndicator-${i + 1}`}
+                  title={`${i + 1}`}
+                />
+              );
+            })}
+          </FlexCol>
+
+          <Box
+            sx={{
+              position: "relative",
+              width: "840px",
+              height: `${numberOfWeeks * 120}px`,
+            }}
+          >
+            {/* Horizontal lines */}
+            <FlexCol
+              sx={{
+                gap: "119px",
+                position: "absolute",
+                alignItems: "stretch",
+                inset: 0,
+              }}
+            >
+              {[...Array(numberOfWeeks)].map((_, i) => {
+                return (
+                  <Divider
+                    key={i}
+                    sx={{
+                      opacity: i === 0 || i === numberOfWeeks ? 0 : 1,
+                    }}
+                  />
+                );
+              })}
+            </FlexCol>
+
+            {/* Vertical lines */}
+            <FlexRow
+              sx={{
+                position: "absolute",
+                alignItems: "stretch",
+                justifyContent: "flex-start",
+                inset: 0,
+                gap: "119px",
+              }}
+            >
+              {[...Array(8)].map((_, i) => {
+                return (
+                  <Divider
+                    key={i}
+                    orientation="vertical"
+                    sx={{
+                      opacity: i === 0 ? 0 : 1,
+                      width: "1px",
+                    }}
+                  />
+                );
+              })}
+            </FlexRow>
+
+            <FlexRow
+              sx={{
+                position: "absolute",
+                inset: 0,
+              }}
+            >
+              {/* {orderedDays.map((day, i) => {
+              const beginningOfCurrentWeek = addWeeks(
+                startOfWeek(startOfMonth, {
+                  weekStartsOn: startDay === "monday" ? 1 : 0,
+                }),
+                weekNumber,
+              );
+
+              const currentDate = addDays(beginningOfCurrentWeek, i);
+              const dayNumber = getDate(currentDate);
+              const monthName = format(currentDate, "MMM");
+
+              return (
+                <MonthDayEventsCard
+                  key={i}
+                  filteredAllDayEvents={day.allDayEvents}
+                  filteredGridEvents={day.gridEvents}
+                  dayNumber={dayNumber}
+                  monthName={monthName}
+                />
+              );
+            })} */}
+            </FlexRow>
+          </Box>
+        </FlexRow>
       </FlexCol>
     </MonthCalendarConfigContext.Provider>
+  );
+}
+
+function WeekIndicator({ title }: { title: string }) {
+  return (
+    <FlexCol
+      sx={{
+        backgroundColor: "var(--Blue-Gray-50, #ECEFF1);",
+        height: "119px",
+        padding: "4px 0px",
+        alignItems: "center",
+        gap: "10px",
+        borderRadius: "4px",
+      }}
+    >
+      <FlexCol
+        sx={{
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Typography
+          variant="body2"
+          color="var(--Light-Text-Primary, rgba(0, 0, 0, 0.87));"
+        >
+          {title}
+        </Typography>
+      </FlexCol>
+    </FlexCol>
   );
 }
