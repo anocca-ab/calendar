@@ -1,14 +1,15 @@
+import { Typography, styled } from "@mui/material";
 import {
   addMinutes,
   addWeeks,
   areIntervalsOverlapping,
+  differenceInCalendarDays,
   getDay,
   getWeekOfMonth,
   getWeeksInMonth,
-  isSameDay,
 } from "date-fns";
+import { isAllDayEvent } from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
-import { Typography, styled } from "@mui/material";
 
 export const variationsToColorRecord: Record<string, string> = {
   orange: "#FF7043",
@@ -65,7 +66,11 @@ export function getEventsPerWeekAndDay(
     string,
     Record<
       string,
-      { gridEvents: CalendarEvent[]; allDayEvents: CalendarEvent[] }
+      {
+        normalEvents: CalendarEvent[];
+        allDayEvents: CalendarEvent[];
+        multiDayEvents: CalendarEvent[];
+      }
     >
   > = {};
   const weekStartsOn = startDay === "monday" ? 1 : 0;
@@ -79,7 +84,8 @@ export function getEventsPerWeekAndDay(
     [...Array(7)].forEach((_, day) => {
       calendarWeeksEvents[`${week}`][`${day}`] = {
         allDayEvents: [],
-        gridEvents: [],
+        normalEvents: [],
+        multiDayEvents: [],
       };
     });
   });
@@ -93,100 +99,40 @@ export function getEventsPerWeekAndDay(
       weekStartsOn,
     });
 
+    //TODO: Add better logic to check spanning months
+
     // does the event start and end in the same week
     if (weekOfMonthStart === weekOfMonthEnd) {
-      // is same day event
-      if (isSameDay(start, end ?? addMinutes(start, 15))) {
-        const dayAsNumber = getDay(start);
-        // check if it is an all day event
-        // then add event to week X on day Y
-        if (
-          start &&
-          end &&
-          (end.getTime() - start.getTime()) % (24 * 60 * 60 * 1000) === 0
-        ) {
-          calendarWeeksEvents[`${weekOfMonthStart - 1}`][
-            `${dayAsNumber}`
-          ].allDayEvents.push(event);
-        } else {
-          calendarWeeksEvents[`${weekOfMonthStart - 1}`][
-            `${dayAsNumber}`
-          ].gridEvents.push(event);
-        }
+      const dayAsNumber = getDay(start);
+      // check if it is an all day event
+      // then add event to week X on day Y
+      if (isAllDayEvent({ start, end: end ?? addMinutes(start, 15) })) {
+        calendarWeeksEvents[`${weekOfMonthStart - 1}`][
+          `${dayAsNumber}`
+        ].allDayEvents.push(event);
+      } else if (
+        differenceInCalendarDays(end ?? addMinutes(start, 15), start) > 0
+      ) {
+        calendarWeeksEvents[`${weekOfMonthStart - 1}`][
+          `${dayAsNumber}`
+        ].multiDayEvents.push(event);
       } else {
-        const startDayAsNumber = getDay(start);
-
-        // date-fns getDay will return 0 for Sundays.
-        // if start of the week is on Monday, then we need to do the following
-        const endDayAsNumber =
-          getDay(end ?? addMinutes(start, 15)) < startDayAsNumber
-            ? 6
-            : getDay(end ?? addMinutes(start, 15));
-
-        for (let i = startDayAsNumber; i <= endDayAsNumber; i++) {
-          if (
-            start &&
-            end &&
-            (end.getTime() - start.getTime()) % (24 * 60 * 60 * 1000) === 0
-          ) {
-            calendarWeeksEvents[`${weekOfMonthStart - 1}`][
-              `${i}`
-            ].allDayEvents.push(event);
-          } else {
-            calendarWeeksEvents[`${weekOfMonthStart - 1}`][
-              `${i}`
-            ].gridEvents.push(event);
-          }
-        }
+        calendarWeeksEvents[`${weekOfMonthStart - 1}`][
+          `${dayAsNumber}`
+        ].normalEvents.push(event);
       }
     }
 
     // does the event span over more than 1 week
     if (weekOfMonthEnd > weekOfMonthStart) {
       for (let i = weekOfMonthStart; i <= weekOfMonthEnd; i++) {
-        // fill the first week of reoccuring event
         if (i === weekOfMonthStart) {
           const startDayAsNumber = getDay(start);
-          for (let j = startDayAsNumber; j <= 6; j++) {
-            if (
-              start &&
-              end &&
-              (end.getTime() - start.getTime()) % (24 * 60 * 60 * 1000) === 0
-            ) {
-              calendarWeeksEvents[`${i - 1}`][`${j}`].allDayEvents.push(event);
-            } else {
-              calendarWeeksEvents[`${i - 1}`][`${j}`].gridEvents.push(event);
-            }
-          }
-        }
-        // fill the last week of reoccuring event
-        else if (i === weekOfMonthEnd) {
-          const endDayAsNumber = getDay(end ?? addMinutes(start, 15));
-          for (let j = 0; j <= endDayAsNumber; j++) {
-            if (
-              start &&
-              end &&
-              (end.getTime() - start.getTime()) % (24 * 60 * 60 * 1000) === 0
-            ) {
-              calendarWeeksEvents[`${i - 1}`][`${j}`].allDayEvents.push(event);
-            } else {
-              calendarWeeksEvents[`${i - 1}`][`${j}`].gridEvents.push(event);
-            }
-          }
-        }
-        // fill the inbetween weeks of reoccuring event
-        else {
-          for (let j = 0; j <= 6; j++) {
-            if (
-              start &&
-              end &&
-              (end.getTime() - start.getTime()) % (24 * 60 * 60 * 1000) === 0
-            ) {
-              calendarWeeksEvents[`${i - 1}`][`${j}`].allDayEvents.push(event);
-            } else {
-              calendarWeeksEvents[`${i - 1}`][`${j}`].gridEvents.push(event);
-            }
-          }
+          calendarWeeksEvents[`${i - 1}`][
+            `${startDayAsNumber}`
+          ].multiDayEvents.push(event);
+        } else {
+          calendarWeeksEvents[`${i - 1}`][`${0}`].multiDayEvents.push(event);
         }
       }
     }

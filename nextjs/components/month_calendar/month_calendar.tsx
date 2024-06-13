@@ -1,19 +1,26 @@
 import { Box, Button, Divider, Typography } from "@mui/material";
 import {
-  StartOfWeekOptions,
   addDays,
+  addMinutes,
   addWeeks,
-  startOfWeek as fnsStartOfWeek,
+  differenceInCalendarDays,
+  endOfDay,
   format,
   getDate,
+  getWeeksInMonth,
   isSameMonth,
+  min,
   setDate,
+  startOfDay,
   startOfWeek,
 } from "date-fns";
 import { createContext, useContext } from "react";
 import { CalendarEvent, StartDay } from "../types";
+import { CalendarGridEvent } from "../week_calendar/types";
 import { FlexCol, FlexRow } from "../wrappers";
+import { CalendarAllDayEvent } from "./calendar_all_day_event";
 import { getEventsPerWeekAndDay } from "./helpers";
+import { MonthCalendarEvent } from "./month_calendar_event";
 import { MonthCalendarHeader } from "./month_calendar_header";
 
 export const MonthCalendarConfigContext = createContext<
@@ -47,10 +54,6 @@ const parseDefaultProps = (
 
   const now = props.now ?? new Date();
 
-  const startOpts: StartOfWeekOptions = {
-    weekStartsOn: startDay === "monday" ? 1 : 0,
-  };
-  const startOfWeek = fnsStartOfWeek(new Date(), startOpts);
   return {
     events,
     startDay,
@@ -108,7 +111,52 @@ export function MonthCalendar(props: {
 
   const calendarWeeksEvents = getEventsPerWeekAndDay(events, startDay, now);
 
-  const numberOfWeeks = Object.keys(calendarWeeksEvents).length;
+  // const numberOfWeeks = Object.keys(calendarWeeksEvents).length;
+  const weeksOfMonth = getWeeksInMonth(now, {
+    weekStartsOn: startDay === "monday" ? 1 : 0,
+  });
+
+  // const eventos: CalendarGridEvent[] = events.flatMap((sourceEvent) => {
+  //   /**
+  //    * Default event, unless split into multiple parts
+  //    */
+  //   const def = {
+  //     sourceEvent,
+  //     start: sourceEvent.start,
+  //     end: sourceEvent.end ?? addMinutes(sourceEvent.start, 15),
+  //   };
+  //   let parts: { start: Date; end: Date }[] = [];
+  //   if (differenceInCalendarDays(def.end, def.start) > 0) {
+  //     // split event up into multiple events to not overflow a single day
+  //     // an event can't be longer than a day
+
+  //     const part0 = {
+  //       start: def.start,
+  //       end: endOfDay(def.start),
+  //     };
+  //     parts.push(part0);
+  //     while (true) {
+  //       const startOfPrevious = parts[parts.length - 1].start;
+  //       const nextDay = startOfDay(addDays(startOfPrevious, 1));
+  //       const nextDayEnd = min([endOfDay(nextDay), def.end]);
+  //       parts.push({
+  //         start: nextDay,
+  //         end: nextDayEnd,
+  //       });
+  //       if (nextDayEnd.getTime() >= def.end.getTime()) {
+  //         break;
+  //       }
+  //     }
+  //     return parts.map((part) => ({
+  //       sourceEvent,
+  //       start: part.start,
+  //       end: part.end,
+  //     }));
+  //   }
+  //   return def;
+  // });
+
+  // console.log(eventos);
 
   return (
     <MonthCalendarConfigContext.Provider
@@ -123,17 +171,17 @@ export function MonthCalendar(props: {
       <FlexCol width="904px" gap="1px">
         <MonthCalendarHeader />
 
-        {/* Week Indicator */}
         <FlexRow width="100%">
+          {/* Week Indicator */}
           <FlexCol
             gap="1px"
             sx={{
               width: "20px",
-              height: `${numberOfWeeks * 120}px`,
+              height: `${weeksOfMonth * 120}px`,
               alignItems: "stretch",
             }}
           >
-            {[...Array(numberOfWeeks)].map((_, i) => {
+            {[...Array(weeksOfMonth)].map((_, i) => {
               return (
                 <WeekIndicator
                   key={`weekIndicator-${i + 1}`}
@@ -143,11 +191,12 @@ export function MonthCalendar(props: {
             })}
           </FlexCol>
 
+          {/* Grid */}
           <Box
             sx={{
               position: "relative",
               width: "840px",
-              height: `${numberOfWeeks * 120}px`,
+              height: `${weeksOfMonth * 120}px`,
             }}
           >
             {/* Horizontal lines */}
@@ -159,12 +208,12 @@ export function MonthCalendar(props: {
                 inset: 0,
               }}
             >
-              {[...Array(numberOfWeeks)].map((_, i) => {
+              {[...Array(weeksOfMonth)].map((_, i) => {
                 return (
                   <Divider
                     key={i}
                     sx={{
-                      opacity: i === 0 || i === numberOfWeeks ? 0 : 1,
+                      opacity: i === 0 || i === weeksOfMonth ? 0 : 1,
                     }}
                   />
                 );
@@ -195,13 +244,14 @@ export function MonthCalendar(props: {
               })}
             </FlexRow>
 
+            {/* Clickable days */}
             <Box
               sx={{
                 position: "absolute",
                 inset: 0,
               }}
             >
-              {[...Array(numberOfWeeks * 7)].map((_, i) => {
+              {[...Array(weeksOfMonth * 7)].map((_, i) => {
                 // Calculate the top position
                 const left = (i % 7) * 120;
 
@@ -234,6 +284,7 @@ export function MonthCalendar(props: {
                     top={`${top}px`}
                     justifyContent="flex-start"
                     pt="4px"
+                    zIndex={1}
                   >
                     <FlexRow
                       width="24px"
@@ -244,7 +295,6 @@ export function MonthCalendar(props: {
                     >
                       {dayNumber === 1 && (
                         <Typography
-                          zIndex={1}
                           variant="body2"
                           color={
                             isInCurrentMonth
@@ -284,28 +334,81 @@ export function MonthCalendar(props: {
                   </FlexCol>
                 );
               })}
-              {/* {orderedDays.map((day, i) => {
-              const beginningOfCurrentWeek = addWeeks(
-                startOfWeek(startOfMonth, {
-                  weekStartsOn: startDay === "monday" ? 1 : 0,
-                }),
-                weekNumber,
-              );
+            </Box>
 
-              const currentDate = addDays(beginningOfCurrentWeek, i);
-              const dayNumber = getDate(currentDate);
-              const monthName = format(currentDate, "MMM");
+            {/* Events */}
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+              }}
+            >
+              {[...Array(weeksOfMonth * 7)].map((_, i) => {
+                // Calculate the top position
+                const left = (i % 7) * 120;
 
-              return (
-                <MonthDayEventsCard
-                  key={i}
-                  filteredAllDayEvents={day.allDayEvents}
-                  filteredGridEvents={day.gridEvents}
-                  dayNumber={dayNumber}
-                  monthName={monthName}
-                />
-              );
-            })} */}
+                // Calculate the top position
+                const top = Math.floor(i / 7) * 120;
+
+                const beginningOfCurrentWeek = addWeeks(
+                  startOfWeek(startOfMonth, {
+                    weekStartsOn: startDay === "monday" ? 1 : 0,
+                  }),
+                  Math.floor(i / 7),
+                );
+
+                const currentDate = addDays(beginningOfCurrentWeek, i % 7);
+                const isInCurrentMonth = isSameMonth(currentDate, startOfMonth);
+                const dayNumber = getDate(currentDate);
+                const monthName = format(currentDate, "MMM");
+                const active = getDate(now) === dayNumber;
+
+                const allDayEvents = calendarWeeksEvents[Math.floor(i / 7)][
+                  i % 7
+                ].allDayEvents.map((e, i) => (
+                  <CalendarAllDayEvent
+                    key={`allDayEvent-${i}`}
+                    {...e}
+                    sx={{ width: "100%" }}
+                  />
+                ));
+                const gridEvents = calendarWeeksEvents[Math.floor(i / 7)][
+                  i % 7
+                ].normalEvents.map((e, i) => (
+                  <MonthCalendarEvent
+                    key={`gridEvent-${i}`}
+                    {...e}
+                    state="normal"
+                  />
+                ));
+                const dayEvents = [...allDayEvents, ...gridEvents];
+                return (
+                  <FlexCol
+                    key={i}
+                    position="absolute"
+                    gap="1px"
+                    left={`${left + 1}px`}
+                    top={`${top + 33}px`}
+                    width="119px"
+                    height="87px"
+                    zIndex={1}
+                  >
+                    {dayEvents.length > 5
+                      ? [...Array(5)].map((_, i) => {
+                          if (i === 4) {
+                            return (
+                              <MoreEventsButton
+                                key={`moreEventsButton-${i}`}
+                                number={dayEvents.length - 4}
+                              />
+                            );
+                          }
+                          return dayEvents[i];
+                        })
+                      : dayEvents}
+                  </FlexCol>
+                );
+              })}
             </Box>
           </Box>
         </FlexRow>
@@ -340,5 +443,36 @@ function WeekIndicator({ title }: { title: string }) {
         </Typography>
       </FlexCol>
     </FlexCol>
+  );
+}
+
+function MoreEventsButton({ number }: { number: number }) {
+  return (
+    <Button
+      variant="text"
+      sx={{
+        justifyContent: "flex-start",
+        m: 0,
+        py: "0px",
+        px: "5px",
+        width: "117px",
+        height: "16px",
+        position: "absolute",
+        bottom: "1px",
+        borderRadius: "4px",
+      }}
+    >
+      <Typography
+        sx={{
+          color: "var(--Light-Primary-Dark, #1565C0)",
+          textTransform: "none",
+          fontFamily: "Roboto",
+          fontSize: "10px",
+          fontStyle: "normal",
+          fontWeight: 500,
+          lineHeight: "100%",
+        }}
+      >{`${number} more`}</Typography>
+    </Button>
   );
 }
