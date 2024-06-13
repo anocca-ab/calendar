@@ -15,13 +15,15 @@ export type DraggedEvent<T extends { start: Date; end?: Date | undefined }> = {
   source: T;
 };
 
+export type MouseStatePos = { x: number; y: number; scrollX: number; scrollY: number };
+
 /**
  * Mouse state
  */
 export type MouseState = {
   down: boolean;
-  pos: { x: number; y: number; scrollX: number; scrollY: number } | undefined;
-  pos0: { x: number; y: number; scrollX: number; scrollY: number } | undefined;
+  pos: MouseStatePos | undefined;
+  pos0: MouseStatePos | undefined;
 };
 
 /**
@@ -29,12 +31,34 @@ export type MouseState = {
  */
 export type DragPosition<T extends { start: Date; end?: Date | undefined }> = {
   event: T;
+  /**
+   * x position of event (not in px)
+   */
   x: number;
+  /**
+   * y position of event (not in px)
+   */
   y: number;
+  /**
+   * width (not in px)
+   */
   w: number;
+  /**
+   * height (not in px)
+   */
   h: number;
+  /**
+   * bounding rect x of event (in px)
+   */
   elX: number;
+  /**
+   * bounding rect y of event (in px)
+   */
   elY: number;
+  /**
+   * the column x position (in px)
+   */
+  colX: number;
 };
 
 export function useMouse<T extends { start: Date; end?: Date | undefined }>(
@@ -100,6 +124,7 @@ export function useMouse<T extends { start: Date; end?: Date | undefined }>(
             y: number;
             w: number;
             h: number;
+            colX: number;
           } = JSON.parse(ev.target.dataset.calendarEvent!);
           const event = effectRefs.current.events[data.index];
           const rect = ev.target.getBoundingClientRect();
@@ -111,6 +136,7 @@ export function useMouse<T extends { start: Date; end?: Date | undefined }>(
             h: data.h,
             elX: rect.x,
             elY: rect.y,
+            colX: data.colX,
           };
         }
       }

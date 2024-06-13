@@ -37,6 +37,7 @@ import {
   DragPosition,
   DraggedEvent,
   MouseState,
+  MouseStatePos,
   useDragableEvents,
   useMouse,
 } from "./use_mouse";
@@ -227,14 +228,33 @@ const parseAllDayEnd = (end: Date) => {
   return end;
 };
 
+function dayDiff(
+  pos: MouseStatePos,
+  pos0: MouseStatePos,
+  dragged: DragPosition<ModifiableEvent>,
+  daysInWeek: number,
+) {
+  const rawDelta =
+    pos.x +
+    ((pos0.x - dragged.elX + dragged.colX) % 120) -
+    pos0.x +
+    pos.scrollX -
+    pos0.scrollX;
+  // each event is 120px wide, so we can calculate how many days we have moved
+  const delta = Math.min(
+    Math.max(Math.floor(rawDelta / 120), -dragged.x - dragged.w + 1),
+    daysInWeek - dragged.x - 1,
+  );
+  return delta;
+}
+
 function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
   const {
     workWeek,
     startOfWeek,
     now,
     onCreateEvent,
-    onEditEvent,
-    onMoveEvent,
+    ...calendarProps
   } = useCalendar();
   const daysInWeek = workWeek ? 5 : 7;
 
@@ -249,6 +269,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
 
   const totalHeight = 17 * maxOverlaps;
 
+  // handle drag and drop
   /**
    * if event has moved return the new start and end time
    */
@@ -257,30 +278,32 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
     dragged: DragPosition<ModifiableEvent>,
   ) {
     if (state.pos && state.pos0) {
-      const rawDelta =
-        state.pos.x +
-        ((state.pos0.x - dragged.elX) % 120) -
-        state.pos0.x +
-        state.pos.scrollX -
-        state.pos0.scrollX;
-      // each event is 120px wide, so we can calculate how many days we have moved
-      const delta = Math.min(
-        Math.max(Math.floor(rawDelta / 120), -dragged.x - dragged.w + 1),
-        daysInWeek - dragged.x - 1,
-      );
-      const hoverredDay = dragged.x + delta;
-      if (hoverredDay !== dragged.x) {
+      const addedDays = dayDiff(state.pos, state.pos0, dragged, daysInWeek);
+      if (addedDays !== 0) {
         return {
-          start: addDays(dragged.event.start, delta),
+          start: addDays(dragged.event.start, addedDays),
           end: addDays(
             dragged.event.end ?? endOfDay(dragged.event.start),
-            delta,
+            addedDays,
           ),
         };
       }
     }
     return undefined;
   }
+
+  const ome = calendarProps.onMoveEvent;
+  const onMoveEvent = ome
+    ? (event: ModifiableEvent, start: Date, end?: Date) => {
+        ome(event.sourceEvent, start, end);
+      }
+    : undefined;
+  const oev = calendarProps.onEditEvent;
+  const onEditEvent = oev
+    ? (event: ModifiableEvent) => {
+        oev(event.sourceEvent);
+      }
+    : undefined;
 
   const effectRefs = React.useRef({
     onMoveEvent,
@@ -382,6 +405,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                 data-type="week-calendar-all-day-event"
                 data-calendar-event={JSON.stringify({
                   x,
+                  colX: 0,
                   y,
                   index,
                   w: width,
@@ -586,6 +610,7 @@ function TimeSidebar() {
 
 function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
   const { workWeek, now, startOfWeek, ...calendarProps } = useCalendar();
+  const daysInWeek = workWeek ? 5 : 7;
 
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
     props.events,
@@ -764,16 +789,29 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
     dragged: DragPosition<ModifiableEvent>,
   ) {
     if (state.pos && state.pos0) {
-      const rawDelta =
+      const addedMin =
         state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY;
-      if (rawDelta !== 0) {
+      const addedDays = dayDiff(state.pos, state.pos0, dragged, daysInWeek);
+
+      let start = dragged.event.sourceEvent.start;
+      let end =
+        dragged.event.sourceEvent.end ??
+        addMinutes(dragged.event.sourceEvent.start, 15);
+
+      if (addedMin !== 0) {
+        start = addMinutes(start, addedMin);
+        end = addMinutes(end, addedMin);
+      }
+
+      if (addedDays !== 0) {
+        start = addDays(start, addedDays);
+        end = addDays(end, addedDays);
+      }
+
+      if (addedMin !== 0 || addedDays !== 0) {
         return {
-          start: addMinutes(dragged.event.sourceEvent.start, rawDelta),
-          end: addMinutes(
-            dragged.event.sourceEvent.end ??
-              addMinutes(dragged.event.sourceEvent.start, 15),
-            rawDelta,
-          ),
+          start,
+          end,
         };
       }
     }
@@ -921,15 +959,13 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
           const displayEnd = events[events.length - 1].end;
           const time = (
             <>
-              {format(
-                displayStart,
-                height >= 30 ? "h:mm" : "h:mmaaa",
-              )}
+              {format(displayStart, height >= 30 ? "h:mm" : "h:mmaaa")}
               {event.sourceEvent.end && height >= 30 ? (
                 <> – {format(displayEnd, "h:mmaaa")}</>
               ) : null}
             </>
           );
+          const colX = rect.x;
           return (
             <Box
               className={"grid-event"}
@@ -942,6 +978,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
                 index,
                 w: rect.w,
                 h: 1,
+                colX,
               })}
               disableRipple={
                 draggedEvent?.dragged &&
@@ -955,7 +992,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
                   padding: 0,
                   margin: 0,
                   top: top + 1,
-                  left: left + rect.x + 1,
+                  left: left + colX + 1,
                   height: height - 1,
                   width: rect.w,
                   zIndex: horPos,
