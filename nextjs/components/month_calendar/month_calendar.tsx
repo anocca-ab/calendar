@@ -4,7 +4,9 @@ import {
   addDays,
   addWeeks,
   startOfWeek as fnsStartOfWeek,
+  format,
   getDate,
+  isSameMonth,
   setDate,
   startOfWeek,
 } from "date-fns";
@@ -214,7 +216,9 @@ export function MonthCalendar(props: {
                 );
 
                 const currentDate = addDays(beginningOfCurrentWeek, i % 7);
+                const isInCurrentMonth = isSameMonth(currentDate, startOfMonth);
                 const dayNumber = getDate(currentDate);
+                const monthName = format(currentDate, "MMM");
                 const active = getDate(now) === dayNumber;
 
                 return (
@@ -236,7 +240,21 @@ export function MonthCalendar(props: {
                       height="24px"
                       justifyContent="center"
                       alignItems="center"
+                      gap="4px"
                     >
+                      {dayNumber === 1 && (
+                        <Typography
+                          zIndex={1}
+                          variant="body2"
+                          color={
+                            isInCurrentMonth
+                              ? (theme) => theme.palette.text.primary
+                              : (theme) => theme.palette.text.secondary
+                          }
+                        >
+                          {monthName}
+                        </Typography>
+                      )}
                       {active && (
                         <Box
                           sx={{
@@ -251,10 +269,13 @@ export function MonthCalendar(props: {
                       )}
                       <Typography
                         zIndex={1}
+                        variant="body2"
                         color={
                           active
                             ? (theme) => theme.palette.primary.contrastText
-                            : (theme) => theme.palette.text.primary
+                            : isInCurrentMonth
+                              ? (theme) => theme.palette.text.primary
+                              : (theme) => theme.palette.text.secondary
                         }
                       >
                         {dayNumber}
