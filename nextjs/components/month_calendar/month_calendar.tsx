@@ -16,7 +16,6 @@ import {
 } from "date-fns";
 import { createContext, useContext } from "react";
 import { CalendarEvent, StartDay } from "../types";
-import { CalendarGridEvent } from "../week_calendar/types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarAllDayEvent } from "./calendar_all_day_event";
 import { getEventsPerWeekAndDay } from "./helpers";

@@ -32,21 +32,13 @@ export type MouseState = {
 export type DragPosition<T extends { start: Date; end?: Date | undefined }> = {
   event: T;
   /**
-   * x position of event (not in px)
+   * x position of event (in days)
    */
   x: number;
   /**
-   * y position of event (not in px)
-   */
-  y: number;
-  /**
-   * width (not in px)
+   * width (in days)
    */
   w: number;
-  /**
-   * height (not in px)
-   */
-  h: number;
   /**
    * bounding rect x of event (in px)
    */
@@ -121,9 +113,7 @@ export function useMouse<T extends { start: Date; end?: Date | undefined }>(
           const data: {
             index: number;
             x: number;
-            y: number;
             w: number;
-            h: number;
             colX: number;
           } = JSON.parse(ev.target.dataset.calendarEvent!);
           const event = effectRefs.current.events[data.index];
@@ -131,9 +121,7 @@ export function useMouse<T extends { start: Date; end?: Date | undefined }>(
           dragged = {
             event,
             x: data.x,
-            y: data.y,
             w: data.w,
-            h: data.h,
             elX: rect.x,
             elY: rect.y,
             colX: data.colX,

@@ -228,6 +228,10 @@ const parseAllDayEnd = (end: Date) => {
   return end;
 };
 
+/**
+ * when dragging an event on the x axis, dayDiff how many days the event has moved
+ * @returns 
+ */
 function dayDiff(
   pos: MouseStatePos,
   pos0: MouseStatePos,
@@ -240,22 +244,18 @@ function dayDiff(
     pos0.x +
     pos.scrollX -
     pos0.scrollX;
+  const minDiff = -dragged.x - dragged.w + 1;
   // each event is 120px wide, so we can calculate how many days we have moved
   const delta = Math.min(
-    Math.max(Math.floor(rawDelta / 120), -dragged.x - dragged.w + 1),
+    Math.max(Math.floor(rawDelta / 120), minDiff),
     daysInWeek - dragged.x - 1,
   );
   return delta;
 }
 
 function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
-  const {
-    workWeek,
-    startOfWeek,
-    now,
-    onCreateEvent,
-    ...calendarProps
-  } = useCalendar();
+  const { workWeek, startOfWeek, now, onCreateEvent, ...calendarProps } =
+    useCalendar();
   const daysInWeek = workWeek ? 5 : 7;
 
   const [events, draggedEvent, setDraggedEvent] = useDragableEvents(
@@ -406,10 +406,8 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                 data-calendar-event={JSON.stringify({
                   x,
                   colX: 0,
-                  y,
                   index,
                   w: width,
-                  h: 1,
                 })}
                 disableRipple={
                   draggedEvent?.dragged &&
@@ -974,10 +972,8 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
               data-type="week-calendar-sub-day-event"
               data-calendar-event={JSON.stringify({
                 x,
-                y: top,
                 index,
-                w: rect.w,
-                h: 1,
+                w: 1,
                 colX,
               })}
               disableRipple={
