@@ -1,4 +1,11 @@
-import { Box, Button, Divider, Typography, useTheme } from "@mui/material";
+import {
+  Box,
+  Button,
+  Divider,
+  Theme,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import {
   StartOfWeekOptions,
   addDays,
@@ -20,7 +27,7 @@ import {
 import React from "react";
 import { CalendarEvent, StartDay } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
-import { isAllDayEvent, mergeSx } from "../helpers";
+import { getEventColor, isAllDayEvent, mergeSx, parseColor } from "../helpers";
 import { TimeIndicator } from "./time_indicator";
 import {
   Clique,
@@ -230,7 +237,7 @@ const parseAllDayEnd = (end: Date) => {
 
 /**
  * when dragging an event on the x axis, dayDiff how many days the event has moved
- * @returns 
+ * @returns
  */
 function dayDiff(
   pos: MouseStatePos,
@@ -394,8 +401,15 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
               height: 16,
               width: 119 * width - 8,
             };
-            const color = event.sourceEvent.color ?? "hsl(0 50 50)";
+
             const dayOverflowRight = differenceInCalendarDays(end, endOfWeek);
+
+            const { bg, color } = getEventColor(
+              now,
+              end,
+              theme,
+              event.sourceEvent.color,
+            );
 
             return (
               <Box
@@ -446,14 +460,14 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                   <AllDayCalendarOverflow
                     direction="left"
                     value={rawX}
-                    color={color}
+                    color={bg}
                     valueDate={start}
                     compact={width <= 1}
                   />
                 ) : null}
                 <Box
                   sx={{
-                    background: color,
+                    background: bg,
                     display: "flex",
                     justifyContent: "flex-start",
                     flex: 1,
@@ -471,7 +485,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                   }}
                 >
                   <Typography
-                    color={(theme) => theme.palette.primary.contrastText}
+                    color={color}
                     variant="event"
                     sx={{
                       pointerEvents: "none",
@@ -487,7 +501,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                   <AllDayCalendarOverflow
                     direction="right"
                     value={dayOverflowRight}
-                    color={color}
+                    color={bg}
                     valueDate={end}
                     compact={width <= 1}
                   />
@@ -900,24 +914,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
           );
         })}
       </FlexRow>
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-        }}
-      >
-        {/* Time Indicator */}
-        <Box
-          className="time-indicator"
-          sx={{
-            position: "absolute",
-            top: getHours(now) * 60 + getMinutes(now),
-            left: differenceInCalendarDays(now, startOfWeek) * 120 - 5,
-          }}
-        >
-          <TimeIndicator />
-        </Box>
-      </Box>
+
       <Box
         sx={{
           position: "absolute",
@@ -933,7 +930,6 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
               : 15,
             15,
           );
-          const color = event.sourceEvent.color ?? "hsl(0 50 50)";
           const top = differenceInMinutes(
             event.start,
             startOfDay(event.start),
@@ -964,6 +960,14 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
             </>
           );
           const colX = rect.x;
+
+          const { bg, color } = getEventColor(
+            now,
+            event.sourceEvent.end ?? addMinutes(event.sourceEvent.start, 15),
+            theme,
+            event.sourceEvent.color,
+          );
+
           return (
             <Box
               className={"grid-event"}
@@ -1013,7 +1017,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
                 sx={mergeSx(
                   {
                     flex: 1,
-                    background: color,
+                    background: bg,
                     border: (theme) =>
                       `1px solid ${theme.palette.primary.contrastText}`,
                     borderRadius: 1,
@@ -1029,7 +1033,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
                 )}
               >
                 <Typography
-                  color={(theme) => theme.palette.primary.contrastText}
+                  color={color}
                   variant="event"
                   component="div"
                   sx={{
@@ -1048,7 +1052,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
                 {height >= 30 && (
                   <Typography
                     component="div"
-                    color={(theme) => theme.palette.primary.contrastText}
+                    color={color}
                     variant="event"
                     sx={{
                       pointerEvents: "none",
@@ -1063,6 +1067,26 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
             </Box>
           );
         })}
+      </Box>
+
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+        }}
+      >
+        {/* Time Indicator */}
+        <Box
+          className="time-indicator"
+          sx={{
+            position: "absolute",
+            top: differenceInMinutes(now, startOfDay(now)),
+            left: differenceInCalendarDays(now, startOfWeek) * 120,
+          }}
+        >
+          <TimeIndicator />
+        </Box>
       </Box>
     </Box>
   );

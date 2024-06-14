@@ -106,6 +106,8 @@ export const WithHuuugeSubDayEvent: Story = {
         title: "Huuuge event",
       },
     ],
+
+    now: addHours(startOfDay(new Date()), 11),
   },
   render: (props) => {
     return <InteractiveDemo {...props} />;

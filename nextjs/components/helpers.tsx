@@ -1,4 +1,4 @@
-import type { SxProps } from "@mui/material";
+import type { SxProps, Theme } from "@mui/material";
 import { endOfDay, startOfDay } from "date-fns";
 import { CalendarEvent } from "./types";
 
@@ -38,4 +38,168 @@ export function isAllDayEvent(event: CalendarEvent) {
     (event.start.getTime() === startOfDay(event.start).getTime() &&
       event.end.getTime() === endOfDay(event.start).getTime())
   );
+}
+
+let offScreenCanavs: HTMLCanvasElement | null = null;
+let offScreenContext: CanvasRenderingContext2D | null = null;
+
+type Rgba = { r: number; g: number; b: number; a: number; cssString: string };
+type Hsla = { h: number; s: number; l: number; a: number; cssString: string };
+
+function rgbaToHsla({ r, g, b, a }: Rgba): Hsla {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0,
+    s = 0,
+    l = (max + min) / 2;
+
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+    switch (max) {
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      case b:
+        h = (r - g) / d + 4;
+        break;
+    }
+
+    h /= 6;
+  }
+
+  h = Math.round(h * 360);
+  s = Math.round(s * 100);
+  l = Math.round(l * 100);
+
+  return {
+    h,
+    s,
+    l,
+    a,
+    cssString: `hsla(${h}, ${s}%, ${l}%, ${a})`,
+  };
+}
+
+type ParsedColor = {
+  hsla: Hsla;
+  rgba: Rgba;
+  contrastText: "white" | "black";
+  saturated: Hsla;
+  saturatedContrastText: "white" | "black";
+};
+
+const colorCache = new Map<string, ParsedColor>();
+
+const getContrastText = (color: Uint8ClampedArray) => {
+  const [red, green, blue, alpha] = color;
+  const contrastText: "white" | "black" =
+    red * 0.299 + green * 0.587 + blue * 0.114 > 150 ? "black" : "white";
+  return contrastText;
+};
+
+export function parseColor(background: string): ParsedColor | undefined {
+  if (colorCache.has(background)) {
+    return colorCache.get(background);
+  }
+  if (!offScreenCanavs) {
+    const existingCanvas = document.getElementById(
+      "calendar-off-screen-canvas",
+    );
+    if (existingCanvas && existingCanvas instanceof HTMLCanvasElement) {
+      offScreenCanavs = existingCanvas;
+    } else {
+      offScreenCanavs = document.createElement("canvas");
+      offScreenCanavs.id = "calendar-off-screen-canvas";
+      offScreenCanavs.style.position = "fixed";
+      offScreenCanavs.style.left = "-10px";
+      offScreenCanavs.style.width = "1px";
+      offScreenCanavs.style.height = "1px";
+      offScreenCanavs.width = 2;
+      offScreenCanavs.height = 2;
+      offScreenCanavs.style.visibility = "hidden";
+      document.body.appendChild(offScreenCanavs);
+    }
+  }
+  if (!offScreenContext) {
+    offScreenContext = offScreenCanavs.getContext("2d", {
+      willReadFrequently: true,
+    });
+  }
+  const c = offScreenContext;
+  if (c) {
+    const x = 0;
+    const y = 0;
+    c.clearRect(x, y, 1, 1);
+    c.fillStyle = background;
+    c.fillRect(x, y, 1, 1);
+    const imageData = c.getImageData(x, y, 1, 1).data;
+    const [red, green, blue, alpha] = imageData;
+    const rgba: Rgba = {
+      r: red,
+      g: green,
+      b: blue,
+      a: alpha,
+      cssString: `rgba(${red}, ${green}, ${blue}, ${alpha})`,
+    };
+    const hsla = rgbaToHsla(rgba);
+    const saturated: Hsla = {
+      ...hsla,
+      s: Math.max(hsla.s - 20, 0),
+      l: Math.min(hsla.l + 20, 100),
+    };
+    saturated.cssString = `hsla(${saturated.h}, ${saturated.s}%, ${saturated.l}%, ${saturated.a})`;
+    const contrastText = getContrastText(imageData);
+
+    c.clearRect(x, y, 1, 1);
+    c.fillStyle = saturated.cssString;
+    c.fillRect(x, y, 1, 1);
+    const saturatedContrastText = getContrastText(
+      c.getImageData(x, y, 1, 1).data,
+    );
+
+    const result: ParsedColor = {
+      hsla,
+      rgba,
+      contrastText,
+      saturated,
+      saturatedContrastText,
+    };
+    return result;
+  }
+  return undefined;
+}
+
+export function getEventColor(
+  now: Date,
+  end: Date,
+  theme: Theme,
+  eventColor?: string,
+) {
+  const parsedColor = parseColor(eventColor ?? "hsl(0 50 50)");
+
+  const bg = parsedColor
+    ? end.getTime() - now.getTime() < 0
+      ? parsedColor?.saturated.cssString
+      : parsedColor?.hsla.cssString
+    : "hsl(0 50 50)";
+  const color = parsedColor
+    ? (end.getTime() - now.getTime() < 0
+        ? parsedColor.saturatedContrastText
+        : parsedColor.contrastText) === "black"
+      ? theme.palette.text.primary
+      : theme.palette.primary.contrastText
+    : "black";
+  return {
+    bg,
+    color,
+  };
 }
