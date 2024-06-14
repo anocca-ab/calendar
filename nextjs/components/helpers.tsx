@@ -153,8 +153,8 @@ export function parseColor(background: string): ParsedColor | undefined {
     const hsla = rgbaToHsla(rgba);
     const saturated: Hsla = {
       ...hsla,
-      s: Math.max(hsla.s - 20, 0),
-      l: Math.min(hsla.l + 20, 100),
+      s: Math.max(hsla.s - 10, 0),
+      l: Math.min(hsla.l + 5, 100),
     };
     saturated.cssString = `hsla(${saturated.h}, ${saturated.s}%, ${saturated.l}%, ${saturated.a})`;
     const contrastText = getContrastText(imageData);
