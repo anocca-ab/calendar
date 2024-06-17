@@ -2,7 +2,9 @@ import { Typography, styled } from "@mui/material";
 import {
   addMinutes,
   compareAsc,
+  differenceInCalendarDays,
   differenceInDays,
+  differenceInMinutes,
   getDay,
   getWeekOfMonth,
   getWeeksInMonth,
@@ -71,7 +73,10 @@ export function getEventsPerWeek(
 
   events.map((event) => {
     const { start, end } = event;
-    const eventDuration = differenceInDays(end ?? addMinutes(start, 15), start);
+    const eventDuration = differenceInCalendarDays(
+      end ?? addMinutes(start, 15),
+      start,
+    );
 
     const weekOfMonthStart = getWeekOfMonth(start, {
       weekStartsOn,
@@ -82,26 +87,47 @@ export function getEventsPerWeek(
 
     // does the event start and end in the same week
     if (weekOfMonthStart === weekOfMonthEnd) {
-      const dayAsNumber = getDay(start);
-      if (isAllDayEvent({ start, end: end ?? addMinutes(start, 15) })) {
+      const day = getDay(start);
+      const dayAsNumber =
+        day === 0 && weekStartsOn === 1
+          ? 6
+          : day === 1 && weekStartsOn === 1
+            ? 0
+            : day === 2 && weekStartsOn === 1
+              ? 1
+              : day === 3 && weekStartsOn === 1
+                ? 2
+                : day === 4 && weekStartsOn === 1
+                  ? 3
+                  : day === 5 && weekStartsOn === 1
+                    ? 4
+                    : day === 6 && weekStartsOn === 1
+                      ? 5
+                      : day;
+
+      const eventDuration = differenceInMinutes(
+        end ?? addMinutes(start, 15),
+        start,
+      );
+      if (eventDuration === 1339) {
         calendarWeeksEvents[`${weekOfMonthStart - 1}`].allDayEvents.push({
           left: dayAsNumber * 120 + 1,
           top: (weekOfMonthStart - 1) * 120 + 33,
-          duration: eventDuration,
+          duration: eventDuration / 60,
           event,
         });
-      } else if (eventDuration > 0) {
+      } else if (eventDuration >= 1440) {
         calendarWeeksEvents[`${weekOfMonthStart - 1}`].multiDayEvents.push({
           left: dayAsNumber * 120 + 1,
           top: (weekOfMonthStart - 1) * 120 + 33,
-          duration: eventDuration,
+          duration: eventDuration / 60,
           event,
         });
       } else {
         calendarWeeksEvents[`${weekOfMonthStart - 1}`].normalEvents.push({
           left: dayAsNumber * 120 + 1,
           top: (weekOfMonthStart - 1) * 120 + 33,
-          duration: eventDuration,
+          duration: eventDuration / 60,
           event,
         });
       }
@@ -115,13 +141,13 @@ export function getEventsPerWeek(
           calendarWeeksEvents[`${i - 1}`].multiDayEvents.push({
             left: startDayAsNumber * 120 + 1,
             top: i * 120 + 33,
-            duration: eventDuration,
+            duration: eventDuration / 60,
             event,
           });
         } else {
           calendarWeeksEvents[`${i - 1}`].multiDayEvents.push({
             left: 1,
-            duration: eventDuration,
+            duration: eventDuration / 60,
             top: i * 120 + 33,
             event,
           });

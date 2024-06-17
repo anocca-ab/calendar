@@ -1,7 +1,15 @@
 import { MonthCalendar } from "@/components/month_calendar/month_calendar";
 import { CalendarEvent } from "@/components/types";
 import { Meta, StoryObj } from "@storybook/react";
-import { addDays, addHours, addMinutes, subHours, subMinutes } from "date-fns";
+import {
+  addDays,
+  addHours,
+  addMinutes,
+  endOfDay,
+  startOfDay,
+  subHours,
+  subMinutes,
+} from "date-fns";
 import { useRef, useState } from "react";
 
 const meta = {
@@ -59,24 +67,24 @@ export const FilledCalendar: Story = {
       },
       {
         title: "Full day event",
-        start: new Date(),
-        end: addDays(new Date(), 1),
+        start: startOfDay(new Date()),
+        end: addMinutes(startOfDay(new Date()), 1339),
         color: "pink",
       },
       {
         title: "2 days event",
-        start: addDays(new Date(), 2),
-        end: addDays(addDays(new Date(), 2), 2),
+        start: startOfDay(addDays(new Date(), 2)),
+        end: endOfDay(addDays(addDays(new Date(), 2), 2)),
         color: "pink",
       },
       {
         title: "4 days event",
-        start: addDays(new Date(), 1),
-        end: addDays(addDays(new Date(), 1), 4),
+        start: startOfDay(addDays(new Date(), 1)),
+        end: endOfDay(addDays(addDays(new Date(), 1), 4)),
         color: "red",
       },
       {
-        // title: "10min event",
+        title: "10min event",
         start: subHours(new Date(), 3),
         end: addMinutes(subHours(new Date(), 3), 10),
         color: "orange",

@@ -4,11 +4,15 @@ import {
   addMinutes,
   addWeeks,
   differenceInDays,
+  differenceInMinutes,
+  differenceInSeconds,
+  endOfDay,
   format,
   getDate,
   getWeeksInMonth,
   isSameMonth,
   setDate,
+  startOfDay,
   startOfWeek,
 } from "date-fns";
 import { createContext, useContext } from "react";
@@ -316,7 +320,7 @@ export function MonthCalendar(props: {
                           key={`row-${j + 1}`}
                           left="1px"
                           position="absolute"
-                          top={`${j * 16 + 1}px`}
+                          top={`${j === 0 ? j * 16 : j * 16 + 1}px`}
                           width="840px"
                           height="16px"
                           zIndex={1}
@@ -324,40 +328,34 @@ export function MonthCalendar(props: {
                           {groupedEvents[j] &&
                             groupedEvents[j].length > 0 &&
                             groupedEvents[j].map((e, eventIndex) => {
-                              console.log(groupedEvents[j]);
-                              const eventDayDuration = differenceInDays(
+                              const eventDuration = differenceInMinutes(
                                 e.event.end ?? addMinutes(e.event.start, 15),
                                 e.event.start,
                               );
-                              if (
-                                isAllDayEvent({
-                                  start: e.event.start,
-                                  end:
-                                    e.event.end ??
-                                    addMinutes(e.event.start, 15),
-                                })
-                              ) {
-                                if (eventDayDuration > 0) {
-                                  return (
-                                    <CalendarAllDayEvent
-                                      key={`multiDayEvent-${eventIndex}-week-${i}-row${j}`}
-                                      {...e.event}
-                                      sx={{
-                                        width: `${e.duration * 120}px`,
-                                        left: e.left,
-                                        // top: e.top,
-                                      }}
-                                    />
-                                  );
-                                }
+                              if (eventDuration === 1339) {
                                 return (
                                   <CalendarAllDayEvent
                                     key={`allDayEvent-${eventIndex}-week-${i}-row${j}`}
                                     {...e.event}
                                     sx={{
                                       width: "119px",
-                                      left: e.left,
+                                      left: `${e.left}px`,
                                       // top: e.top,
+                                      position: "absolute",
+                                    }}
+                                  />
+                                );
+                              } else if (eventDuration >= 1440) {
+                                return (
+                                  <CalendarAllDayEvent
+                                    key={`multiDayEvent-${eventIndex}-week-${i}-row${j}`}
+                                    {...e.event}
+                                    sx={{
+                                      width: `${(e.duration / 24) * 119}px`,
+                                      // width: "100%",
+                                      left: `${e.left}px`,
+                                      // top: e.top,
+                                      position: "absolute",
                                     }}
                                   />
                                 );
@@ -366,7 +364,12 @@ export function MonthCalendar(props: {
                                   <MonthCalendarEvent
                                     key={`normalEvent-${eventIndex}-week-${i}-row${j}`}
                                     {...e.event}
-                                    sx={{ left: e.left, top: e.top }}
+                                    sx={{
+                                      left: `${e.left}px`,
+
+                                      // top: e.top,
+                                      position: "absolute",
+                                    }}
                                     state="normal"
                                   />
                                 );
@@ -377,71 +380,6 @@ export function MonthCalendar(props: {
                     })}
                   </Box>
                 );
-
-                // Calculate the top position
-                // const left = (i % 7) * 120;
-
-                // // Calculate the top position
-                // const top = Math.floor(i / 7) * 120;
-
-                // const beginningOfCurrentWeek = addWeeks(
-                //   startOfWeek(startOfMonth, {
-                //     weekStartsOn: startDay === "monday" ? 1 : 0,
-                //   }),
-                //   Math.floor(i / 7),
-                // );
-
-                // const currentDate = addDays(beginningOfCurrentWeek, i % 7);
-                // const isInCurrentMonth = isSameMonth(currentDate, startOfMonth);
-                // const dayNumber = getDate(currentDate);
-                // const monthName = format(currentDate, "MMM");
-                // const active = getDate(now) === dayNumber;
-
-                // const allDayEvents = calendarWeeksEvents[Math.floor(i / 7)][
-                //   i % 7
-                // ].allDayEvents.map((e, i) => (
-                //   <CalendarAllDayEvent
-                //     key={`allDayEvent-${i}`}
-                //     {...e}
-                //     sx={{ width: "100%" }}
-                //   />
-                // ));
-                // const gridEvents = calendarWeeksEvents[Math.floor(i / 7)][
-                //   i % 7
-                // ].normalEvents.map((e, i) => (
-                //   <MonthCalendarEvent
-                //     key={`gridEvent-${i}`}
-                //     {...e}
-                //     state="normal"
-                //   />
-                // ));
-                // const dayEvents = [...allDayEvents, ...gridEvents];
-                // return (
-                //   <FlexCol
-                //     key={i}
-                //     position="absolute"
-                //     gap="1px"
-                //     left={`${left + 1}px`}
-                //     top={`${top + 33}px`}
-                //     width="119px"
-                //     height="87px"
-                //     zIndex={1}
-                //   >
-                //     {dayEvents.length > 5
-                //       ? [...Array(5)].map((_, i) => {
-                //           if (i === 4) {
-                //             return (
-                //               <MoreEventsButton
-                //                 key={`moreEventsButton-${i}`}
-                //                 number={dayEvents.length - 4}
-                //               />
-                //             );
-                //           }
-                //           return dayEvents[i];
-                //         })
-                //       : dayEvents}
-                //   </FlexCol>
-                // );
               })}
             </Box>
           </Box>

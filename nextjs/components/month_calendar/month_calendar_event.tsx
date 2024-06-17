@@ -28,10 +28,12 @@ export function MonthCalendarEvent({
       component={Button}
       elevation={state === "selected" ? undefined : 0}
       sx={{
+        position: "absolute",
         width: "110px",
         height: "16px",
         p: 0,
         justifyContent: "flex-start",
+        ...sx,
       }}
     >
       <FlexRow
@@ -50,7 +52,6 @@ export function MonthCalendarEvent({
           maxWidth: "110px",
           minHeight: "15px",
           textWrap: "nowrap",
-          ...sx,
         }}
       >
         <FlexCol justifyContent="center" width="8px">
