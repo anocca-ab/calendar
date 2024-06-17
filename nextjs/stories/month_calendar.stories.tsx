@@ -105,12 +105,6 @@ export const FilledCalendar: Story = {
         end: addMinutes(new Date(), 181),
         color: "indigo",
       },
-      {
-        title: "Overnight event",
-        start: addHours(new Date(), 1),
-        end: addHours(addHours(new Date(), 1), 22),
-        color: "teal",
-      },
     ],
   },
   render: (props) => {

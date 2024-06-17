@@ -3,22 +3,20 @@ import {
   addDays,
   addMinutes,
   addWeeks,
-  differenceInCalendarDays,
-  endOfDay,
+  differenceInDays,
   format,
   getDate,
   getWeeksInMonth,
   isSameMonth,
-  min,
   setDate,
-  startOfDay,
   startOfWeek,
 } from "date-fns";
 import { createContext, useContext } from "react";
+import { isAllDayEvent } from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarAllDayEvent } from "./calendar_all_day_event";
-import { getEventsPerWeekAndDay } from "./helpers";
+import { getEventsPerWeek, groupNonOverlappingEvents } from "./helpers";
 import { MonthCalendarEvent } from "./month_calendar_event";
 import { MonthCalendarHeader } from "./month_calendar_header";
 
@@ -108,54 +106,11 @@ export function MonthCalendar(props: {
   const { events, startDay, startOfMonth, now, onCreateEvent, onMoveEvent } =
     parseDefaultProps(props);
 
-  const calendarWeeksEvents = getEventsPerWeekAndDay(events, startDay, now);
+  const calendarWeeksEvents = getEventsPerWeek(events, startDay, now);
 
-  // const numberOfWeeks = Object.keys(calendarWeeksEvents).length;
   const weeksOfMonth = getWeeksInMonth(now, {
     weekStartsOn: startDay === "monday" ? 1 : 0,
   });
-
-  // const eventos: CalendarGridEvent[] = events.flatMap((sourceEvent) => {
-  //   /**
-  //    * Default event, unless split into multiple parts
-  //    */
-  //   const def = {
-  //     sourceEvent,
-  //     start: sourceEvent.start,
-  //     end: sourceEvent.end ?? addMinutes(sourceEvent.start, 15),
-  //   };
-  //   let parts: { start: Date; end: Date }[] = [];
-  //   if (differenceInCalendarDays(def.end, def.start) > 0) {
-  //     // split event up into multiple events to not overflow a single day
-  //     // an event can't be longer than a day
-
-  //     const part0 = {
-  //       start: def.start,
-  //       end: endOfDay(def.start),
-  //     };
-  //     parts.push(part0);
-  //     while (true) {
-  //       const startOfPrevious = parts[parts.length - 1].start;
-  //       const nextDay = startOfDay(addDays(startOfPrevious, 1));
-  //       const nextDayEnd = min([endOfDay(nextDay), def.end]);
-  //       parts.push({
-  //         start: nextDay,
-  //         end: nextDayEnd,
-  //       });
-  //       if (nextDayEnd.getTime() >= def.end.getTime()) {
-  //         break;
-  //       }
-  //     }
-  //     return parts.map((part) => ({
-  //       sourceEvent,
-  //       start: part.start,
-  //       end: part.end,
-  //     }));
-  //   }
-  //   return def;
-  // });
-
-  // console.log(eventos);
 
   return (
     <MonthCalendarConfigContext.Provider
@@ -342,71 +297,151 @@ export function MonthCalendar(props: {
                 inset: 0,
               }}
             >
-              {[...Array(weeksOfMonth * 7)].map((_, i) => {
-                // Calculate the top position
-                const left = (i % 7) * 120;
-
-                // Calculate the top position
-                const top = Math.floor(i / 7) * 120;
-
-                const beginningOfCurrentWeek = addWeeks(
-                  startOfWeek(startOfMonth, {
-                    weekStartsOn: startDay === "monday" ? 1 : 0,
-                  }),
-                  Math.floor(i / 7),
+              {[...Array(weeksOfMonth)].map((_, i) => {
+                const groupedEvents = groupNonOverlappingEvents(
+                  calendarWeeksEvents[i],
                 );
-
-                const currentDate = addDays(beginningOfCurrentWeek, i % 7);
-                const isInCurrentMonth = isSameMonth(currentDate, startOfMonth);
-                const dayNumber = getDate(currentDate);
-                const monthName = format(currentDate, "MMM");
-                const active = getDate(now) === dayNumber;
-
-                const allDayEvents = calendarWeeksEvents[Math.floor(i / 7)][
-                  i % 7
-                ].allDayEvents.map((e, i) => (
-                  <CalendarAllDayEvent
-                    key={`allDayEvent-${i}`}
-                    {...e}
-                    sx={{ width: "100%" }}
-                  />
-                ));
-                const gridEvents = calendarWeeksEvents[Math.floor(i / 7)][
-                  i % 7
-                ].normalEvents.map((e, i) => (
-                  <MonthCalendarEvent
-                    key={`gridEvent-${i}`}
-                    {...e}
-                    state="normal"
-                  />
-                ));
-                const dayEvents = [...allDayEvents, ...gridEvents];
+                // console.log(groupedEvents);
                 return (
-                  <FlexCol
-                    key={i}
-                    position="absolute"
-                    gap="1px"
-                    left={`${left + 1}px`}
-                    top={`${top + 33}px`}
-                    width="119px"
+                  <Box
+                    key={`week-${i}`}
                     height="87px"
-                    zIndex={1}
+                    width="840px"
+                    position="absolute"
+                    sx={{ top: `${i * 120 + 33}px` }}
                   >
-                    {dayEvents.length > 5
-                      ? [...Array(5)].map((_, i) => {
-                          if (i === 4) {
-                            return (
-                              <MoreEventsButton
-                                key={`moreEventsButton-${i}`}
-                                number={dayEvents.length - 4}
-                              />
-                            );
-                          }
-                          return dayEvents[i];
-                        })
-                      : dayEvents}
-                  </FlexCol>
+                    {[...Array(5)].map((_, j) => {
+                      return (
+                        <Box
+                          key={`row-${j + 1}`}
+                          left="1px"
+                          position="absolute"
+                          top={`${j * 16 + 1}px`}
+                          width="840px"
+                          height="16px"
+                          zIndex={1}
+                        >
+                          {groupedEvents[j] &&
+                            groupedEvents[j].length > 0 &&
+                            groupedEvents[j].map((e, eventIndex) => {
+                              console.log(groupedEvents[j]);
+                              const eventDayDuration = differenceInDays(
+                                e.event.end ?? addMinutes(e.event.start, 15),
+                                e.event.start,
+                              );
+                              if (
+                                isAllDayEvent({
+                                  start: e.event.start,
+                                  end:
+                                    e.event.end ??
+                                    addMinutes(e.event.start, 15),
+                                })
+                              ) {
+                                if (eventDayDuration > 0) {
+                                  return (
+                                    <CalendarAllDayEvent
+                                      key={`multiDayEvent-${eventIndex}-week-${i}-row${j}`}
+                                      {...e.event}
+                                      sx={{
+                                        width: `${e.duration * 120}px`,
+                                        left: e.left,
+                                        // top: e.top,
+                                      }}
+                                    />
+                                  );
+                                }
+                                return (
+                                  <CalendarAllDayEvent
+                                    key={`allDayEvent-${eventIndex}-week-${i}-row${j}`}
+                                    {...e.event}
+                                    sx={{
+                                      width: "119px",
+                                      left: e.left,
+                                      // top: e.top,
+                                    }}
+                                  />
+                                );
+                              } else {
+                                return (
+                                  <MonthCalendarEvent
+                                    key={`normalEvent-${eventIndex}-week-${i}-row${j}`}
+                                    {...e.event}
+                                    sx={{ left: e.left, top: e.top }}
+                                    state="normal"
+                                  />
+                                );
+                              }
+                            })}
+                        </Box>
+                      );
+                    })}
+                  </Box>
                 );
+
+                // Calculate the top position
+                // const left = (i % 7) * 120;
+
+                // // Calculate the top position
+                // const top = Math.floor(i / 7) * 120;
+
+                // const beginningOfCurrentWeek = addWeeks(
+                //   startOfWeek(startOfMonth, {
+                //     weekStartsOn: startDay === "monday" ? 1 : 0,
+                //   }),
+                //   Math.floor(i / 7),
+                // );
+
+                // const currentDate = addDays(beginningOfCurrentWeek, i % 7);
+                // const isInCurrentMonth = isSameMonth(currentDate, startOfMonth);
+                // const dayNumber = getDate(currentDate);
+                // const monthName = format(currentDate, "MMM");
+                // const active = getDate(now) === dayNumber;
+
+                // const allDayEvents = calendarWeeksEvents[Math.floor(i / 7)][
+                //   i % 7
+                // ].allDayEvents.map((e, i) => (
+                //   <CalendarAllDayEvent
+                //     key={`allDayEvent-${i}`}
+                //     {...e}
+                //     sx={{ width: "100%" }}
+                //   />
+                // ));
+                // const gridEvents = calendarWeeksEvents[Math.floor(i / 7)][
+                //   i % 7
+                // ].normalEvents.map((e, i) => (
+                //   <MonthCalendarEvent
+                //     key={`gridEvent-${i}`}
+                //     {...e}
+                //     state="normal"
+                //   />
+                // ));
+                // const dayEvents = [...allDayEvents, ...gridEvents];
+                // return (
+                //   <FlexCol
+                //     key={i}
+                //     position="absolute"
+                //     gap="1px"
+                //     left={`${left + 1}px`}
+                //     top={`${top + 33}px`}
+                //     width="119px"
+                //     height="87px"
+                //     zIndex={1}
+                //   >
+                //     {dayEvents.length > 5
+                //       ? [...Array(5)].map((_, i) => {
+                //           if (i === 4) {
+                //             return (
+                //               <MoreEventsButton
+                //                 key={`moreEventsButton-${i}`}
+                //                 number={dayEvents.length - 4}
+                //               />
+                //             );
+                //           }
+                //           return dayEvents[i];
+                //         })
+                //       : dayEvents}
+                //   </FlexCol>
+                // );
               })}
             </Box>
           </Box>
