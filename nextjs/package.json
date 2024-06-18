@@ -9,7 +9,7 @@
     "lint": "next lint",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "test": "jest"
+    "test": "TZ=UTC jest"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
@@ -48,6 +48,7 @@
     "storybook": "^8.1.5",
     "tailwindcss": "^3.4.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "prettier": "^2.8.8"
   }
 }
