@@ -1,5 +1,5 @@
 import type { SxProps, Theme } from "@mui/material";
-import { endOfDay, startOfDay } from "date-fns";
+import { addMinutes, endOfDay, startOfDay } from "date-fns";
 import { CalendarEvent } from "./types";
 
 type Sx = SxProps<any>;
@@ -202,4 +202,11 @@ export function getEventColor(
     bg,
     color,
   };
+}
+
+export function getEventEnd(event: CalendarEvent) {
+  if (event.end && event.start.getTime() === event.end?.getTime()) {
+    return addMinutes(event.start, 15);
+  }
+  return event.end ?? endOfDay(event.start);
 }

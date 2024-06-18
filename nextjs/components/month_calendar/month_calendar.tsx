@@ -1,28 +1,39 @@
 import { Box, Button, Divider, Typography } from "@mui/material";
 import {
+  StartOfWeekOptions,
   addDays,
   addMinutes,
   addWeeks,
+  areIntervalsOverlapping,
+  differenceInCalendarDays,
   differenceInDays,
   differenceInMinutes,
   differenceInSeconds,
+  differenceInWeeks,
   endOfDay,
+  endOfWeek,
   format,
   getDate,
   getWeeksInMonth,
   isSameMonth,
+  isSameWeek,
+  isWithinInterval,
+  lastDayOfMonth,
+  max,
+  min,
   setDate,
   startOfDay,
   startOfWeek,
 } from "date-fns";
 import { createContext, useContext } from "react";
-import { isAllDayEvent } from "../helpers";
+import { getEventEnd, isAllDayEvent } from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarAllDayEvent } from "./calendar_all_day_event";
 import { getEventsPerWeek, groupNonOverlappingEvents } from "./helpers";
 import { MonthCalendarEvent } from "./month_calendar_event";
 import { MonthCalendarHeader } from "./month_calendar_header";
+import { ModifiableEvent } from "../week_calendar/types";
 
 export const MonthCalendarConfigContext = createContext<
   | undefined
@@ -63,6 +74,12 @@ const parseDefaultProps = (
     onCreateEvent: props.onCreateEvent,
     onMoveEvent: props.onMoveEvent,
   };
+};
+
+type MonthEvent = {
+  sourceEvent: CalendarEvent;
+  start: Date;
+  end: Date;
 };
 
 export function MonthCalendar(props: {
@@ -107,8 +124,119 @@ export function MonthCalendar(props: {
     newEnd: Date | undefined,
   ) => void;
 }) {
-  const { events, startDay, startOfMonth, now, onCreateEvent, onMoveEvent } =
-    parseDefaultProps(props);
+  const {
+    startDay,
+    startOfMonth,
+    now,
+    onCreateEvent,
+    onMoveEvent,
+    ...monthProps
+  } = parseDefaultProps(props);
+
+  const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
+    startDay === "monday" ? 1 : 0;
+
+  const startOfMonthCalendar = startOfWeek(startOfMonth, { weekStartsOn });
+  const endOfMonthCalendar = endOfWeek(lastDayOfMonth(startOfMonth), {
+    weekStartsOn,
+  });
+
+  // step 0.
+  // get all the events that are part of the month
+  const eventsInMonth: ModifiableEvent[] = monthProps.events
+    .filter((event) => {
+      areIntervalsOverlapping(
+        { start: startOfMonthCalendar, end: endOfMonthCalendar },
+        { start: event.start, end: getEventEnd(event) },
+      );
+    })
+    .map((event) => {
+      let start = max([event.start, startOfMonthCalendar]);
+      let end = min([getEventEnd(event), endOfMonthCalendar]);
+      return {
+        sourceEvent: event,
+        start: start,
+        end: end,
+      };
+    });
+
+  // step 1.
+  // split up events that span multiple weeks into multiple events that span a maximum of 1 week
+  // we also trim the events so they perfectly fit into our grid (see step 3)
+  /**
+   * Events that cross 12am are split into two events
+   */
+  const events: ModifiableEvent[] = eventsInMonth.flatMap((defaultEvent) => {
+    let parts: { start: Date; end: Date }[] = [];
+    if (differenceInWeeks(defaultEvent.end, defaultEvent.start) > 0) {
+      // split event up into multiple events to not overflow a single day
+      // an event can't be longer than a day
+
+      const part0 = {
+        start: defaultEvent.start,
+        end: endOfWeek(defaultEvent.start, { weekStartsOn }),
+      };
+      parts.push(part0);
+      while (true) {
+        const startOfPrevious = parts[parts.length - 1].start;
+        const nextWeek = startOfWeek(addDays(startOfPrevious, 1));
+        const nextWeekEnd = min([endOfWeek(nextWeek), defaultEvent.end]);
+        parts.push({
+          start: nextWeek,
+          end: nextWeekEnd,
+        });
+        if (nextWeekEnd.getTime() >= defaultEvent.end.getTime()) {
+          break;
+        }
+      }
+      return parts.map((part) => ({
+        sourceEvent: defaultEvent.sourceEvent,
+        start: part.start,
+        end: part.end,
+      }));
+    }
+    return defaultEvent;
+  });
+
+  // step 2.
+  // sort the events by 1. start date and 2. duration
+  events.sort((a, b) => {
+    const startComparison = a.start.getTime() - b.start.getTime();
+    if (startComparison !== 0) return startComparison;
+    return b.end.getTime() - a.end.getTime();
+  });
+
+  // step 3.
+  // for each week we have a grid of 7x5 positions. We loop over each event during the week and occupy the first available positions in the grid
+  // in this process we will get the x, y position for each event
+  const grid: (ModifiableEvent | null)[][][] = [];
+
+  events.forEach((event) => {
+    const day = differenceInDays(event.start, startOfMonthCalendar);
+    const week = Math.floor(day / 7);
+    grid[week] = grid[week] ?? [];
+    grid[week][day] = grid[week][day] ?? [];
+
+    // find the first available position
+    const firstAvailableRow = grid[week][day].findIndex(
+      (e) => typeof e === "undefined",
+    );
+    grid[week][day][firstAvailableRow] = event;
+    for (
+      let d = day;
+      day <= differenceInDays(event.end, startOfMonthCalendar);
+      d++
+    ) {
+      grid[week][d] = grid[week][d] ?? [];
+      const firstAvailableRow = grid[week][d].findIndex(
+        (e) => typeof e === "undefined",
+      );
+      grid[week][d][firstAvailableRow] = event;
+    }
+  });
+
+  console.log("@grid", grid);
+
 
   const calendarWeeksEvents = getEventsPerWeek(events, startDay, now);
 
@@ -304,6 +432,37 @@ export function MonthCalendar(props: {
                 inset: 0,
               }}
             >
+              {/* {events.map((event, index) => {
+                const { y, x } = calendarWeeksEvents[`${index}`];
+                return isAllDayEvent(event) ? (
+                  <>
+                    <CalendarAllDayEvent
+                      key={index}
+                      {...e.event}
+                      sx={{
+                        width: "119px",
+                        left: `${e.left}px`,
+                        // top: e.top,
+                        position: "absolute",
+                      }}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <MonthCalendarEvent
+                      key={index}
+                      {...e.event}
+                      sx={{
+                        left: `${e.left}px`,
+
+                        // top: e.top,
+                        position: "absolute",
+                      }}
+                      state="normal"
+                    />
+                  </>
+                );
+              })} */}
               {[...Array(weeksOfMonth)].map((_, i) => {
                 const groupedEvents = groupNonOverlappingEvents(
                   calendarWeeksEvents[i],
