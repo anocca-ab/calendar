@@ -116,6 +116,9 @@ export function MonthCalendar(props: {
     weekStartsOn: startDay === "monday" ? 1 : 0,
   });
 
+  console.log(
+    differenceInMinutes(startOfDay(new Date()), endOfDay(new Date())),
+  );
   return (
     <MonthCalendarConfigContext.Provider
       value={{
@@ -346,6 +349,7 @@ export function MonthCalendar(props: {
                                   />
                                 );
                               } else if (eventDuration >= 1440) {
+                                console.log("duration", e.duration);
                                 return (
                                   <CalendarAllDayEvent
                                     key={`multiDayEvent-${eventIndex}-week-${i}-row${j}`}

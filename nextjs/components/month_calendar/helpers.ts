@@ -85,26 +85,25 @@ export function getEventsPerWeek(
       weekStartsOn,
     });
 
+    const day = getDay(start);
+    const dayAsNumber =
+      day === 0 && weekStartsOn === 1
+        ? 6
+        : day === 1 && weekStartsOn === 1
+          ? 0
+          : day === 2 && weekStartsOn === 1
+            ? 1
+            : day === 3 && weekStartsOn === 1
+              ? 2
+              : day === 4 && weekStartsOn === 1
+                ? 3
+                : day === 5 && weekStartsOn === 1
+                  ? 4
+                  : day === 6 && weekStartsOn === 1
+                    ? 5
+                    : day;
     // does the event start and end in the same week
     if (weekOfMonthStart === weekOfMonthEnd) {
-      const day = getDay(start);
-      const dayAsNumber =
-        day === 0 && weekStartsOn === 1
-          ? 6
-          : day === 1 && weekStartsOn === 1
-            ? 0
-            : day === 2 && weekStartsOn === 1
-              ? 1
-              : day === 3 && weekStartsOn === 1
-                ? 2
-                : day === 4 && weekStartsOn === 1
-                  ? 3
-                  : day === 5 && weekStartsOn === 1
-                    ? 4
-                    : day === 6 && weekStartsOn === 1
-                      ? 5
-                      : day;
-
       const eventDuration = differenceInMinutes(
         end ?? addMinutes(start, 15),
         start,
@@ -135,19 +134,43 @@ export function getEventsPerWeek(
 
     // does the event span over more than 1 week
     if (weekOfMonthEnd > weekOfMonthStart) {
+      const endDay = getDay(end ?? addMinutes(start, 15));
+      const endDayAsNumber =
+        endDay === 0 && weekStartsOn === 1
+          ? 6
+          : endDay === 1 && weekStartsOn === 1
+            ? 0
+            : endDay === 2 && weekStartsOn === 1
+              ? 1
+              : endDay === 3 && weekStartsOn === 1
+                ? 2
+                : endDay === 4 && weekStartsOn === 1
+                  ? 3
+                  : endDay === 5 && weekStartsOn === 1
+                    ? 4
+                    : endDay === 6 && weekStartsOn === 1
+                      ? 5
+                      : endDay;
       for (let i = weekOfMonthStart; i <= weekOfMonthEnd; i++) {
+        // console.log(weekOfMonthStart, weekOfMonthEnd);
         if (i === weekOfMonthStart) {
-          const startDayAsNumber = getDay(start);
           calendarWeeksEvents[`${i - 1}`].multiDayEvents.push({
-            left: startDayAsNumber * 120 + 1,
+            left: dayAsNumber * 120 + 1,
             top: i * 120 + 33,
-            duration: eventDuration / 60,
+            duration: (7 - dayAsNumber) * 24,
+            event,
+          });
+        } else if (i === weekOfMonthEnd) {
+          calendarWeeksEvents[`${i - 1}`].multiDayEvents.push({
+            left: 0,
+            top: i * 120 + 33,
+            duration: (endDayAsNumber + 1) * 24,
             event,
           });
         } else {
           calendarWeeksEvents[`${i - 1}`].multiDayEvents.push({
             left: 1,
-            duration: eventDuration / 60,
+            duration: 7,
             top: i * 120 + 33,
             event,
           });
