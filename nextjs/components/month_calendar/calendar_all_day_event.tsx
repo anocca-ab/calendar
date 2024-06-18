@@ -6,17 +6,11 @@ import { FlexRow } from "../wrappers";
 
 export function CalendarAllDayEvent({
   title = "(No title)",
-  start,
-  end,
   color = "pink",
   sx,
 }: CalendarEvent & {
   sx?: SxProps<Theme>;
 }) {
-  if (!end) {
-    throw new Error("A full day event must have an end date!");
-  }
-
   return (
     <Box
       component={Button}
@@ -30,7 +24,7 @@ export function CalendarAllDayEvent({
           m: 0,
           background: "none",
         },
-        sx,
+        sx
       )}
     >
       <FlexRow

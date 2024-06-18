@@ -113,6 +113,12 @@ export const FilledCalendar: Story = {
         end: addMinutes(new Date(), 181),
         color: "indigo",
       },
+      {
+        title: "4 days event",
+        start: startOfDay(addDays(new Date(), 3)),
+        end: endOfDay(addDays(addDays(new Date(), 1), 6)),
+        color: "red",
+      },
     ],
   },
   render: (props) => {

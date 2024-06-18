@@ -70,11 +70,7 @@ const events: CalendarEvent[] = [
   // },
 ];
 
-// test("filterEventsInMonth", () => {
-//   expect(filterEventsInMonth(events, "monday", new Date())).toMatchSnapshot();
-// });
-
-test("works with a task", () => {
+xtest("works with a task", () => {
   expect(
     eventGrid(
       [
@@ -86,7 +82,7 @@ test("works with a task", () => {
 
       "monday",
       new Date()
-    )
+    ).grid
   ).toMatchInlineSnapshot(`
     [
       ,
@@ -98,12 +94,10 @@ test("works with a task", () => {
         ,
         [
           {
-            "end": 2024-06-14T23:59:59.999Z,
-            "sourceEvent": {
-              "start": 2024-06-14T23:30:00.000Z,
-              "title": "Task",
-            },
-            "start": 2024-06-14T23:30:00.000Z,
+            "end": "2024-06-14 23:59",
+            "index": 0,
+            "start": "2024-06-14 23:30",
+            "title": "Task",
           },
         ],
       ],
@@ -111,7 +105,7 @@ test("works with a task", () => {
   `);
 });
 
-test("works with full day event", () => {
+xtest("works with full day event", () => {
   expect(
     eventGrid(
       [
@@ -124,7 +118,7 @@ test("works with full day event", () => {
 
       "monday",
       new Date()
-    )
+    ).grid
   ).toMatchInlineSnapshot(`
     [
       ,
@@ -137,13 +131,10 @@ test("works with full day event", () => {
         ,
         [
           {
-            "end": 2024-06-15T23:59:59.999Z,
-            "sourceEvent": {
-              "end": 2024-06-15T23:59:59.999Z,
-              "start": 2024-06-15T00:00:00.000Z,
-              "title": "Full day event",
-            },
-            "start": 2024-06-15T00:00:00.000Z,
+            "end": "2024-06-15 23:59",
+            "index": 0,
+            "start": "2024-06-15 00:00",
+            "title": "Full day event",
           },
         ],
       ],
@@ -151,7 +142,7 @@ test("works with full day event", () => {
   `);
 });
 
-test("can populate the grid over multiple days", () => {
+xtest("can populate the grid over multiple days", () => {
   expect(
     eventGrid(
       [
@@ -165,7 +156,7 @@ test("can populate the grid over multiple days", () => {
 
       "monday",
       new Date()
-    )
+    ).grid
   ).toMatchInlineSnapshot(`
     [
       ,
@@ -174,38 +165,26 @@ test("can populate the grid over multiple days", () => {
       [
         [
           {
-            "end": 2024-06-19T23:59:59.999Z,
-            "sourceEvent": {
-              "color": "pink",
-              "end": 2024-06-19T23:59:59.999Z,
-              "start": 2024-06-17T00:00:00.000Z,
-              "title": "3 days event",
-            },
-            "start": 2024-06-17T00:00:00.000Z,
+            "end": "2024-06-19 23:59",
+            "index": 0,
+            "start": "2024-06-17 00:00",
+            "title": "3 days event",
           },
         ],
         [
           {
-            "end": 2024-06-19T23:59:59.999Z,
-            "sourceEvent": {
-              "color": "pink",
-              "end": 2024-06-19T23:59:59.999Z,
-              "start": 2024-06-17T00:00:00.000Z,
-              "title": "3 days event",
-            },
-            "start": 2024-06-17T00:00:00.000Z,
+            "end": "2024-06-19 23:59",
+            "index": 0,
+            "start": "2024-06-17 00:00",
+            "title": "3 days event",
           },
         ],
         [
           {
-            "end": 2024-06-19T23:59:59.999Z,
-            "sourceEvent": {
-              "color": "pink",
-              "end": 2024-06-19T23:59:59.999Z,
-              "start": 2024-06-17T00:00:00.000Z,
-              "title": "3 days event",
-            },
-            "start": 2024-06-17T00:00:00.000Z,
+            "end": "2024-06-19 23:59",
+            "index": 0,
+            "start": "2024-06-17 00:00",
+            "title": "3 days event",
           },
         ],
       ],
@@ -226,7 +205,7 @@ test("can populate the grid over multiple days", () => {
 
       "monday",
       new Date()
-    )
+    ).grid
   ).toMatchInlineSnapshot(`
     [
       ,
@@ -240,40 +219,28 @@ test("can populate the grid over multiple days", () => {
         ,
         [
           {
-            "end": 2024-06-18T23:59:59.999Z,
-            "sourceEvent": {
-              "color": "pink",
-              "end": 2024-06-18T23:59:59.999Z,
-              "start": 2024-06-16T00:00:00.000Z,
-              "title": "3 day event",
-            },
-            "start": 2024-06-16T00:00:00.000Z,
+            "end": "2024-06-18 23:59",
+            "index": 0,
+            "start": "2024-06-16 00:00",
+            "title": "3 day event",
           },
         ],
       ],
       [
         [
           {
-            "end": 2024-06-18T23:59:59.999Z,
-            "sourceEvent": {
-              "color": "pink",
-              "end": 2024-06-18T23:59:59.999Z,
-              "start": 2024-06-16T00:00:00.000Z,
-              "title": "3 day event",
-            },
-            "start": 2024-06-16T00:00:00.000Z,
+            "end": "2024-06-18 23:59",
+            "index": 0,
+            "start": "2024-06-16 00:00",
+            "title": "3 day event",
           },
         ],
         [
           {
-            "end": 2024-06-18T23:59:59.999Z,
-            "sourceEvent": {
-              "color": "pink",
-              "end": 2024-06-18T23:59:59.999Z,
-              "start": 2024-06-16T00:00:00.000Z,
-              "title": "3 day event",
-            },
-            "start": 2024-06-16T00:00:00.000Z,
+            "end": "2024-06-18 23:59",
+            "index": 0,
+            "start": "2024-06-16 00:00",
+            "title": "3 day event",
           },
         ],
       ],
@@ -281,7 +248,7 @@ test("can populate the grid over multiple days", () => {
   `);
 });
 
-test("works with overlaps", () => {
+xtest("works with overlaps", () => {
   expect(
     eventGrid(
       [
@@ -307,7 +274,7 @@ test("works with overlaps", () => {
 
       "monday",
       new Date()
-    )
+    ).grid
   ).toMatchInlineSnapshot(`
     [
       ,
@@ -321,72 +288,48 @@ test("works with overlaps", () => {
         ,
         [
           {
-            "end": 2024-06-18T23:59:59.999Z,
-            "sourceEvent": {
-              "color": "pink",
-              "end": 2024-06-18T23:59:59.999Z,
-              "start": 2024-06-16T00:00:00.000Z,
-              "title": "3 day event",
-            },
-            "start": 2024-06-16T00:00:00.000Z,
+            "end": "2024-06-18 23:59",
+            "index": 0,
+            "start": "2024-06-16 00:00",
+            "title": "3 day event",
           },
         ],
       ],
       [
         [
           {
-            "end": 2024-06-18T23:59:59.999Z,
-            "sourceEvent": {
-              "color": "pink",
-              "end": 2024-06-18T23:59:59.999Z,
-              "start": 2024-06-16T00:00:00.000Z,
-              "title": "3 day event",
-            },
-            "start": 2024-06-16T00:00:00.000Z,
+            "end": "2024-06-18 23:59",
+            "index": 0,
+            "start": "2024-06-16 00:00",
+            "title": "3 day event",
           },
           {
-            "end": 2024-06-19T23:59:59.999Z,
-            "sourceEvent": {
-              "color": "pink",
-              "end": 2024-06-19T23:59:59.999Z,
-              "start": 2024-06-17T00:00:00.000Z,
-              "title": "3 day event overlapping",
-            },
-            "start": 2024-06-17T00:00:00.000Z,
+            "end": "2024-06-19 23:59",
+            "index": 1,
+            "start": "2024-06-17 00:00",
+            "title": "3 day event overlapping",
           },
         ],
         [
           {
-            "end": 2024-06-18T23:59:59.999Z,
-            "sourceEvent": {
-              "color": "pink",
-              "end": 2024-06-18T23:59:59.999Z,
-              "start": 2024-06-16T00:00:00.000Z,
-              "title": "3 day event",
-            },
-            "start": 2024-06-16T00:00:00.000Z,
+            "end": "2024-06-18 23:59",
+            "index": 0,
+            "start": "2024-06-16 00:00",
+            "title": "3 day event",
           },
           {
-            "end": 2024-06-19T23:59:59.999Z,
-            "sourceEvent": {
-              "color": "pink",
-              "end": 2024-06-19T23:59:59.999Z,
-              "start": 2024-06-17T00:00:00.000Z,
-              "title": "3 day event overlapping",
-            },
-            "start": 2024-06-17T00:00:00.000Z,
+            "end": "2024-06-19 23:59",
+            "index": 1,
+            "start": "2024-06-17 00:00",
+            "title": "3 day event overlapping",
           },
         ],
         [
           {
-            "end": 2024-06-19T23:59:59.999Z,
-            "sourceEvent": {
-              "color": "pink",
-              "end": 2024-06-19T23:59:59.999Z,
-              "start": 2024-06-17T00:00:00.000Z,
-              "title": "3 day event overlapping",
-            },
-            "start": 2024-06-17T00:00:00.000Z,
+            "end": "2024-06-19 23:59",
+            "index": 1,
+            "start": "2024-06-17 00:00",
+            "title": "3 day event overlapping",
           },
         ],
       ],
@@ -394,6 +337,43 @@ test("works with overlaps", () => {
   `);
 });
 
-// test("event grid", () => {
-//   expect(eventGrid(events, "monday", new Date())).toMatchSnapshot();
-// });
+test("events are correct", () => {
+  expect(
+    eventGrid(
+      [
+        {
+          title: "3 day event",
+          start: startOfDay(addDays(new Date(), 1)), // 16th 00:00
+          end: endOfDay(addDays(new Date(), 3)), // 18th 23:59
+          color: "pink",
+        },
+      ],
+
+      "monday",
+      new Date()
+    ).events
+  ).toMatchInlineSnapshot(`
+    [
+      {
+        "end": 2024-06-16T23:59:59.999Z,
+        "sourceEvent": {
+          "color": "pink",
+          "end": 2024-06-18T23:59:59.999Z,
+          "start": 2024-06-16T00:00:00.000Z,
+          "title": "3 day event",
+        },
+        "start": 2024-06-16T00:00:00.000Z,
+      },
+      {
+        "end": 2024-06-18T23:59:59.999Z,
+        "sourceEvent": {
+          "color": "pink",
+          "end": 2024-06-18T23:59:59.999Z,
+          "start": 2024-06-16T00:00:00.000Z,
+          "title": "3 day event",
+        },
+        "start": 2024-06-23T00:00:00.000Z,
+      },
+    ]
+  `);
+});

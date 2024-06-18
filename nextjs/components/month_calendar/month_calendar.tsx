@@ -129,19 +129,20 @@ export function MonthCalendar(props: {
   const { startDay, now, onCreateEvent, onMoveEvent, ...monthProps } =
     parseDefaultProps(props);
 
-  const grid = eventGrid(monthProps.events, startDay, monthProps.startOfMonth);
+  const { eventProperties, events } = eventGrid(
+    monthProps.events,
+    startDay,
+    monthProps.startOfMonth,
+  );
 
-  const events = monthProps.events;
-
-  const calendarWeeksEvents = getEventsPerWeek(events, startDay, now);
+  // const calendarWeeksEvents = getEventsPerWeek(events, startDay, now);
 
   const weeksOfMonth = getWeeksInMonth(now, {
     weekStartsOn: startDay === "monday" ? 1 : 0,
   });
 
-  console.log(
-    differenceInMinutes(startOfDay(new Date()), endOfDay(new Date())),
-  );
+  console.log('@events', events);
+
   return (
     <MonthCalendarConfigContext.Provider
       value={{
@@ -330,18 +331,25 @@ export function MonthCalendar(props: {
                 inset: 0,
               }}
             >
-              {/* {events.map((event, index) => {
-                const { y, x } = calendarWeeksEvents[`${index}`];
+              {events.map((event, index) => {
+                const { week, day, row, } = eventProperties[`${index}`];
+                const width = differenceInCalendarDays(event.end, event.start);
+                if (row >= 5) {
+                  // it is part of the "more" button
+                  return null;
+                }
                 return isAllDayEvent(event) ? (
                   <>
                     <CalendarAllDayEvent
                       key={index}
-                      {...e.event}
+                      {...event.sourceEvent}
                       sx={{
-                        width: "119px",
-                        left: `${e.left}px`,
-                        // top: e.top,
+                        width: width * 119 - 1,
+                        left: `${day * 120 + 2}px`,
+                        top: week * 120 + row * (16 + 1) + 1 + 32,
+                        height: "16px",
                         position: "absolute",
+                        zIndex: 2,
                       }}
                     />
                   </>
@@ -349,19 +357,21 @@ export function MonthCalendar(props: {
                   <>
                     <MonthCalendarEvent
                       key={index}
-                      {...e.event}
+                      {...event.sourceEvent}
                       sx={{
-                        left: `${e.left}px`,
-
-                        // top: e.top,
+                        width: width * 119 - 1,
+                        left: `${day * 120 + 2}px`,
+                        top: week * 120 + row * (16 + 1) + 1 + 32,
+                        height: "16px",
                         position: "absolute",
+                        zIndex: 2,
                       }}
                       state="normal"
                     />
                   </>
                 );
-              })} */}
-              {[...Array(weeksOfMonth)].map((_, i) => {
+              })}
+              {/* {[...Array(weeksOfMonth)].map((_, i) => {
                 const groupedEvents = groupNonOverlappingEvents(
                   calendarWeeksEvents[i],
                 );
@@ -441,7 +451,7 @@ export function MonthCalendar(props: {
                     })}
                   </Box>
                 );
-              })}
+              })} */}
             </Box>
           </Box>
         </FlexRow>
