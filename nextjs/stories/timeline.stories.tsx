@@ -1,5 +1,6 @@
 import { Timeline } from "@/components/timeline/timeline";
 import type { Meta, StoryObj } from "@storybook/react";
+import { manyEvents } from "./many_events";
 
 const meta = {
   title: "Timeline Calendar",
@@ -49,4 +50,10 @@ type Story = StoryObj<typeof meta>;
 
 export const EmptyCalendar: Story = {
   args: {},
+};
+
+export const WithEvents: Story = {
+  args: {
+    events: manyEvents,
+  },
 };

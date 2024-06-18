@@ -10,7 +10,7 @@ import {
   startOfWeek,
   startOfYear,
 } from "date-fns";
-import { FlexRow } from "../wrappers";
+import { FlexCol, FlexRow } from "../wrappers";
 
 type Resolution = "year" | "month" | "3-years" | "3-months";
 
@@ -117,6 +117,40 @@ export function Timeline(props: {
   return (
     <Box>
       <Header startTime={startTime} resolution={resolution} now={now} />
+      <Grid
+        startTime={startTime}
+        resolution={resolution}
+        now={now}
+        events={events}
+      />
+    </Box>
+  );
+}
+
+function Grid({
+  startTime,
+  now,
+  resolution,
+  events,
+}: {
+  startTime: Date;
+  now: Date;
+  resolution: Resolution;
+  events: CalendarEvent[];
+}) {
+  return (
+    <Box
+      sx={{
+        position: "relative",
+      }}
+    >
+      {events.map((event, index) => {
+        return (
+          <Box key={index}>
+            <Typography variant="event">{event.title}</Typography>
+          </Box>
+        );
+      })}
     </Box>
   );
 }
@@ -152,16 +186,29 @@ function Header({
                 sx={{ width: "119px" }}
                 justifyContent={"center"}
               >
-                <Typography
-                  variant="h4"
-                  color={(theme) =>
-                    theme.palette.text[
-                      isSameWeek(week, now) ? "primary" : "secondary"
-                    ]
-                  }
-                >
-                  W{format(week, "I")}
-                </Typography>
+                <Box>
+                  <Typography
+                    variant="h4"
+                    color={(theme) =>
+                      theme.palette.text[
+                        isSameWeek(week, now) ? "primary" : "secondary"
+                        // or maybe use isSameISOWeek
+                      ]
+                    }
+                  >
+                    W{format(week, "I")}
+                  </Typography>
+                  {isSameWeek(week, now) && (
+                    <Box
+                      sx={{
+                        background: (theme) => theme.palette.primary.main,
+                        height: "2px",
+                        width: "100%",
+                        borderRadius: "2px",
+                      }}
+                    ></Box>
+                  )}
+                </Box>
               </FlexRow>,
             ];
             if (index < weeks.length - 1) {
@@ -187,6 +234,7 @@ function Header({
             return els;
           })}
         </FlexRow>
+        <Box sx={{ height: "16px" }} />
 
         <FlexRow>
           {days.map((day, index) => {
@@ -220,19 +268,33 @@ function Header({
                 <FlexRow
                   justifyContent="center"
                   alignItems={"center"}
-                  sx={{ width: `${w - 1}px` }}
+                  sx={{ width: `${w - 1}px`, height: "16px" }}
                 >
-                  <Typography
-                    variant="event"
-                    sx={{ fontSize: "8px" }}
-                    color={(theme) => {
-                      return theme.palette.text[
-                        isSameDay(day, now) ? "primary" : "secondary"
-                      ];
-                    }}
-                  >
-                    {format(day, "d")}
-                  </Typography>
+                  <FlexCol alignItems="center" justifyContent="center">
+                    <Typography
+                      variant="event"
+                      sx={{ fontSize: "8px", lineHeight: "8px" }}
+                      color={(theme) => {
+                        return theme.palette.text[
+                          isSameDay(day, now) ? "primary" : "secondary"
+                        ];
+                      }}
+                    >
+                      {format(day, "d")}
+                    </Typography>
+                    {isSameDay(day, now) && (
+                      <Box
+                        sx={{
+                          background: (theme) => theme.palette.primary.main,
+                          height: "1px",
+                          width: "8px",
+                          borderRadius: "1px",
+                          position: "absolute",
+                          bottom: "2px",
+                        }}
+                      ></Box>
+                    )}
+                  </FlexCol>
                 </FlexRow>
               </Box>
             );
