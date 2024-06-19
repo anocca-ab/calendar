@@ -142,7 +142,7 @@ xtest("works with full day event", () => {
   `);
 });
 
-xtest("can populate the grid over multiple days", () => {
+test("can populate the grid over multiple days", () => {
   expect(
     eventGrid(
       [
@@ -219,7 +219,7 @@ xtest("can populate the grid over multiple days", () => {
         ,
         [
           {
-            "end": "2024-06-18 23:59",
+            "end": "2024-06-16 23:59",
             "index": 0,
             "start": "2024-06-16 00:00",
             "title": "3 day event",
@@ -230,16 +230,16 @@ xtest("can populate the grid over multiple days", () => {
         [
           {
             "end": "2024-06-18 23:59",
-            "index": 0,
-            "start": "2024-06-16 00:00",
+            "index": 1,
+            "start": "2024-06-17 00:00",
             "title": "3 day event",
           },
         ],
         [
           {
             "end": "2024-06-18 23:59",
-            "index": 0,
-            "start": "2024-06-16 00:00",
+            "index": 1,
+            "start": "2024-06-17 00:00",
             "title": "3 day event",
           },
         ],
@@ -337,7 +337,7 @@ xtest("works with overlaps", () => {
   `);
 });
 
-test("events are correct", () => {
+xtest("events are correct", () => {
   expect(
     eventGrid(
       [

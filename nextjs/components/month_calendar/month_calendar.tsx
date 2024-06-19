@@ -333,7 +333,10 @@ export function MonthCalendar(props: {
             >
               {events.map((event, index) => {
                 const { week, day, row, } = eventProperties[`${index}`];
-                const width = differenceInCalendarDays(event.end, event.start);
+                let width = differenceInCalendarDays(event.end, event.start);
+                if (event.end.getTime() === endOfDay(event.start).getTime()) {
+                  width += 1;
+                }
                 if (row >= 5) {
                   // it is part of the "more" button
                   return null;
