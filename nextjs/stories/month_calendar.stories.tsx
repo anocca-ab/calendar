@@ -60,7 +60,6 @@ export const FilledCalendar: Story = {
   args: {
     events: [
       {
-        // data: { id: "1" },
         title: "Task",
         start: subMinutes(new Date(), 30),
         color: "pink",
