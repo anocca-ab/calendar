@@ -334,7 +334,7 @@ export function MonthCalendar(props: {
               {events.map((event, index) => {
                 const { week, day, row, } = eventProperties[`${index}`];
                 let width = differenceInCalendarDays(event.end, event.start);
-                if (event.end.getTime() === endOfDay(event.start).getTime()) {
+                if (event.end.getTime() === endOfDay(event.end).getTime()) {
                   width += 1;
                 }
                 if (row >= 5) {
