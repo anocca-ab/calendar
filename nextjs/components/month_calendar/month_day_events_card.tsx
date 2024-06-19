@@ -1,7 +1,7 @@
 import { Box, Button, Typography } from "@mui/material";
 import { CalendarEvent } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
-import { CalendarAllDayEvent } from "./calendar_all_day_event";
+import { CalendarAllDayEvent } from "./calendar_events";
 import { MonthCalendarEvent } from "./month_calendar_event";
 import { useMonthCalendar } from "./month_calendar";
 import { getDate } from "date-fns";

@@ -1,3 +1,4 @@
+import { CreateEvent } from "@/components/create_event";
 import { MonthCalendar } from "@/components/month_calendar/month_calendar";
 import { CalendarEvent } from "@/components/types";
 import { Meta, StoryObj } from "@storybook/react";
@@ -10,6 +11,7 @@ import {
   subHours,
   subMinutes,
 } from "date-fns";
+import React from "react";
 import { useRef, useState } from "react";
 
 const meta = {
@@ -128,38 +130,72 @@ export const FilledCalendar: Story = {
 function InteractiveDemo(
   props: React.ComponentPropsWithRef<typeof MonthCalendar>,
 ) {
-  const [events, setEvents] = useState<CalendarEvent[]>(props.events ?? []);
-  const [createModalOpen, setCreateModalOpen] = useState<
-    undefined | { start: Date; end?: Date; key: number }
+  const [events, setEvents] = React.useState<CalendarEvent[]>(
+    props.events ?? [],
+  );
+
+  const [editModalOpen, setEditModalOpen] = React.useState<
+    undefined | { event: CalendarEvent; key: number }
   >();
-  const onCloseCreateModal = useRef<undefined | ((cb: () => void) => void)>();
-  const onCreateEvent = (start: Date, end?: Date) => {
-    if (onCloseCreateModal.current) {
-      onCloseCreateModal.current(() => {
-        setCreateModalOpen({ start, end, key: Math.random() });
+
+  const onCloseModal = React.useRef<undefined | ((cb: () => void) => void)>();
+
+  const onEditEvent = (event: CalendarEvent) => {
+    if (onCloseModal.current) {
+      onCloseModal.current(() => {
+        setEditModalOpen({ event, key: Math.random() });
       });
     } else {
-      setCreateModalOpen({ start, end, key: Math.random() });
+      setEditModalOpen({ event, key: Math.random() });
     }
+  };
+
+  const onMoveEvent = (
+    event: CalendarEvent,
+    newStart: Date,
+    newEnd: Date | undefined,
+  ) => {
+    setEvents((prev) => {
+      return prev.map((ev) => {
+        if (ev === event) {
+          return {
+            ...ev,
+            start: newStart,
+            end: newEnd,
+          };
+        }
+        return ev;
+      });
+    });
   };
 
   return (
     <>
-      {/* {createModalOpen && (
+      {editModalOpen && (
         <CreateEvent
-          createModalConfig={createModalOpen}
-          setOnCloseCreateModal={onCloseCreateModal}
-          onSave={(event: CalendarEvent) => {
-            setEvents([...events, event]);
+          event={editModalOpen.event}
+          onCloseModalRef={onCloseModal}
+          onSave={(event: CalendarEvent, originalEvent: CalendarEvent) => {
+            if (events.includes(originalEvent)) {
+              setEvents(
+                events.map((ev) => (ev === originalEvent ? event : ev)),
+              );
+            } else {
+              // create
+              setEvents([...events, event]);
+            }
           }}
-          key={createModalOpen.key}
+          key={editModalOpen.key}
         />
-      )} */}
+      )}
       <MonthCalendar
         {...props}
         events={events}
-        onCreateEvent={onCreateEvent}
-        // onMoveEvent={onMoveEvent}
+        onCreateEvent={(start, end) => {
+          onEditEvent({ start, end });
+        }}
+        onEditEvent={onEditEvent}
+        onMoveEvent={onMoveEvent}
       />
     </>
   );

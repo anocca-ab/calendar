@@ -2,7 +2,7 @@ import type { SxProps, Theme } from "@mui/material";
 import { addMinutes, endOfDay, startOfDay } from "date-fns";
 import { CalendarEvent } from "./types";
 
-type Sx = SxProps<any>;
+type Sx = SxProps<Theme>;
 type ArrayType<T> = T extends ReadonlyArray<infer U> ? U[] : never;
 type SxArray = ArrayType<Sx>;
 
@@ -20,7 +20,7 @@ export function mergeSx(...sxs: (Sx | null | undefined | boolean)[]): Sx {
     if (Array.isArray(passedSx)) {
       sx.push(...passedSx);
     } else {
-      sx.push(passedSx);
+      sx.push(passedSx as any);
     }
   });
 

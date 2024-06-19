@@ -1,22 +1,21 @@
 import {
+  StartOfWeekOptions,
+  addDays,
   areIntervalsOverlapping,
-  max,
-  min,
+  differenceInCalendarWeeks,
+  differenceInDays,
   differenceInWeeks,
   endOfWeek,
-  startOfWeek,
-  addDays,
-  differenceInDays,
-  StartOfWeekOptions,
-  lastDayOfMonth,
   startOfMonth as fnsStartOfMonth,
-  addWeeks,
   format,
-  differenceInCalendarWeeks,
+  lastDayOfMonth,
+  max,
+  min,
+  startOfWeek,
 } from "date-fns";
 import { getEventEnd } from "../helpers";
+import { StartDay } from "../types";
 import { ModifiableEvent } from "../week_calendar/types";
-import { CalendarEvent, StartDay } from "../types";
 
 export function monthCalendarRange(startDay: StartDay, startOfMonth: Date) {
   const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
@@ -32,7 +31,7 @@ export function monthCalendarRange(startDay: StartDay, startOfMonth: Date) {
 }
 
 export function filterEventsInMonth(
-  _events: CalendarEvent[],
+  _events: ModifiableEvent[],
   startDay: StartDay,
   startOfMonth: Date,
 ) {
@@ -51,7 +50,7 @@ export function filterEventsInMonth(
       let start = max([event.start, startOfMonthCalendar]);
       let end = min([getEventEnd(event), endOfMonthCalendar]);
       return {
-        sourceEvent: event,
+        sourceEvent: event.sourceEvent,
         start: start,
         end: end,
       };
@@ -115,7 +114,7 @@ export function splitMultiWeekEvents(
 }
 
 export function eventGrid(
-  _events: CalendarEvent[],
+  _events: ModifiableEvent[],
   startDay: StartDay,
   startOfMonth: Date,
 ) {

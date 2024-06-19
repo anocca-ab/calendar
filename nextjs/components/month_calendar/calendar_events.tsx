@@ -1,40 +1,81 @@
-import {
-  Box,
-  Button,
-  Paper,
-  SvgIcon,
-  SxProps,
-  Theme,
-  Typography,
-} from "@mui/material";
+import { Box, Button, SvgIcon, Typography } from "@mui/material";
 import { format } from "date-fns";
+import { mergeSx } from "../helpers";
 import type { CalendarEvent } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { variationsToColorRecord } from "./helpers";
 
-export function MonthCalendarEvent({
-  title = "(No title)",
-  start,
-  end,
-  color = "orange",
-  state = "normal",
-  sx,
-}: CalendarEvent & {
-  sx?: SxProps<Theme>;
-  state: "normal" | "hover" | "selected";
-}) {
+import { EventTypography } from "./helpers";
+
+export function CalendarAllDayEvent({
+  event,
+  ...buttonProps
+}: {
+  event: CalendarEvent;
+} & React.ComponentPropsWithRef<typeof Button>) {
   return (
-    <Paper
+    <Box
       component={Button}
-      elevation={state === "selected" ? undefined : 0}
-      sx={{
-        position: "absolute",
-        width: "110px",
-        height: "16px",
-        p: 0,
-        justifyContent: "flex-start",
-        ...sx,
-      }}
+      {...buttonProps}
+      sx={mergeSx(
+        {
+          display: "flex",
+          height: "16px",
+          alignItems: "stretch",
+          justifyContent: "stretch",
+          p: 0,
+          m: 0,
+          background: "none",
+          "*": {
+            pointerEvents: "none",
+          },
+        },
+        buttonProps.sx
+      )}
+    >
+      <FlexRow
+        sx={{
+          backgroundColor: variationsToColorRecord[event.color ?? "orange"],
+          justifyContent: "flex-start",
+          padding: "0px 8px",
+          flex: 1,
+          borderRadius: "4px",
+          alignItems: "center",
+        }}
+      >
+        <EventTypography>{event.title ?? "(No title)"}</EventTypography>
+      </FlexRow>
+    </Box>
+  );
+}
+
+export function MonthCalendarEvent({
+  event: { title = "(No title)", start, color = "orange" },
+  state = "normal",
+  ...buttonProps
+}: {
+  event: CalendarEvent;
+  state: "normal" | "hover" | "selected";
+} & React.ComponentPropsWithRef<typeof Button>) {
+  return (
+    <Box
+      component={Button}
+      {...buttonProps}
+      sx={mergeSx(
+        {
+          position: "absolute",
+          width: "110px",
+          height: "16px",
+          p: 0,
+          justifyContent: "flex-start",
+          background: (theme) => theme.palette.background.paper,
+          boxShadow: (theme) => theme.shadows[1],
+          "*": {
+            pointerEvents: "none",
+          },
+        },
+        buttonProps.sx
+      )}
     >
       <FlexRow
         sx={{
@@ -90,7 +131,7 @@ export function MonthCalendarEvent({
           </Typography>
         </FlexRow>
       </FlexRow>
-    </Paper>
+    </Box>
   );
 }
 

@@ -37,12 +37,18 @@ import React, { createContext, useContext } from "react";
 import { getEventEnd, isAllDayEvent, mergeSx } from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
-import { CalendarAllDayEvent } from "./calendar_all_day_event";
+import { CalendarAllDayEvent, MonthCalendarEvent } from "./calendar_events";
 import { getEventsPerWeek, groupNonOverlappingEvents } from "./helpers";
-import { MonthCalendarEvent } from "./month_calendar_event";
 import { MonthCalendarHeader } from "./month_calendar_header";
 import { ModifiableEvent } from "../week_calendar/types";
 import { eventGrid } from "./event_grid";
+import {
+  DragPosition,
+  MouseState,
+  dayDiff,
+  useDragableEvents,
+  useMouse,
+} from "../week_calendar/use_mouse";
 
 export const MonthCalendarConfigContext = createContext<
   | undefined
@@ -82,6 +88,7 @@ const parseDefaultProps = (
     now,
     onCreateEvent: props.onCreateEvent,
     onMoveEvent: props.onMoveEvent,
+    onEditEvent: props.onEditEvent,
   };
 };
 
@@ -132,30 +139,110 @@ export function MonthCalendar(props: {
     newStart: Date,
     newEnd: Date | undefined,
   ) => void;
-}) {
-  const { startDay, now, onCreateEvent, onMoveEvent, ...monthProps } =
-    parseDefaultProps(props);
 
-  const { eventProperties, events, moreButtons } = eventGrid(
-    monthProps.events,
-    startDay,
-    monthProps.startOfMonth,
+  /**
+   * Triggered when an event clicked - open a modal or similar interface to edit the event
+   * @param event a calendar event
+   * @returns void
+   */
+  onEditEvent?: (event: CalendarEvent) => void;
+}) {
+  const { startDay, now, ...calendarProps } = parseDefaultProps(props);
+
+  const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
+    calendarProps.events,
+    "all-day",
   );
 
-  // const calendarWeeksEvents = getEventsPerWeek(events, startDay, now);
+  const daysInWeek = 7;
+
+  const { eventProperties, events, moreButtons } = eventGrid(
+    allEvents,
+    startDay,
+    calendarProps.startOfMonth,
+  );
 
   const weeksOfMonth = getWeeksInMonth(now, {
     weekStartsOn: startDay === "monday" ? 1 : 0,
   });
 
+  // handle drag and drop
+  /**
+   * if event has moved return the new start and end time
+   */
+  function calculateNewTime(
+    state: MouseState,
+    dragged: DragPosition<ModifiableEvent>,
+  ) {
+    if (state.pos && state.pos0) {
+      const addedDays = dayDiff(state.pos, state.pos0, dragged, daysInWeek);
+      const addedWeeks = Math.floor(
+        (state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY) /
+          120,
+      );
+
+      let start = dragged.event.sourceEvent.start;
+      let end =
+        dragged.event.sourceEvent.end ??
+        addMinutes(dragged.event.sourceEvent.start, 15);
+
+      if (addedWeeks !== 0) {
+        start = addWeeks(start, addedWeeks);
+        end = addWeeks(end, addedWeeks);
+      }
+
+      if (addedDays !== 0) {
+        start = addDays(start, addedDays);
+        end = addDays(end, addedDays);
+      }
+
+      if (addedWeeks !== 0 || addedDays !== 0) {
+        return {
+          start,
+          end,
+        };
+      }
+    }
+    return undefined;
+  }
+
+  const ome = calendarProps.onMoveEvent;
+  const onMoveEvent = ome
+    ? (event: ModifiableEvent, start: Date, end?: Date) => {
+        ome(event.sourceEvent, start, end);
+      }
+    : undefined;
+  const oev = calendarProps.onEditEvent;
+  const onEditEvent = oev
+    ? (event: ModifiableEvent) => {
+        oev(event.sourceEvent);
+      }
+    : undefined;
+
+  const effectRefs = React.useRef({
+    onMoveEvent,
+    events,
+    onEditEvent,
+    setDraggedEvent,
+    calculateNewTime,
+  });
+
+  effectRefs.current = {
+    onMoveEvent,
+    events,
+    onEditEvent,
+    setDraggedEvent,
+    calculateNewTime,
+  };
+
+  useMouse("month-calendar-event", effectRefs, false);
+
   return (
     <MonthCalendarConfigContext.Provider
       value={{
         startDay,
-        startOfMonth: monthProps.startOfMonth,
         now,
-        onCreateEvent,
-        onMoveEvent,
+        ...calendarProps,
       }}
     >
       <FlexCol width="904px" gap="1px">
@@ -244,7 +331,7 @@ export function MonthCalendar(props: {
                 const top = Math.floor(i / 7) * 120;
 
                 const beginningOfCurrentWeek = addWeeks(
-                  startOfWeek(monthProps.startOfMonth, {
+                  startOfWeek(calendarProps.startOfMonth, {
                     weekStartsOn: startDay === "monday" ? 1 : 0,
                   }),
                   Math.floor(i / 7),
@@ -253,7 +340,7 @@ export function MonthCalendar(props: {
                 const currentDate = addDays(beginningOfCurrentWeek, i % 7);
                 const isInCurrentMonth = isSameMonth(
                   currentDate,
-                  monthProps.startOfMonth,
+                  calendarProps.startOfMonth,
                 );
                 const dayNumber = getDate(currentDate);
                 const monthName = format(currentDate, "MMM");
@@ -360,38 +447,42 @@ export function MonthCalendar(props: {
                   if (event.end.getTime() === endOfDay(event.end).getTime()) {
                     width += 1;
                   }
+                  const dataProps: any = {
+                    "data-type": "month-calendar-event",
+                    "data-calendar-event": JSON.stringify({
+                      x: day,
+                      colX: 0,
+                      index,
+                      w: width,
+                    }),
+                  };
+                  const props: React.ComponentPropsWithoutRef<
+                    typeof CalendarAllDayEvent | typeof MonthCalendarEvent
+                  > = {
+                    event: event.sourceEvent,
+                    sx: {
+                      width: width * 119 - 1,
+                      left: `${day * 120 + 2}px`,
+                      top: week * 120 + row * (16 + 1) + 1 + 32,
+                      height: "16px",
+                      position: "absolute",
+                      zIndex: 2,
+                    },
+                    ...dataProps,
+                  };
                   return (
                     <React.Fragment key={index}>
                       {(maxRow <= 5 ? row < 5 : row < 4) ? (
                         // it is not part of the "more" button
                         isAllDayEvent(event) ? (
                           <>
-                            <CalendarAllDayEvent
-                              key={index}
-                              {...event.sourceEvent}
-                              sx={{
-                                width: width * 119 - 1,
-                                left: `${day * 120 + 2}px`,
-                                top: week * 120 + row * (16 + 1) + 1 + 32,
-                                height: "16px",
-                                position: "absolute",
-                                zIndex: 2,
-                              }}
-                            />
+                            <CalendarAllDayEvent key={index} {...props} />
                           </>
                         ) : (
                           <>
                             <MonthCalendarEvent
                               key={index}
-                              {...event.sourceEvent}
-                              sx={{
-                                width: width * 119 - 1,
-                                left: `${day * 120 + 2}px`,
-                                top: week * 120 + row * (16 + 1) + 1 + 32,
-                                height: "16px",
-                                position: "absolute",
-                                zIndex: 2,
-                              }}
+                              {...props}
                               state="normal"
                             />
                           </>

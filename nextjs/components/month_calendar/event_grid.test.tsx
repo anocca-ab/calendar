@@ -75,8 +75,13 @@ test("works with a task", () => {
     eventGrid(
       [
         {
-          title: "Task",
+          sourceEvent: {
+            title: "Task",
+            start: subMinutes(new Date(), 30), // 14th 23:30
+            end: subMinutes(new Date(), 15), // 14th 23:45
+          },
           start: subMinutes(new Date(), 30), // 14th 23:30
+          end: subMinutes(new Date(), 15), // 14th 23:45
         },
       ],
 
@@ -94,7 +99,7 @@ test("works with a task", () => {
         ,
         [
           {
-            "end": "2024-06-14 23:59",
+            "end": "2024-06-14 23:45",
             "index": 0,
             "start": "2024-06-14 23:30",
             "title": "Task",
@@ -110,7 +115,11 @@ test("works with full day event", () => {
     eventGrid(
       [
         {
-          title: "Full day event",
+          sourceEvent: {
+            title: "Full day event",
+            start: startOfDay(new Date()), // 15th 00:00
+            end: endOfDay(new Date()), // 15th 23:59
+          },
           start: startOfDay(new Date()), // 15th 00:00
           end: endOfDay(new Date()), // 15th 23:59
         },
@@ -147,10 +156,14 @@ test("can populate the grid over multiple days", () => {
     eventGrid(
       [
         {
-          title: "3 days event",
+          sourceEvent: {
+            title: "3 days event",
+            start: startOfDay(addDays(new Date(), 2)), // 17th 00:00
+            end: endOfDay(addDays(new Date(), 4)), // 19th 23:59
+            color: "pink",
+          },
           start: startOfDay(addDays(new Date(), 2)), // 17th 00:00
           end: endOfDay(addDays(new Date(), 4)), // 19th 23:59
-          color: "pink",
         },
       ],
 
@@ -196,10 +209,14 @@ test("can populate the grid over multiple days", () => {
     eventGrid(
       [
         {
-          title: "3 day event",
+          sourceEvent: {
+            title: "3 day event",
+            start: startOfDay(addDays(new Date(), 1)), // 16th 00:00
+            end: endOfDay(addDays(new Date(), 3)), // 18th 23:59
+            color: "pink",
+          },
           start: startOfDay(addDays(new Date(), 1)), // 16th 00:00
           end: endOfDay(addDays(new Date(), 3)), // 18th 23:59
-          color: "pink",
         },
       ],
 
@@ -253,16 +270,24 @@ test("works with overlaps", () => {
     eventGrid(
       [
         {
-          title: "3 day event",
+          sourceEvent: {
+            title: "3 day event",
+            start: startOfDay(addDays(new Date(), 1)), // 16th 00:00
+            end: endOfDay(addDays(new Date(), 3)), // 18th 23:59
+            color: "pink",
+          },
           start: startOfDay(addDays(new Date(), 1)), // 16th 00:00
           end: endOfDay(addDays(new Date(), 3)), // 18th 23:59
-          color: "pink",
         },
         {
-          title: "3 day event overlapping",
+          sourceEvent: {
+            title: "3 day event overlapping",
+            start: startOfDay(addDays(new Date(), 2)), // 17th 00:00
+            end: endOfDay(addDays(new Date(), 4)), // 19th 23:59
+            color: "pink",
+          },
           start: startOfDay(addDays(new Date(), 2)), // 17th 00:00
           end: endOfDay(addDays(new Date(), 4)), // 19th 23:59
-          color: "pink",
         },
         // {
         //   title: "loong event",
@@ -342,10 +367,14 @@ test("events are correct", () => {
     eventGrid(
       [
         {
-          title: "3 day event",
+          sourceEvent: {
+            title: "3 day event",
+            start: startOfDay(addDays(new Date(), 1)), // 16th 00:00
+            end: endOfDay(addDays(new Date(), 3)), // 18th 23:59
+            color: "pink",
+          },
           start: startOfDay(addDays(new Date(), 1)), // 16th 00:00
           end: endOfDay(addDays(new Date(), 3)), // 18th 23:59
-          color: "pink",
         },
       ],
 
@@ -383,16 +412,24 @@ test("eventProperties", () => {
     eventGrid(
       [
         {
-          title: "3 day event",
+          sourceEvent: {
+            title: "3 day event",
+            start: startOfDay(addDays(new Date(), 1)), // 16th 00:00
+            end: endOfDay(addDays(new Date(), 3)), // 18th 23:59
+            color: "pink",
+          },
           start: startOfDay(addDays(new Date(), 1)), // 16th 00:00
           end: endOfDay(addDays(new Date(), 3)), // 18th 23:59
-          color: "pink",
         },
         {
-          title: "3 day event overlapping",
+          sourceEvent: {
+            title: "3 day event overlapping",
+            start: startOfDay(addDays(new Date(), 2)), // 17th 00:00
+            end: endOfDay(addDays(new Date(), 4)), // 19th 23:59
+            color: "pink",
+          },
           start: startOfDay(addDays(new Date(), 2)), // 17th 00:00
           end: endOfDay(addDays(new Date(), 4)), // 19th 23:59
-          color: "pink",
         },
       ],
 

@@ -45,6 +45,7 @@ import {
   DraggedEvent,
   MouseState,
   MouseStatePos,
+  dayDiff,
   useDragableEvents,
   useMouse,
 } from "./use_mouse";
@@ -235,31 +236,6 @@ const parseAllDayEnd = (end: Date) => {
   return end;
 };
 
-/**
- * when dragging an event on the x axis, dayDiff how many days the event has moved
- * @returns
- */
-function dayDiff(
-  pos: MouseStatePos,
-  pos0: MouseStatePos,
-  dragged: DragPosition<ModifiableEvent>,
-  daysInWeek: number,
-) {
-  const rawDelta =
-    pos.x +
-    ((pos0.x - dragged.elX + dragged.colX) % 120) -
-    pos0.x +
-    pos.scrollX -
-    pos0.scrollX;
-  const minDiff = -dragged.x - dragged.w + 1;
-  // each event is 120px wide, so we can calculate how many days we have moved
-  const delta = Math.min(
-    Math.max(Math.floor(rawDelta / 120), minDiff),
-    daysInWeek - dragged.x - 1,
-  );
-  return delta;
-}
-
 function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
   const { workWeek, startOfWeek, now, onCreateEvent, ...calendarProps } =
     useCalendar();
@@ -328,7 +304,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
     calculateNewTime,
   };
 
-  useMouse("week-calendar-all-day-event", effectRefs);
+  useMouse("week-calendar-all-day-event", effectRefs, workWeek);
 
   const weekDays = [...Array(daysInWeek)].map((_, index) => {
     const day = addDays(startOfWeek, index);
@@ -859,7 +835,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
     calculateNewTime,
   };
 
-  useMouse("week-calendar-sub-day-event", effectRefs);
+  useMouse("week-calendar-sub-day-event", effectRefs, workWeek);
 
   const theme = useTheme();
 
