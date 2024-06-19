@@ -66,16 +66,6 @@ export const FilledCalendar: Story = {
         color: "pink",
       },
       {
-        title: "task",
-        start: addMinutes(new Date(), 30),
-        color: "pink",
-      },
-      {
-        title: "task",
-        start: addMinutes(new Date(), 30),
-        color: "pink",
-      },
-      {
         title: "Full day event",
         start: startOfDay(new Date()),
         end: addMinutes(startOfDay(new Date()), 1339),

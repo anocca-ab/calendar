@@ -263,8 +263,8 @@ export function eventGrid(
   > = {};
 
   events.forEach((event, eventIndex) => {
-    const { week, day, row } = eventProperties[eventIndex];
-    if (row > 5) {
+    const { week, day, row, maxRow } = eventProperties[eventIndex];
+    if (maxRow <= 5 ? row >= 5 : row >= 4) {
       const key = `${week}-${day}`;
       const moreButton = moreButtonsDict[key];
       if (moreButton) {
