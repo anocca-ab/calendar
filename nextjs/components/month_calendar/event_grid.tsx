@@ -132,10 +132,10 @@ export function eventGrid(
   const eventProperties: {
     [
       /**
-       * The key is the index of the event
+       * The index of the event
        */
-      key: string
-    ]: { row: number; day: number; week: number };
+      index: string
+    ]: { row: number; day: number; week: number; maxRow: number };
   } = {};
 
   // step 0.
@@ -213,6 +213,7 @@ export function eventGrid(
         row,
         day,
         week,
+        maxRow: 0,
       };
     }
   };
@@ -237,5 +238,51 @@ export function eventGrid(
       assignEventToGrid(week, day, index, event);
     }
   });
-  return { grid, eventProperties, events };
+
+  // get max row
+  grid.forEach((week) => {
+    week.forEach((day) => {
+      day.forEach((event) => {
+        eventProperties[event.index].maxRow = Math.max(
+          day.length,
+          eventProperties[event.index].maxRow,
+        );
+      });
+    });
+  });
+
+  // construct the list of more buttons
+  type MoreButton = { week: number; day: number; events: ModifiableEvent[] };
+
+  const moreButtonsDict: Record<
+    /**
+     * The key is the `${week}-${day}`
+     */
+    string,
+    MoreButton
+  > = {};
+
+  events.forEach((event, eventIndex) => {
+    const { week, day, row } = eventProperties[eventIndex];
+    if (row > 5) {
+      const key = `${week}-${day}`;
+      const moreButton = moreButtonsDict[key];
+      if (moreButton) {
+        moreButton.events.push(event);
+      } else {
+        moreButtonsDict[key] = {
+          week,
+          day,
+          events: [event],
+        };
+      }
+    }
+  });
+
+  return {
+    grid,
+    eventProperties,
+    events,
+    moreButtons: Object.values(moreButtonsDict),
+  };
 }

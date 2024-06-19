@@ -1,4 +1,11 @@
-import { Box, Button, Divider, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  ButtonProps,
+  Divider,
+  SxProps,
+  Typography,
+} from "@mui/material";
 import {
   StartOfWeekOptions,
   addDays,
@@ -27,7 +34,7 @@ import {
   startOfWeek,
 } from "date-fns";
 import React, { createContext, useContext } from "react";
-import { getEventEnd, isAllDayEvent } from "../helpers";
+import { getEventEnd, isAllDayEvent, mergeSx } from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarAllDayEvent } from "./calendar_all_day_event";
@@ -129,7 +136,7 @@ export function MonthCalendar(props: {
   const { startDay, now, onCreateEvent, onMoveEvent, ...monthProps } =
     parseDefaultProps(props);
 
-  const { eventProperties, events } = eventGrid(
+  const { eventProperties, events, moreButtons } = eventGrid(
     monthProps.events,
     startDay,
     monthProps.startOfMonth,
@@ -324,52 +331,76 @@ export function MonthCalendar(props: {
                 inset: 0,
               }}
             >
-              {events.map((event, index) => {
-                const { week, day, row } = eventProperties[`${index}`];
-                let width = differenceInCalendarDays(event.end, event.start);
-                if (event.end.getTime() === endOfDay(event.end).getTime()) {
-                  width += 1;
-                }
-                return (
-                  <React.Fragment key={index}>
-                    {row < 5 ? (
-                      // it is part of the "more" button
-                      isAllDayEvent(event) ? (
-                        <>
-                          <CalendarAllDayEvent
-                            key={index}
-                            {...event.sourceEvent}
-                            sx={{
-                              width: width * 119 - 1,
-                              left: `${day * 120 + 2}px`,
-                              top: week * 120 + row * (16 + 1) + 1 + 32,
-                              height: "16px",
-                              position: "absolute",
-                              zIndex: 2,
-                            }}
-                          />
-                        </>
-                      ) : (
-                        <>
-                          <MonthCalendarEvent
-                            key={index}
-                            {...event.sourceEvent}
-                            sx={{
-                              width: width * 119 - 1,
-                              left: `${day * 120 + 2}px`,
-                              top: week * 120 + row * (16 + 1) + 1 + 32,
-                              height: "16px",
-                              position: "absolute",
-                              zIndex: 2,
-                            }}
-                            state="normal"
-                          />
-                        </>
-                      )
-                    ) : null}
-                  </React.Fragment>
-                );
-              })}
+              <>
+                {moreButtons.map((moreButton, index) => {
+                  const { week, day, events } = moreButton;
+                  const row = 4;
+                  return (
+                    <MoreEventsButton
+                      className="more-events-button"
+                      numHiddenEvents={events.length}
+                      key={index}
+                      sx={{
+                        width: 119 - 1,
+                        left: `${day * 120 + 2}px`,
+                        top: week * 120 + row * (16 + 1) + 1 + 32,
+                        height: "16px",
+                        position: "absolute",
+                        zIndex: 2,
+                      }}
+                    />
+                  );
+                })}
+              </>
+              <>
+                {events.map((event, index) => {
+                  const { week, day, row, maxRow } =
+                    eventProperties[`${index}`];
+                  let width = differenceInCalendarDays(event.end, event.start);
+                  if (event.end.getTime() === endOfDay(event.end).getTime()) {
+                    width += 1;
+                  }
+                  return (
+                    <React.Fragment key={index}>
+                      {(maxRow <= 5 ? row < 5 : row < 4) ? (
+                        // it is not part of the "more" button
+                        isAllDayEvent(event) ? (
+                          <>
+                            <CalendarAllDayEvent
+                              key={index}
+                              {...event.sourceEvent}
+                              sx={{
+                                width: width * 119 - 1,
+                                left: `${day * 120 + 2}px`,
+                                top: week * 120 + row * (16 + 1) + 1 + 32,
+                                height: "16px",
+                                position: "absolute",
+                                zIndex: 2,
+                              }}
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <MonthCalendarEvent
+                              key={index}
+                              {...event.sourceEvent}
+                              sx={{
+                                width: width * 119 - 1,
+                                left: `${day * 120 + 2}px`,
+                                top: week * 120 + row * (16 + 1) + 1 + 32,
+                                height: "16px",
+                                position: "absolute",
+                                zIndex: 2,
+                              }}
+                              state="normal"
+                            />
+                          </>
+                        )
+                      ) : null}
+                    </React.Fragment>
+                  );
+                })}
+              </>
             </Box>
           </Box>
         </FlexRow>
@@ -407,21 +438,30 @@ function WeekIndicator({ title }: { title: string }) {
   );
 }
 
-function MoreEventsButton({ number }: { number: number }) {
+function MoreEventsButton({
+  numHiddenEvents,
+  ...buttonProps
+}: {
+  numHiddenEvents: number;
+} & ButtonProps) {
   return (
     <Button
       variant="text"
-      sx={{
-        justifyContent: "flex-start",
-        m: 0,
-        py: "0px",
-        px: "5px",
-        width: "117px",
-        height: "16px",
-        position: "absolute",
-        bottom: "1px",
-        borderRadius: "4px",
-      }}
+      {...buttonProps}
+      sx={mergeSx(
+        {
+          justifyContent: "flex-start",
+          m: 0,
+          py: "0px",
+          px: "5px",
+          width: "117px",
+          height: "16px",
+          position: "absolute",
+          bottom: "1px",
+          borderRadius: "4px",
+        },
+        buttonProps.sx,
+      )}
     >
       <Typography
         sx={{
@@ -433,7 +473,7 @@ function MoreEventsButton({ number }: { number: number }) {
           fontWeight: 500,
           lineHeight: "100%",
         }}
-      >{`${number} more`}</Typography>
+      >{`${numHiddenEvents} more`}</Typography>
     </Button>
   );
 }

@@ -70,7 +70,7 @@ const events: CalendarEvent[] = [
   // },
 ];
 
-xtest("works with a task", () => {
+test("works with a task", () => {
   expect(
     eventGrid(
       [
@@ -105,7 +105,7 @@ xtest("works with a task", () => {
   `);
 });
 
-xtest("works with full day event", () => {
+test("works with full day event", () => {
   expect(
     eventGrid(
       [
@@ -248,7 +248,7 @@ test("can populate the grid over multiple days", () => {
   `);
 });
 
-xtest("works with overlaps", () => {
+test("works with overlaps", () => {
   expect(
     eventGrid(
       [
@@ -288,7 +288,7 @@ xtest("works with overlaps", () => {
         ,
         [
           {
-            "end": "2024-06-18 23:59",
+            "end": "2024-06-16 23:59",
             "index": 0,
             "start": "2024-06-16 00:00",
             "title": "3 day event",
@@ -298,30 +298,30 @@ xtest("works with overlaps", () => {
       [
         [
           {
-            "end": "2024-06-18 23:59",
-            "index": 0,
-            "start": "2024-06-16 00:00",
-            "title": "3 day event",
-          },
-          {
             "end": "2024-06-19 23:59",
             "index": 1,
             "start": "2024-06-17 00:00",
             "title": "3 day event overlapping",
+          },
+          {
+            "end": "2024-06-18 23:59",
+            "index": 2,
+            "start": "2024-06-17 00:00",
+            "title": "3 day event",
           },
         ],
         [
           {
-            "end": "2024-06-18 23:59",
-            "index": 0,
-            "start": "2024-06-16 00:00",
-            "title": "3 day event",
-          },
-          {
             "end": "2024-06-19 23:59",
             "index": 1,
             "start": "2024-06-17 00:00",
             "title": "3 day event overlapping",
+          },
+          {
+            "end": "2024-06-18 23:59",
+            "index": 2,
+            "start": "2024-06-17 00:00",
+            "title": "3 day event",
           },
         ],
         [
@@ -337,7 +337,7 @@ xtest("works with overlaps", () => {
   `);
 });
 
-xtest("events are correct", () => {
+test("events are correct", () => {
   expect(
     eventGrid(
       [
@@ -372,8 +372,53 @@ xtest("events are correct", () => {
           "start": 2024-06-16T00:00:00.000Z,
           "title": "3 day event",
         },
-        "start": 2024-06-23T00:00:00.000Z,
+        "start": 2024-06-17T00:00:00.000Z,
       },
     ]
+  `);
+});
+
+test("eventProperties", () => {
+  expect(
+    eventGrid(
+      [
+        {
+          title: "3 day event",
+          start: startOfDay(addDays(new Date(), 1)), // 16th 00:00
+          end: endOfDay(addDays(new Date(), 3)), // 18th 23:59
+          color: "pink",
+        },
+        {
+          title: "3 day event overlapping",
+          start: startOfDay(addDays(new Date(), 2)), // 17th 00:00
+          end: endOfDay(addDays(new Date(), 4)), // 19th 23:59
+          color: "pink",
+        },
+      ],
+
+      "monday",
+      new Date()
+    ).eventProperties
+  ).toMatchInlineSnapshot(`
+    {
+      "0": {
+        "day": 6,
+        "maxRow": 1,
+        "row": 0,
+        "week": 2,
+      },
+      "1": {
+        "day": 0,
+        "maxRow": 2,
+        "row": 0,
+        "week": 3,
+      },
+      "2": {
+        "day": 0,
+        "maxRow": 2,
+        "row": 1,
+        "week": 3,
+      },
+    }
   `);
 });
