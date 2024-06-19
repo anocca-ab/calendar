@@ -26,7 +26,7 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
-import { createContext, useContext } from "react";
+import React, { createContext, useContext } from "react";
 import { getEventEnd, isAllDayEvent } from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
@@ -141,8 +141,6 @@ export function MonthCalendar(props: {
     weekStartsOn: startDay === "monday" ? 1 : 0,
   });
 
-  console.log('@events', events);
-
   return (
     <MonthCalendarConfigContext.Provider
       value={{
@@ -167,12 +165,7 @@ export function MonthCalendar(props: {
             }}
           >
             {[...Array(weeksOfMonth)].map((_, i) => {
-              return (
-                <WeekIndicator
-                  key={`weekIndicator-${i + 1}`}
-                  title={`${i + 1}`}
-                />
-              );
+              return <WeekIndicator key={i} title={`${i + 1}`} />;
             })}
           </FlexCol>
 
@@ -263,7 +256,7 @@ export function MonthCalendar(props: {
                   <FlexCol
                     p={0}
                     m={0}
-                    key={`day-${i}`}
+                    key={i}
                     component={Button}
                     position="absolute"
                     width="119px"
@@ -332,129 +325,51 @@ export function MonthCalendar(props: {
               }}
             >
               {events.map((event, index) => {
-                const { week, day, row, } = eventProperties[`${index}`];
+                const { week, day, row } = eventProperties[`${index}`];
                 let width = differenceInCalendarDays(event.end, event.start);
                 if (event.end.getTime() === endOfDay(event.end).getTime()) {
                   width += 1;
                 }
-                if (row >= 5) {
-                  // it is part of the "more" button
-                  return null;
-                }
-                return isAllDayEvent(event) ? (
-                  <>
-                    <CalendarAllDayEvent
-                      key={index}
-                      {...event.sourceEvent}
-                      sx={{
-                        width: width * 119 - 1,
-                        left: `${day * 120 + 2}px`,
-                        top: week * 120 + row * (16 + 1) + 1 + 32,
-                        height: "16px",
-                        position: "absolute",
-                        zIndex: 2,
-                      }}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <MonthCalendarEvent
-                      key={index}
-                      {...event.sourceEvent}
-                      sx={{
-                        width: width * 119 - 1,
-                        left: `${day * 120 + 2}px`,
-                        top: week * 120 + row * (16 + 1) + 1 + 32,
-                        height: "16px",
-                        position: "absolute",
-                        zIndex: 2,
-                      }}
-                      state="normal"
-                    />
-                  </>
+                return (
+                  <React.Fragment key={index}>
+                    {row < 5 ? (
+                      // it is part of the "more" button
+                      isAllDayEvent(event) ? (
+                        <>
+                          <CalendarAllDayEvent
+                            key={index}
+                            {...event.sourceEvent}
+                            sx={{
+                              width: width * 119 - 1,
+                              left: `${day * 120 + 2}px`,
+                              top: week * 120 + row * (16 + 1) + 1 + 32,
+                              height: "16px",
+                              position: "absolute",
+                              zIndex: 2,
+                            }}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <MonthCalendarEvent
+                            key={index}
+                            {...event.sourceEvent}
+                            sx={{
+                              width: width * 119 - 1,
+                              left: `${day * 120 + 2}px`,
+                              top: week * 120 + row * (16 + 1) + 1 + 32,
+                              height: "16px",
+                              position: "absolute",
+                              zIndex: 2,
+                            }}
+                            state="normal"
+                          />
+                        </>
+                      )
+                    ) : null}
+                  </React.Fragment>
                 );
               })}
-              {/* {[...Array(weeksOfMonth)].map((_, i) => {
-                const groupedEvents = groupNonOverlappingEvents(
-                  calendarWeeksEvents[i],
-                );
-                // console.log(groupedEvents);
-                return (
-                  <Box
-                    key={`week-${i}`}
-                    height="87px"
-                    width="840px"
-                    position="absolute"
-                    sx={{ top: `${i * 120 + 33}px` }}
-                  >
-                    {[...Array(5)].map((_, j) => {
-                      return (
-                        <Box
-                          key={`row-${j + 1}`}
-                          left="1px"
-                          position="absolute"
-                          top={`${j === 0 ? j * 16 : j * 16 + 1}px`}
-                          width="840px"
-                          height="16px"
-                          zIndex={1}
-                        >
-                          {groupedEvents[j] &&
-                            groupedEvents[j].length > 0 &&
-                            groupedEvents[j].map((e, eventIndex) => {
-                              const eventDuration = differenceInMinutes(
-                                e.event.end ?? addMinutes(e.event.start, 15),
-                                e.event.start,
-                              );
-                              if (eventDuration === 1339) {
-                                return (
-                                  <CalendarAllDayEvent
-                                    key={`allDayEvent-${eventIndex}-week-${i}-row${j}`}
-                                    {...e.event}
-                                    sx={{
-                                      width: "119px",
-                                      left: `${e.left}px`,
-                                      // top: e.top,
-                                      position: "absolute",
-                                    }}
-                                  />
-                                );
-                              } else if (eventDuration >= 1440) {
-                                console.log("duration", e.duration);
-                                return (
-                                  <CalendarAllDayEvent
-                                    key={`multiDayEvent-${eventIndex}-week-${i}-row${j}`}
-                                    {...e.event}
-                                    sx={{
-                                      width: `${(e.duration / 24) * 119}px`,
-                                      // width: "100%",
-                                      left: `${e.left}px`,
-                                      // top: e.top,
-                                      position: "absolute",
-                                    }}
-                                  />
-                                );
-                              } else {
-                                return (
-                                  <MonthCalendarEvent
-                                    key={`normalEvent-${eventIndex}-week-${i}-row${j}`}
-                                    {...e.event}
-                                    sx={{
-                                      left: `${e.left}px`,
-
-                                      // top: e.top,
-                                      position: "absolute",
-                                    }}
-                                    state="normal"
-                                  />
-                                );
-                              }
-                            })}
-                        </Box>
-                      );
-                    })}
-                  </Box>
-                );
-              })} */}
             </Box>
           </Box>
         </FlexRow>
