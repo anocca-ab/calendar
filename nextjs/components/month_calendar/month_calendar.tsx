@@ -28,7 +28,6 @@ import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarAllDayEvent, MonthCalendarEvent } from "./calendar_events";
 import { eventGrid } from "./event_grid";
 import { MonthCalendarHeader } from "./month_calendar_header";
-import { Triangle } from "../week_calendar/week_calendar";
 
 export const MonthCalendarConfigContext = createContext<
   | undefined
@@ -70,12 +69,6 @@ const parseDefaultProps = (
     onMoveEvent: props.onMoveEvent,
     onEditEvent: props.onEditEvent,
   };
-};
-
-type MonthEvent = {
-  sourceEvent: CalendarEvent;
-  start: Date;
-  end: Date;
 };
 
 export function MonthCalendar(props: {
@@ -155,8 +148,10 @@ export function MonthCalendar(props: {
     dragged: DragPosition<ModifiableEvent>,
   ) {
     if (state.pos && state.pos0) {
+      console.log(state.pos.y, state.pos0.y);
       const addedDays = dayDiff(state.pos, state.pos0, dragged, daysInWeek);
-      const addedWeeks = Math.floor(
+
+      const addedWeeks = Math.round(
         (state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY) /
           120,
       );

@@ -87,7 +87,10 @@ export function MonthCalendarEvent({
           p: 0,
           justifyContent: "flex-start",
           background: (theme) => theme.palette.background.paper,
-          boxShadow: (theme) => theme.shadows[1],
+          boxShadow:
+            state === "selected"
+              ? (theme) => theme.shadows[1]
+              : (theme) => theme.shadows[0],
           "*": {
             pointerEvents: "none",
           },
