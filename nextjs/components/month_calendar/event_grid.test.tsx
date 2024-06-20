@@ -1,15 +1,12 @@
 import {
-  subMinutes,
-  startOfDay,
-  addMinutes,
   addDays,
+  addMinutes,
   endOfDay,
-  subHours,
-  subWeeks,
-  addWeeks,
+  startOfDay,
+  subMinutes,
 } from "date-fns";
 import { CalendarEvent } from "../types";
-import { eventGrid, filterEventsInMonth } from "./event_grid";
+import { eventGrid } from "./event_grid";
 
 jest.useFakeTimers().setSystemTime(new Date("2024-06-15"));
 
@@ -86,8 +83,8 @@ test("works with a task", () => {
       ],
 
       "monday",
-      new Date()
-    ).grid
+      new Date(),
+    ).grid,
   ).toMatchInlineSnapshot(`
     [
       ,
@@ -126,8 +123,8 @@ test("works with full day event", () => {
       ],
 
       "monday",
-      new Date()
-    ).grid
+      new Date(),
+    ).grid,
   ).toMatchInlineSnapshot(`
     [
       ,
@@ -168,8 +165,8 @@ test("can populate the grid over multiple days", () => {
       ],
 
       "monday",
-      new Date()
-    ).grid
+      new Date(),
+    ).grid,
   ).toMatchInlineSnapshot(`
     [
       ,
@@ -221,8 +218,8 @@ test("can populate the grid over multiple days", () => {
       ],
 
       "monday",
-      new Date()
-    ).grid
+      new Date(),
+    ).grid,
   ).toMatchInlineSnapshot(`
     [
       ,
@@ -298,8 +295,8 @@ test("works with overlaps", () => {
       ],
 
       "monday",
-      new Date()
-    ).grid
+      new Date(),
+    ).grid,
   ).toMatchInlineSnapshot(`
     [
       ,
@@ -379,8 +376,8 @@ test("events are correct", () => {
       ],
 
       "monday",
-      new Date()
-    ).events
+      new Date(),
+    ).events,
   ).toMatchInlineSnapshot(`
     [
       {
@@ -434,8 +431,8 @@ test("eventProperties", () => {
       ],
 
       "monday",
-      new Date()
-    ).eventProperties
+      new Date(),
+    ).eventProperties,
   ).toMatchInlineSnapshot(`
     {
       "0": {

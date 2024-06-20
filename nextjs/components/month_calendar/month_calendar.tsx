@@ -1,47 +1,21 @@
+import { Box, Button, ButtonProps, Divider, Typography } from "@mui/material";
 import {
-  Box,
-  Button,
-  ButtonProps,
-  Divider,
-  SxProps,
-  Typography,
-} from "@mui/material";
-import {
-  StartOfWeekOptions,
   addDays,
   addMinutes,
   addWeeks,
-  areIntervalsOverlapping,
   differenceInCalendarDays,
-  differenceInDays,
-  differenceInMinutes,
-  differenceInSeconds,
-  differenceInWeeks,
   endOfDay,
-  endOfWeek,
   format,
   getDate,
   getWeeksInMonth,
   isSameMonth,
-  isSameWeek,
-  isWithinInterval,
-  lastDayOfMonth,
-  max,
-  min,
-  setDate,
-  startOfDay,
   startOfMonth,
   startOfWeek,
 } from "date-fns";
 import React, { createContext, useContext } from "react";
-import { getEventEnd, isAllDayEvent, mergeSx } from "../helpers";
+import { isAllDayEvent, mergeSx } from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
-import { FlexCol, FlexRow } from "../wrappers";
-import { CalendarAllDayEvent, MonthCalendarEvent } from "./calendar_events";
-import { getEventsPerWeek, groupNonOverlappingEvents } from "./helpers";
-import { MonthCalendarHeader } from "./month_calendar_header";
 import { ModifiableEvent } from "../week_calendar/types";
-import { eventGrid } from "./event_grid";
 import {
   DragPosition,
   MouseState,
@@ -49,6 +23,10 @@ import {
   useDragableEvents,
   useMouse,
 } from "../week_calendar/use_mouse";
+import { FlexCol, FlexRow } from "../wrappers";
+import { CalendarAllDayEvent, MonthCalendarEvent } from "./calendar_events";
+import { eventGrid } from "./event_grid";
+import { MonthCalendarHeader } from "./month_calendar_header";
 
 export const MonthCalendarConfigContext = createContext<
   | undefined
