@@ -9,11 +9,12 @@ import {
   getDate,
   getWeeksInMonth,
   isSameMonth,
+  isSameWeek,
   startOfMonth,
   startOfWeek,
 } from "date-fns";
 import React, { createContext, useContext } from "react";
-import { isAllDayEvent, mergeSx } from "../helpers";
+import { getEventEnd, isAllDayEvent, mergeSx } from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
 import { ModifiableEvent } from "../week_calendar/types";
 import {
@@ -27,6 +28,7 @@ import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarAllDayEvent, MonthCalendarEvent } from "./calendar_events";
 import { eventGrid } from "./event_grid";
 import { MonthCalendarHeader } from "./month_calendar_header";
+import { Triangle } from "../week_calendar/week_calendar";
 
 export const MonthCalendarConfigContext = createContext<
   | undefined
@@ -448,13 +450,45 @@ export function MonthCalendar(props: {
                     },
                     ...dataProps,
                   };
+
+                  const startOfWeekOfEventEnd = startOfWeek(
+                    getEventEnd(event.sourceEvent),
+                    {
+                      weekStartsOn: startDay === "monday" ? 1 : 0,
+                    },
+                  );
+                  const firstWeekStart = startOfWeek(
+                    calendarProps.startOfMonth,
+                    {
+                      weekStartsOn: startDay === "monday" ? 1 : 0,
+                    },
+                  );
+
+                  const triangleLeft =
+                    week === 0 &&
+                    width === 7 &&
+                    !isSameWeek(event.sourceEvent.start, firstWeekStart);
+                  const triangleRight =
+                    weeksOfMonth === week + 1 &&
+                    width === 7 &&
+                    !isSameWeek(event.end, startOfWeekOfEventEnd);
+                  const triangle = triangleRight
+                    ? "right"
+                    : triangleLeft
+                      ? "left"
+                      : undefined;
+
                   return (
                     <React.Fragment key={index}>
                       {(maxRow <= 5 ? row < 5 : row < 4) ? (
                         // it is not part of the "more" button
                         isAllDayEvent(event) ? (
                           <>
-                            <CalendarAllDayEvent key={index} {...props} />
+                            <CalendarAllDayEvent
+                              key={index}
+                              {...props}
+                              triangle={triangle}
+                            />
                           </>
                         ) : (
                           <>

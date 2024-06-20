@@ -4,15 +4,15 @@ import { CalendarEvent } from "@/components/types";
 import { Meta, StoryObj } from "@storybook/react";
 import {
   addDays,
-  addHours,
   addMinutes,
+  addWeeks,
   endOfDay,
   startOfDay,
   subHours,
   subMinutes,
+  subWeeks,
 } from "date-fns";
 import React from "react";
-import { useRef, useState } from "react";
 
 const meta = {
   title: "Month Calendar",
@@ -79,9 +79,9 @@ export const FilledCalendar: Story = {
         color: "pink",
       },
       {
-        title: "5 day event",
-        start: startOfDay(addDays(new Date(), 1)),
-        end: endOfDay(addDays(addDays(new Date(), 1), 4)),
+        title: "4 week event",
+        start: subWeeks(startOfDay(addDays(new Date(), 1)), 4),
+        end: endOfDay(addWeeks(addDays(new Date(), 1), 4)),
         color: "red",
       },
       {

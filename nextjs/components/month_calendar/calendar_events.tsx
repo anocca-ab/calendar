@@ -6,12 +6,15 @@ import { FlexCol, FlexRow } from "../wrappers";
 import { variationsToColorRecord } from "./helpers";
 
 import { EventTypography } from "./helpers";
+import { Triangle } from "../week_calendar/week_calendar";
 
 export function CalendarAllDayEvent({
   event,
+  triangle,
   ...buttonProps
 }: {
   event: CalendarEvent;
+  triangle?: "right" | "left";
 } & React.ComponentPropsWithRef<typeof Button>) {
   return (
     <Box
@@ -25,14 +28,23 @@ export function CalendarAllDayEvent({
           justifyContent: "stretch",
           p: 0,
           m: 0,
+          gap: 0,
           background: "none",
           "*": {
             pointerEvents: "none",
           },
         },
-        buttonProps.sx
+        buttonProps.sx,
       )}
     >
+      {triangle === "left" && (
+        <Triangle
+          direction={"left"}
+          height={16}
+          width={12}
+          color={event.color ?? "orange"}
+        />
+      )}
       <FlexRow
         sx={{
           backgroundColor: variationsToColorRecord[event.color ?? "orange"],
@@ -45,6 +57,14 @@ export function CalendarAllDayEvent({
       >
         <EventTypography>{event.title ?? "(No title)"}</EventTypography>
       </FlexRow>
+      {triangle === "right" && (
+        <Triangle
+          direction={"right"}
+          height={16}
+          width={12}
+          color={event.color ?? "orange"}
+        />
+      )}
     </Box>
   );
 }
@@ -74,7 +94,7 @@ export function MonthCalendarEvent({
             pointerEvents: "none",
           },
         },
-        buttonProps.sx
+        buttonProps.sx,
       )}
     >
       <FlexRow

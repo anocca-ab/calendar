@@ -197,7 +197,7 @@ export function WeekCalendar(props: {
   );
 }
 
-const Triangle = ({
+export const Triangle = ({
   width,
   height,
   direction,
