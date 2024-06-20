@@ -10,6 +10,7 @@ import {
   getWeeksInMonth,
   isSameMonth,
   isSameWeek,
+  startOfDay,
   startOfMonth,
   startOfWeek,
 } from "date-fns";
@@ -193,11 +194,13 @@ export function MonthCalendar(props: {
         oev(event.sourceEvent);
       }
     : undefined;
+  const onCreateEvent = calendarProps.onCreateEvent;
 
   const effectRefs = React.useRef({
     onMoveEvent,
     events,
     onEditEvent,
+    onCreateEvent,
     setDraggedEvent,
     calculateNewTime,
   });
@@ -205,6 +208,7 @@ export function MonthCalendar(props: {
   effectRefs.current = {
     onMoveEvent,
     events,
+    onCreateEvent,
     onEditEvent,
     setDraggedEvent,
     calculateNewTime,
@@ -327,6 +331,15 @@ export function MonthCalendar(props: {
                     m={0}
                     key={i}
                     component={Button}
+                    onClick={
+                      onCreateEvent
+                        ? () => {
+                            const start = startOfDay(currentDate);
+                            const end = endOfDay(currentDate);
+                            onCreateEvent(start, end);
+                          }
+                        : undefined
+                    }
                     position="absolute"
                     width="119px"
                     height="119px"
