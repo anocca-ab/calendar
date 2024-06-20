@@ -4,9 +4,8 @@ import { mergeSx } from "../helpers";
 import type { CalendarEvent } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { variationsToColorRecord } from "./helpers";
-
-import { EventTypography } from "./helpers";
 import { Triangle } from "../week_calendar/week_calendar";
+import { EventTypography } from "./helpers";
 
 export function CalendarAllDayEvent({
   event,
@@ -28,7 +27,6 @@ export function CalendarAllDayEvent({
           justifyContent: "stretch",
           p: 0,
           m: 0,
-          gap: 0,
           background: "none",
           "*": {
             pointerEvents: "none",
@@ -42,7 +40,7 @@ export function CalendarAllDayEvent({
           direction={"left"}
           height={16}
           width={12}
-          color={event.color ?? "orange"}
+          color={variationsToColorRecord[event.color ?? "orange"]}
         />
       )}
       <FlexRow
@@ -51,7 +49,7 @@ export function CalendarAllDayEvent({
           justifyContent: "flex-start",
           padding: "0px 8px",
           flex: 1,
-          borderRadius: "4px",
+          borderRadius: !triangle ? "4px" : "0px",
           alignItems: "center",
         }}
       >
@@ -62,7 +60,7 @@ export function CalendarAllDayEvent({
           direction={"right"}
           height={16}
           width={12}
-          color={event.color ?? "orange"}
+          color={variationsToColorRecord[event.color ?? "orange"]}
         />
       )}
     </Box>
