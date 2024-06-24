@@ -11,11 +11,14 @@ import { addDays, format, startOfWeek } from "date-fns";
 import { ReactElement } from "react";
 import { FlexCol, FlexRow } from "../wrappers";
 import { useMonthCalendar } from "./month_calendar";
+import { CalendarNavigationBar } from "../navigation_bar/calendar_navigation_bar";
 
 export function MonthCalendarHeader() {
+  const { now, startDay } = useMonthCalendar();
+
   return (
     <FlexCol width="100%">
-      {/* <CalendarLayoutBar /> */}
+      <CalendarNavigationBar now={now} startDay={startDay} type="month" />
       <MonthCalendarViewBar />
     </FlexCol>
   );
@@ -123,76 +126,3 @@ const ChevronLeft = (props: React.ComponentProps<"svg">) => (
     </svg>
   </SvgIcon>
 );
-
-export function CalendarLayoutBar() {
-  const { now, startDay } = useMonthCalendar();
-
-  const currentFirstDayOfTheWeek = startOfWeek(now, {
-    weekStartsOn: startDay === "monday" ? 1 : 0,
-  });
-
-  return (
-    <FlexRow
-      justifyContent="flex-start"
-      px="22px"
-      py="14px"
-      gap={3}
-      alignItems="center"
-    >
-      <Button
-        variant="outlined"
-        onClick={() => {
-          // dispatch({
-          //   type: "edit-currentFirstDayOfTheWeek",
-          //   currentFirstDayOfTheWeek: startOfWeek(now, {
-          //     weekStartsOn: startDay === "monday" ? 1 : 0,
-          //   }),
-          // });
-        }}
-      >
-        Today
-      </Button>
-      <FlexRow>
-        <IconButton
-          onClick={() => {
-            // dispatch({
-            //   type: "edit-currentFirstDayOfTheWeek",
-            //   currentFirstDayOfTheWeek: subWeeks(currentFirstDayOfTheWeek, 1),
-            // });
-          }}
-        >
-          <ChevronLeft />
-        </IconButton>
-        <IconButton
-          onClick={() => {
-            // dispatch({
-            //   type: "edit-currentFirstDayOfTheWeek",
-            //   currentFirstDayOfTheWeek: addWeeks(currentFirstDayOfTheWeek, 1),
-            // });
-          }}
-        >
-          <ChevronLeft style={{ transform: "rotate(180deg)" }} />
-        </IconButton>
-      </FlexRow>
-
-      <MonthYearRowDate date={currentFirstDayOfTheWeek} />
-      <WeekChip date={currentFirstDayOfTheWeek} />
-    </FlexRow>
-  );
-}
-
-function MonthYearRowDate({ date }: { date: Date }) {
-  const monthYear = format(date, "MMM yyyy");
-
-  return (
-    <FlexRow width={106} height={32}>
-      <Typography variant="h5">{monthYear}</Typography>
-    </FlexRow>
-  );
-}
-
-function WeekChip({ date }: { date: Date }) {
-  const weekNr = format(date, "w");
-
-  return <Chip label={`Week ${weekNr}`} sx={{ widht: 72, height: 32 }} />;
-}
