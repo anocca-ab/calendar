@@ -13,6 +13,8 @@ import {
   FormControl,
   FormControlLabel,
   FormGroup,
+  FormLabel,
+  InputLabel,
   MenuItem,
   Paper,
   Popper,
@@ -21,6 +23,7 @@ import {
   SvgIcon,
   TextField,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { TimeField } from "@mui/x-date-pickers/TimeField";
@@ -341,76 +344,67 @@ export function CreateEvent({
                 label="All day"
               />
             </FormGroup>
-            <Tooltip
-              title="Event color"
-              placement="top"
-              slotProps={{
-                popper: {
-                  modifiers: [
-                    {
-                      name: "offset",
-                      options: {
-                        offset: [0, -12],
-                      },
-                    },
-                  ],
-                },
-              }}
+          </FlexRow>
+
+          <FlexRow pt={1} gap={2} alignItems="flex-end">
+            <Box width={24} />
+
+            <Select
+              // sx={{
+              //   boxShadow: "none",
+              //   ".MuiOutlinedInput-input": {
+              //     p: 0,
+              //   },
+              //   ".MuiOutlinedInput-notchedOutline": {
+              //     border: 0,
+              //   },
+              //   "&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+              //     {
+              //       border: "none",
+              //     },
+              // }}
+              variant="standard"
+              size="small"
+              value={eventColor}
+              onChange={onChangeEventColor}
             >
-              <FormControl>
-                <Select
-                  sx={{
-                    boxShadow: "none",
-                    ".MuiOutlinedInput-notchedOutline": {
-                      border: 0,
-                    },
-                    "&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                      {
-                        border: "none",
-                      },
-                  }}
-                  size="small"
-                  value={eventColor}
-                  onChange={onChangeEventColor}
-                >
-                  <MenuItem value={"orange"}>
-                    {eventColor === "orange" ? (
-                      <CheckCircleIcon style={{ color: "#FF7043" }} />
-                    ) : (
-                      <CircleIcon style={{ color: "#FF7043" }} />
-                    )}
-                  </MenuItem>
-                  <MenuItem value={"indigo"}>
-                    {eventColor === "indigo" ? (
-                      <CheckCircleIcon style={{ color: "#5C6BC0" }} />
-                    ) : (
-                      <CircleIcon style={{ color: "#5C6BC0" }} />
-                    )}
-                  </MenuItem>
-                  <MenuItem value={"pink"}>
-                    {eventColor === "pink" ? (
-                      <CheckCircleIcon style={{ color: "#EC407A" }} />
-                    ) : (
-                      <CircleIcon style={{ color: "#EC407A" }} />
-                    )}
-                  </MenuItem>
-                  <MenuItem value={"teal"}>
-                    {eventColor === "teal" ? (
-                      <CheckCircleIcon style={{ color: "#26A69A" }} />
-                    ) : (
-                      <CircleIcon style={{ color: "#26A69A" }} />
-                    )}
-                  </MenuItem>
-                  <MenuItem value={"red"}>
-                    {eventColor === "red" ? (
-                      <CheckCircleIcon style={{ color: "#EF5350" }} />
-                    ) : (
-                      <CircleIcon style={{ color: "#EF5350" }} />
-                    )}
-                  </MenuItem>
-                </Select>
-              </FormControl>
-            </Tooltip>
+              <MenuItem value={"orange"}>
+                {eventColor === "orange" ? (
+                  <CheckCircleIcon style={{ color: "#FF7043" }} />
+                ) : (
+                  <CircleIcon style={{ color: "#FF7043" }} />
+                )}
+              </MenuItem>
+              <MenuItem value={"indigo"}>
+                {eventColor === "indigo" ? (
+                  <CheckCircleIcon style={{ color: "#5C6BC0" }} />
+                ) : (
+                  <CircleIcon style={{ color: "#5C6BC0" }} />
+                )}
+              </MenuItem>
+              <MenuItem value={"pink"}>
+                {eventColor === "pink" ? (
+                  <CheckCircleIcon style={{ color: "#EC407A" }} />
+                ) : (
+                  <CircleIcon style={{ color: "#EC407A" }} />
+                )}
+              </MenuItem>
+              <MenuItem value={"teal"}>
+                {eventColor === "teal" ? (
+                  <CheckCircleIcon style={{ color: "#26A69A" }} />
+                ) : (
+                  <CircleIcon style={{ color: "#26A69A" }} />
+                )}
+              </MenuItem>
+              <MenuItem value={"red"}>
+                {eventColor === "red" ? (
+                  <CheckCircleIcon style={{ color: "#EF5350" }} />
+                ) : (
+                  <CircleIcon style={{ color: "#EF5350" }} />
+                )}
+              </MenuItem>
+            </Select>
+            <Typography variant="body1">Event color</Typography>
           </FlexRow>
         </DialogContent>
         <DialogActions>
