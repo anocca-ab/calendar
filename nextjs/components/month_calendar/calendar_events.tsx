@@ -2,9 +2,8 @@ import { Box, Button, SvgIcon, Typography } from "@mui/material";
 import { format } from "date-fns";
 import { mergeSx } from "../helpers";
 import type { CalendarEvent } from "../types";
-import { FlexCol, FlexRow } from "../wrappers";
-import { variationsToColorRecord } from "./helpers";
 import { Triangle } from "../week_calendar/week_calendar";
+import { FlexCol, FlexRow } from "../wrappers";
 import { EventTypography } from "./helpers";
 
 export function CalendarAllDayEvent({
@@ -40,12 +39,12 @@ export function CalendarAllDayEvent({
           direction={"left"}
           height={16}
           width={12}
-          color={variationsToColorRecord[event.color ?? "orange"]}
+          color={event.color ?? "#FF7043"}
         />
       )}
       <FlexRow
         sx={{
-          backgroundColor: variationsToColorRecord[event.color ?? "orange"],
+          backgroundColor: event.color ?? "#FF7043",
           justifyContent: "flex-start",
           padding: "0px 8px",
           flex: 1,
@@ -60,7 +59,7 @@ export function CalendarAllDayEvent({
           direction={"right"}
           height={16}
           width={12}
-          color={variationsToColorRecord[event.color ?? "orange"]}
+          color={event.color ?? "#FF7043"}
         />
       )}
     </Box>
@@ -68,7 +67,7 @@ export function CalendarAllDayEvent({
 }
 
 export function MonthCalendarEvent({
-  event: { title = "(No title)", start, color = "orange" },
+  event: { title = "(No title)", start, color = "#FF7043" },
   state = "normal",
   ...buttonProps
 }: {
@@ -156,7 +155,7 @@ export function MonthCalendarEvent({
   );
 }
 
-function EventDot({ color = "orange" }: { color?: string }) {
+function EventDot({ color = "#FF7043" }: { color?: string }) {
   return (
     <SvgIcon sx={{ width: "8px", height: "8px" }} fontSize="inherit">
       <svg
@@ -166,12 +165,7 @@ function EventDot({ color = "orange" }: { color?: string }) {
         fill="none"
         viewBox="0 0 8 8"
       >
-        <circle
-          cx="4"
-          cy="4"
-          r="4"
-          fill={variationsToColorRecord[color]}
-        ></circle>
+        <circle cx="4" cy="4" r="4" fill={color}></circle>
       </svg>
     </SvgIcon>
   );

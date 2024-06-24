@@ -2,14 +2,6 @@ import { Typography, styled } from "@mui/material";
 import { addMinutes } from "date-fns";
 import { CalendarEvent } from "../types";
 
-export const variationsToColorRecord: Record<string, string> = {
-  orange: "#FF7043",
-  indigo: "#5C6BC0",
-  pink: "#EC407A",
-  teal: "#26A69A",
-  red: "#EF5350",
-};
-
 export const EventTypography = styled(Typography)(({ theme }) => ({
   color: theme.palette.primary.contrastText,
   fontWeight: 500,

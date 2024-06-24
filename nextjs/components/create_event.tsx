@@ -1,6 +1,8 @@
-import { CalendarEvent } from "@/components/types";
 import { isAllDayEvent } from "@/components/helpers";
+import { CalendarEvent } from "@/components/types";
 import { FlexRow } from "@/components/wrappers";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CircleIcon from "@mui/icons-material/Circle";
 import {
   Box,
   Button,
@@ -8,6 +10,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  FormControl,
   FormControlLabel,
   FormGroup,
   MenuItem,
@@ -37,9 +40,6 @@ import {
   startOfDay,
 } from "date-fns";
 import React from "react";
-import CircleIcon from "@mui/icons-material/Circle";
-import { variationsToColorRecord } from "./month_calendar/helpers";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 export function CreateEvent({
   event,
@@ -82,7 +82,7 @@ export function CreateEvent({
 
   const [eventColor, setEventColor] = React.useState("orange");
 
-  const handleChange = (event: SelectChangeEvent) => {
+  const onChangeEventColor = (event: SelectChangeEvent) => {
     setEventColor(event.target.value);
   };
 
@@ -357,77 +357,59 @@ export function CreateEvent({
                 },
               }}
             >
-              <Select
-                sx={{
-                  boxShadow: "none",
-                  ".MuiOutlinedInput-notchedOutline": {
-                    border: 0,
-                  },
-                  "&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                    {
-                      border: "none",
+              <FormControl>
+                <Select
+                  sx={{
+                    boxShadow: "none",
+                    ".MuiOutlinedInput-notchedOutline": {
+                      border: 0,
                     },
-                }}
-                size="small"
-                value={eventColor}
-                onChange={handleChange}
-              >
-                <MenuItem value={"orange"}>
-                  {eventColor === "orange" ? (
-                    <CheckCircleIcon
-                      style={{ color: variationsToColorRecord["orange"] }}
-                    />
-                  ) : (
-                    <CircleIcon
-                      style={{ color: variationsToColorRecord["orange"] }}
-                    />
-                  )}
-                </MenuItem>
-                <MenuItem value={"indigo"}>
-                  {eventColor === "indigo" ? (
-                    <CheckCircleIcon
-                      style={{ color: variationsToColorRecord["indigo"] }}
-                    />
-                  ) : (
-                    <CircleIcon
-                      style={{ color: variationsToColorRecord["indigo"] }}
-                    />
-                  )}
-                </MenuItem>
-                <MenuItem value={"pink"}>
-                  {eventColor === "pink" ? (
-                    <CheckCircleIcon
-                      style={{ color: variationsToColorRecord["pink"] }}
-                    />
-                  ) : (
-                    <CircleIcon
-                      style={{ color: variationsToColorRecord["pink"] }}
-                    />
-                  )}
-                </MenuItem>
-                <MenuItem value={"teal"}>
-                  {eventColor === "teal" ? (
-                    <CheckCircleIcon
-                      style={{ color: variationsToColorRecord["teal"] }}
-                    />
-                  ) : (
-                    <CircleIcon
-                      style={{ color: variationsToColorRecord["teal"] }}
-                    />
-                  )}
-                </MenuItem>
-                <MenuItem value={"red"}>
-                  {eventColor === "red" ? (
-                    <CheckCircleIcon
-                      style={{ color: variationsToColorRecord["red"] }}
-                    />
-                  ) : (
-                    <CircleIcon
-                      style={{ color: variationsToColorRecord["red"] }}
-                    />
-                  )}
-                </MenuItem>
-              </Select>
+                    "&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                      {
+                        border: "none",
+                      },
+                  }}
+                  size="small"
+                  value={eventColor}
+                  onChange={onChangeEventColor}
+                >
+                  <MenuItem value={"orange"}>
+                    {eventColor === "orange" ? (
+                      <CheckCircleIcon style={{ color: "#FF7043" }} />
+                    ) : (
+                      <CircleIcon style={{ color: "#FF7043" }} />
+                    )}
+                  </MenuItem>
+                  <MenuItem value={"indigo"}>
+                    {eventColor === "indigo" ? (
+                      <CheckCircleIcon style={{ color: "#5C6BC0" }} />
+                    ) : (
+                      <CircleIcon style={{ color: "#5C6BC0" }} />
+                    )}
+                  </MenuItem>
+                  <MenuItem value={"pink"}>
+                    {eventColor === "pink" ? (
+                      <CheckCircleIcon style={{ color: "#EC407A" }} />
+                    ) : (
+                      <CircleIcon style={{ color: "#EC407A" }} />
+                    )}
+                  </MenuItem>
+                  <MenuItem value={"teal"}>
+                    {eventColor === "teal" ? (
+                      <CheckCircleIcon style={{ color: "#26A69A" }} />
+                    ) : (
+                      <CircleIcon style={{ color: "#26A69A" }} />
+                    )}
+                  </MenuItem>
+                  <MenuItem value={"red"}>
+                    {eventColor === "red" ? (
+                      <CheckCircleIcon style={{ color: "#EF5350" }} />
+                    ) : (
+                      <CircleIcon style={{ color: "#EF5350" }} />
+                    )}
+                  </MenuItem>
+                </Select>
+              </FormControl>
             </Tooltip>
           </FlexRow>
         </DialogContent>
