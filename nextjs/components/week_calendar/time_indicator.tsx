@@ -1,6 +1,4 @@
-import { Box, SvgIcon, SvgIconProps } from "@mui/material";
-import { mergeSx } from "../helpers";
-import React from "react";
+import { Box } from "@mui/material";
 
 export const TimeIndicator = () => {
   return (

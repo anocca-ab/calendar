@@ -1,55 +1,42 @@
-import {
-  Box,
-  Button,
-  Divider,
-  Theme,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import { Box, Button, Divider, Typography, useTheme } from "@mui/material";
 import {
   StartOfWeekOptions,
   addDays,
   addMinutes,
   areIntervalsOverlapping,
   differenceInCalendarDays,
-  differenceInDays,
   differenceInMinutes,
   endOfDay,
   startOfWeek as fnsStartOfWeek,
   format,
-  getHours,
-  getMinutes,
   isSameDay,
   max,
   min,
   startOfDay,
 } from "date-fns";
 import React from "react";
+import { getEventColor, isAllDayEvent, mergeSx } from "../helpers";
+import { CalendarNavigationBar } from "../navigation_bar/calendar_navigation_bar";
 import { CalendarEvent, StartDay } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
-import { getEventColor, isAllDayEvent, mergeSx, parseColor } from "../helpers";
-import { TimeIndicator } from "./time_indicator";
+import { CalendarConfigContext, useCalendar } from "./context";
 import {
   Clique,
-  Graph,
   findAllCliques,
   findConnectedComponents,
   findEventOverlaps,
   getAllDayOverlaps,
 } from "./event_overlap_functions";
 import { subDayEventSize } from "./sub_day_event_size";
+import { TimeIndicator } from "./time_indicator";
 import { ModifiableEvent } from "./types";
-import { CalendarConfigContext, useCalendar } from "./context";
 import {
   DragPosition,
-  DraggedEvent,
   MouseState,
-  MouseStatePos,
   dayDiff,
   useDragableEvents,
   useMouse,
 } from "./use_mouse";
-import { CalendarNavigationBar } from "../navigation_bar/calendar_navigation_bar";
 
 const parseDefaultProps = (
   props: React.ComponentPropsWithRef<typeof WeekCalendar>,
