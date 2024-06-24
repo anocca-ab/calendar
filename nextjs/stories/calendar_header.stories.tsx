@@ -1,6 +1,7 @@
 import { Meta, StoryObj } from "@storybook/react";
 import { CalendarNavigationBar } from "@/components/navigation_bar/calendar_navigation_bar";
 import React from "react";
+import { startOfMonth, startOfWeek } from "date-fns";
 
 const meta = {
   title: "Navigation Bar",
@@ -31,14 +32,26 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const WeekCalendar: Story = {
-  args: { startDay: "monday", now: new Date(), type: "week" },
+  args: {
+    startDay: "monday",
+    now: new Date(),
+    currentDate: startOfWeek(new Date(), { weekStartsOn: 1 }),
+    setCurrentDate: () => {},
+    type: "week",
+  },
   render: (props) => {
     return <InteractiveDemo {...props} />;
   },
 };
 
 export const MonthCalendar: Story = {
-  args: { startDay: "monday", now: new Date(), type: "month" },
+  args: {
+    startDay: "monday",
+    now: new Date(),
+    type: "month",
+    currentDate: startOfMonth(new Date()),
+    setCurrentDate: () => {},
+  },
   render: (props) => {
     return <InteractiveDemo {...props} />;
   },

@@ -1,24 +1,26 @@
-import {
-  Box,
-  Button,
-  Chip,
-  Divider,
-  IconButton,
-  SvgIcon,
-  Typography,
-} from "@mui/material";
+import { Box, Divider, SvgIcon, Typography } from "@mui/material";
 import { addDays, format, startOfWeek } from "date-fns";
 import { ReactElement } from "react";
+import { CalendarNavigationBar } from "../navigation_bar/calendar_navigation_bar";
 import { FlexCol, FlexRow } from "../wrappers";
 import { useMonthCalendar } from "./month_calendar";
-import { CalendarNavigationBar } from "../navigation_bar/calendar_navigation_bar";
 
-export function MonthCalendarHeader() {
-  const { now, startDay } = useMonthCalendar();
+export function MonthCalendarHeader({
+  setCurrentMonth,
+}: {
+  setCurrentMonth: React.Dispatch<React.SetStateAction<Date>>;
+}) {
+  const { now, startDay, startOfMonth } = useMonthCalendar();
 
   return (
     <FlexCol width="100%">
-      <CalendarNavigationBar now={now} startDay={startDay} type="month" />
+      <CalendarNavigationBar
+        now={now}
+        startDay={startDay}
+        currentDate={startOfMonth}
+        setCurrentDate={setCurrentMonth}
+        type="month"
+      />
       <MonthCalendarViewBar />
     </FlexCol>
   );

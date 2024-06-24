@@ -121,7 +121,9 @@ export function MonthCalendar(props: {
    */
   onEditEvent?: (event: CalendarEvent) => void;
 }) {
-  const { startDay, now, ...calendarProps } = parseDefaultProps(props);
+  const { startDay, now, startOfMonth, ...calendarProps } =
+    parseDefaultProps(props);
+  const [currentMonth, setCurrentMonth] = React.useState(startOfMonth);
 
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
     calendarProps.events,
@@ -132,7 +134,7 @@ export function MonthCalendar(props: {
   const { eventProperties, events, moreButtons } = eventGrid(
     allEvents,
     startDay,
-    calendarProps.startOfMonth,
+    currentMonth,
   );
 
   const weeksOfMonth = getWeeksInMonth(now, {
@@ -220,10 +222,11 @@ export function MonthCalendar(props: {
         startDay,
         now,
         ...calendarProps,
+        startOfMonth: currentMonth,
       }}
     >
       <FlexCol width="904px" gap="1px">
-        <MonthCalendarHeader />
+        <MonthCalendarHeader setCurrentMonth={setCurrentMonth} />
 
         <FlexRow width="100%">
           {/* Week Indicator */}
@@ -308,17 +311,14 @@ export function MonthCalendar(props: {
                 const top = Math.floor(i / 7) * 120;
 
                 const beginningOfCurrentWeek = addWeeks(
-                  startOfWeek(calendarProps.startOfMonth, {
+                  startOfWeek(currentMonth, {
                     weekStartsOn: startDay === "monday" ? 1 : 0,
                   }),
                   Math.floor(i / 7),
                 );
 
                 const currentDate = addDays(beginningOfCurrentWeek, i % 7);
-                const isInCurrentMonth = isSameMonth(
-                  currentDate,
-                  calendarProps.startOfMonth,
-                );
+                const isInCurrentMonth = isSameMonth(currentDate, currentMonth);
                 const dayNumber = getDate(currentDate);
                 const monthName = format(currentDate, "MMM");
                 const active = getDate(now) === dayNumber;
@@ -463,12 +463,9 @@ export function MonthCalendar(props: {
                       weekStartsOn: startDay === "monday" ? 1 : 0,
                     },
                   );
-                  const firstWeekStart = startOfWeek(
-                    calendarProps.startOfMonth,
-                    {
-                      weekStartsOn: startDay === "monday" ? 1 : 0,
-                    },
-                  );
+                  const firstWeekStart = startOfWeek(currentMonth, {
+                    weekStartsOn: startDay === "monday" ? 1 : 0,
+                  });
 
                   const triangleLeft =
                     week === 0 &&

@@ -1,18 +1,15 @@
 import { Button, Chip, IconButton, SvgIcon, Typography } from "@mui/material";
-import { FlexRow } from "../wrappers";
 import {
   addMonths,
-  addQuarters,
   addWeeks,
   format,
   startOfMonth,
-  startOfQuarter,
   startOfWeek,
   subMonths,
-  subQuarters,
   subWeeks,
 } from "date-fns";
-import { useState } from "react";
+import React, { useCallback } from "react";
+import { FlexRow } from "../wrappers";
 
 const ChevronLeft = (props: React.ComponentProps<"svg">) => (
   <SvgIcon>
@@ -37,26 +34,55 @@ const ChevronLeft = (props: React.ComponentProps<"svg">) => (
 export function CalendarNavigationBar({
   now,
   startDay,
+  currentDate,
+  setCurrentDate,
   type,
 }: {
   now: Date;
   startDay: "monday" | "sunday";
-  type: "week" | "month" | "quarter";
+  currentDate: Date;
+  setCurrentDate: React.Dispatch<React.SetStateAction<Date>>;
+  type: "week" | "month";
 }) {
-  const [currentWeek, setCurrentWeek] = useState(
-    startOfWeek(now, {
-      weekStartsOn: startDay === "monday" ? 1 : 0,
-    }),
-  );
-  const [currentMonth, setCurrentMonth] = useState(startOfMonth(now));
-  const [currentQuarter, setCurrentQuarter] = useState(startOfMonth(now));
+  const [localDate, setLocalDate] = React.useState(currentDate);
+  const onPressLeft = useCallback(() => {
+    if (type === "month") {
+      const newDate = subMonths(localDate, 1);
+      setCurrentDate(newDate);
+      setLocalDate(newDate);
+    } else {
+      const newDate = subWeeks(localDate, 1);
+      setCurrentDate(newDate);
+      setLocalDate(newDate);
+    }
+  }, [localDate, setCurrentDate, type]);
 
-  const dateToUse =
-    type === "week"
-      ? currentWeek
-      : type === "month"
-        ? currentMonth
-        : currentQuarter;
+  const onPressToday = useCallback(() => {
+    if (type === "month") {
+      const newDate = startOfMonth(now);
+      setCurrentDate(newDate);
+      setLocalDate(newDate);
+    } else {
+      const newDate = startOfWeek(now, {
+        weekStartsOn: startDay === "monday" ? 1 : 0,
+      });
+
+      setCurrentDate(newDate);
+      setLocalDate(newDate);
+    }
+  }, [now, setCurrentDate, startDay, type]);
+
+  const onPressRight = useCallback(() => {
+    if (type === "month") {
+      const newDate = addMonths(localDate, 1);
+      setCurrentDate(newDate);
+      setLocalDate(newDate);
+    } else {
+      const newDate = addWeeks(localDate, 1);
+      setCurrentDate(newDate);
+      setLocalDate(newDate);
+    }
+  }, [localDate, setCurrentDate, type]);
 
   return (
     <FlexRow
@@ -65,56 +91,22 @@ export function CalendarNavigationBar({
       py="14px"
       gap={3}
       alignItems="center"
+      zIndex={1}
     >
-      <Button
-        variant="outlined"
-        onClick={() => {
-          setCurrentMonth(startOfMonth(now));
-          setCurrentWeek(
-            startOfWeek(now, { weekStartsOn: startDay === "monday" ? 1 : 0 }),
-          );
-          setCurrentQuarter(startOfQuarter(now));
-          // dispatch({
-          //   type: "edit-currentFirstDayOfTheWeek",
-          //   currentFirstDayOfTheWeek: startOfWeek(now, {
-          //     weekStartsOn: startDay === "monday" ? 1 : 0,
-          //   }),
-          // });
-        }}
-      >
+      <Button variant="outlined" onClick={onPressToday}>
         Today
       </Button>
       <FlexRow>
-        <IconButton
-          onClick={() => {
-            // dispatch({
-            //   type: "edit-currentFirstDayOfTheWeek",
-            //   currentFirstDayOfTheWeek: subWeeks(currentFirstDayOfTheWeek, 1),
-            // });
-            setCurrentWeek(subWeeks(currentWeek, 1));
-            setCurrentMonth(subMonths(currentMonth, 1));
-            setCurrentQuarter(subQuarters(currentQuarter, 1));
-          }}
-        >
+        <IconButton onClick={onPressLeft}>
           <ChevronLeft />
         </IconButton>
-        <IconButton
-          onClick={() => {
-            // dispatch({
-            //   type: "edit-currentFirstDayOfTheWeek",
-            //   currentFirstDayOfTheWeek: addWeeks(currentFirstDayOfTheWeek, 1),
-            // });
-            setCurrentWeek(addWeeks(currentWeek, 1));
-            setCurrentMonth(addMonths(currentMonth, 1));
-            setCurrentQuarter(addQuarters(currentQuarter, 1));
-          }}
-        >
+        <IconButton onClick={onPressRight}>
           <ChevronLeft style={{ transform: "rotate(180deg)" }} />
         </IconButton>
       </FlexRow>
 
-      <MonthYearRowDate date={dateToUse} />
-      <WeekChip date={dateToUse} />
+      <MonthYearRowDate date={localDate} />
+      {type === "week" && <WeekChip date={localDate} />}
     </FlexRow>
   );
 }

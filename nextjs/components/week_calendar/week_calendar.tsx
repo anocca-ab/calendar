@@ -49,6 +49,7 @@ import {
   useDragableEvents,
   useMouse,
 } from "./use_mouse";
+import { CalendarNavigationBar } from "../navigation_bar/calendar_navigation_bar";
 
 const parseDefaultProps = (
   props: React.ComponentPropsWithRef<typeof WeekCalendar>,
@@ -144,14 +145,16 @@ export function WeekCalendar(props: {
     onEditEvent,
   } = parseDefaultProps(props);
 
+  const [currentWeek, setCurrentWeek] = React.useState(startOfWeek);
+
   const allDayEvents: CalendarEvent[] = [];
   const gridEvents: CalendarEvent[] = [];
 
   events.forEach((event) => {
     const eventOverlapWithWeek = areIntervalsOverlapping(
       {
-        start: startOfWeek,
-        end: addDays(startOfWeek, workWeek ? 5 : 7),
+        start: currentWeek,
+        end: addDays(currentWeek, workWeek ? 5 : 7),
       },
       { start: event.start, end: event.end ?? event.start },
     );
@@ -172,7 +175,7 @@ export function WeekCalendar(props: {
       value={{
         startDay,
         workWeek,
-        startOfWeek,
+        startOfWeek: currentWeek,
         now,
         onCreateEvent,
         onEditEvent,
@@ -182,6 +185,13 @@ export function WeekCalendar(props: {
       <FlexCol width={workWeek ? "664px" : "904px"}>
         <FlexCol>
           <Box sx={{ width: 64 }}></Box>
+          <CalendarNavigationBar
+            now={now}
+            startDay={startDay}
+            currentDate={currentWeek}
+            setCurrentDate={setCurrentWeek}
+            type="week"
+          />
           <WeekCalendarHeader events={allDayEvents} />
         </FlexCol>
         <FlexRow width="100%">
