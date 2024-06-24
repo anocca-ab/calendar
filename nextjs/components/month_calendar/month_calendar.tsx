@@ -148,7 +148,6 @@ export function MonthCalendar(props: {
     dragged: DragPosition<ModifiableEvent>,
   ) {
     if (state.pos && state.pos0) {
-      console.log(state.pos.y, state.pos0.y);
       const addedDays = dayDiff(state.pos, state.pos0, dragged, daysInWeek);
 
       const addedWeeks = Math.round(
@@ -440,7 +439,7 @@ export function MonthCalendar(props: {
                       x: day,
                       colX: 0,
                       index,
-                      w: width,
+                      w: Math.max(width, 1),
                     }),
                   };
                   const props: React.ComponentPropsWithoutRef<
