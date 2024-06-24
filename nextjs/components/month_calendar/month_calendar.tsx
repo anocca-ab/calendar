@@ -8,6 +8,7 @@ import {
   format,
   getDate,
   getWeeksInMonth,
+  isSameDay,
   isSameMonth,
   isSameWeek,
   startOfDay,
@@ -321,7 +322,7 @@ export function MonthCalendar(props: {
                 const isInCurrentMonth = isSameMonth(currentDate, currentMonth);
                 const dayNumber = getDate(currentDate);
                 const monthName = format(currentDate, "MMM");
-                const active = getDate(now) === dayNumber;
+                const active = isSameDay(now, currentDate);
 
                 return (
                   <FlexCol
