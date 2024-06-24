@@ -125,7 +125,6 @@ export function MonthCalendar(props: {
 
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
     calendarProps.events,
-    "all-day",
   );
 
   const daysInWeek = 7;

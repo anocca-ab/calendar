@@ -243,7 +243,6 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
 
   const [events, draggedEvent, setDraggedEvent] = useDragableEvents(
     props.events,
-    "all-day",
   );
 
   const overlaps = getAllDayOverlaps(startOfWeek, daysInWeek, events);
@@ -602,7 +601,6 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
 
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
     props.events,
-    "sub-day",
   );
 
   /**

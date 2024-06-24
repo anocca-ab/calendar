@@ -10,6 +10,24 @@ import {
 } from "date-fns";
 
 export const manyEvents: CalendarEvent[] = [
+  {
+    start: addHours(
+      startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
+      2,
+    ),
+    title: "A full day task",
+  },
+  {
+    start: addHours(
+      startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
+      2,
+    ),
+    end: addHours(
+      startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
+      2,
+    ),
+    title: "A sub day task",
+  },
   // 2 overlapping on monday
   {
     start: addHours(

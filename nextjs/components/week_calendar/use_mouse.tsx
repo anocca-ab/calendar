@@ -1,7 +1,7 @@
+import { addMinutes, max } from "date-fns";
 import React from "react";
-import { useCalendar } from "./context";
+import { getEventEnd } from "../helpers";
 import { CalendarEvent } from "../types";
-import { addMinutes, endOfDay } from "date-fns";
 import { ModifiableEvent } from "./types";
 
 export type DraggedEvent<T extends { start: Date; end?: Date | undefined }> = {
@@ -219,10 +219,7 @@ export function useMouse<T extends { start: Date; end?: Date | undefined }>(
   }, [daysInWeek, effectRefs, target]);
 }
 
-export const useDragableEvents = (
-  events: CalendarEvent[],
-  type: "all-day" | "sub-day",
-) => {
+export const useDragableEvents = (events: CalendarEvent[]) => {
   const [draggedEvent, setDraggedEvent] = React.useState<
     DraggedEvent<ModifiableEvent> | undefined
   >(undefined);
@@ -233,26 +230,27 @@ export const useDragableEvents = (
   const allEvents: ModifiableEvent[] = events.map((sourceEvent) => ({
     sourceEvent,
     start: sourceEvent.start,
-    end:
-      sourceEvent.end ??
-      (type === "all-day"
-        ? endOfDay(sourceEvent.start)
-        : addMinutes(sourceEvent.start, 15)),
+    end: max([getEventEnd(sourceEvent), addMinutes(sourceEvent.start, 15)]),
   }));
 
   /**
    * Replace an existing event with the dragged event
    */
   if (draggedEvent?.dragged) {
+    const newDragged = {
+      ...draggedEvent.source,
+      ...draggedEvent.dragged,
+    };
+    newDragged.end = max([
+      getEventEnd(newDragged),
+      addMinutes(newDragged.start, 15),
+    ]);
     allEvents.splice(
       allEvents.findIndex(
         (ev) => ev.sourceEvent === draggedEvent.source.sourceEvent,
       ),
       1,
-      {
-        ...draggedEvent.source,
-        ...draggedEvent.dragged,
-      },
+      newDragged,
     );
   }
   return [allEvents, draggedEvent, setDraggedEvent] as const;
