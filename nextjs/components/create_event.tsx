@@ -13,8 +13,11 @@ import {
   MenuItem,
   Paper,
   Popper,
+  Select,
+  SelectChangeEvent,
   SvgIcon,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { TimeField } from "@mui/x-date-pickers/TimeField";
@@ -34,6 +37,9 @@ import {
   startOfDay,
 } from "date-fns";
 import React from "react";
+import CircleIcon from "@mui/icons-material/Circle";
+import { variationsToColorRecord } from "./month_calendar/helpers";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 export function CreateEvent({
   event,
@@ -72,7 +78,13 @@ export function CreateEvent({
     }
   };
 
-  const [title, setTitle] = React.useState(event.title ?? '');
+  const [title, setTitle] = React.useState(event.title ?? "");
+
+  const [eventColor, setEventColor] = React.useState("orange");
+
+  const handleChange = (event: SelectChangeEvent) => {
+    setEventColor(event.target.value);
+  };
 
   return (
     <React.Fragment>
@@ -329,6 +341,94 @@ export function CreateEvent({
                 label="All day"
               />
             </FormGroup>
+            <Tooltip
+              title="Event color"
+              placement="top"
+              slotProps={{
+                popper: {
+                  modifiers: [
+                    {
+                      name: "offset",
+                      options: {
+                        offset: [0, -12],
+                      },
+                    },
+                  ],
+                },
+              }}
+            >
+              <Select
+                sx={{
+                  boxShadow: "none",
+                  ".MuiOutlinedInput-notchedOutline": {
+                    border: 0,
+                  },
+                  "&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                    {
+                      border: "none",
+                    },
+                }}
+                size="small"
+                value={eventColor}
+                onChange={handleChange}
+              >
+                <MenuItem value={"orange"}>
+                  {eventColor === "orange" ? (
+                    <CheckCircleIcon
+                      style={{ color: variationsToColorRecord["orange"] }}
+                    />
+                  ) : (
+                    <CircleIcon
+                      style={{ color: variationsToColorRecord["orange"] }}
+                    />
+                  )}
+                </MenuItem>
+                <MenuItem value={"indigo"}>
+                  {eventColor === "indigo" ? (
+                    <CheckCircleIcon
+                      style={{ color: variationsToColorRecord["indigo"] }}
+                    />
+                  ) : (
+                    <CircleIcon
+                      style={{ color: variationsToColorRecord["indigo"] }}
+                    />
+                  )}
+                </MenuItem>
+                <MenuItem value={"pink"}>
+                  {eventColor === "pink" ? (
+                    <CheckCircleIcon
+                      style={{ color: variationsToColorRecord["pink"] }}
+                    />
+                  ) : (
+                    <CircleIcon
+                      style={{ color: variationsToColorRecord["pink"] }}
+                    />
+                  )}
+                </MenuItem>
+                <MenuItem value={"teal"}>
+                  {eventColor === "teal" ? (
+                    <CheckCircleIcon
+                      style={{ color: variationsToColorRecord["teal"] }}
+                    />
+                  ) : (
+                    <CircleIcon
+                      style={{ color: variationsToColorRecord["teal"] }}
+                    />
+                  )}
+                </MenuItem>
+                <MenuItem value={"red"}>
+                  {eventColor === "red" ? (
+                    <CheckCircleIcon
+                      style={{ color: variationsToColorRecord["red"] }}
+                    />
+                  ) : (
+                    <CircleIcon
+                      style={{ color: variationsToColorRecord["red"] }}
+                    />
+                  )}
+                </MenuItem>
+              </Select>
+            </Tooltip>
           </FlexRow>
         </DialogContent>
         <DialogActions>
@@ -342,6 +442,7 @@ export function CreateEvent({
                   start,
                   end,
                   title,
+                  color: eventColor,
                 },
                 event,
               );
