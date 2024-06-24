@@ -23,7 +23,7 @@ const meta = {
   args: {
     startDay: "monday",
     now: new Date(),
-    type: "month",
+    type: "week",
   },
 } satisfies Meta<typeof CalendarNavigationBar>;
 
@@ -39,13 +39,6 @@ export const WeekCalendar: Story = {
 
 export const MonthCalendar: Story = {
   args: { startDay: "monday", now: new Date(), type: "month" },
-  render: (props) => {
-    return <InteractiveDemo {...props} />;
-  },
-};
-
-export const QuarterCalendar: Story = {
-  args: { startDay: "monday", now: new Date(), type: "quarter" },
   render: (props) => {
     return <InteractiveDemo {...props} />;
   },
