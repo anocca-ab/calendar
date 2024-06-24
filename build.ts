@@ -54,7 +54,7 @@ await Bun.write(
         resolveJsonModule: true,
         isolatedModules: false,
         downlevelIteration: true,
-        jsx: "preserve",
+        jsx: "react-jsx",
         incremental: true,
         declaration: true,
         declarationMap: true,
