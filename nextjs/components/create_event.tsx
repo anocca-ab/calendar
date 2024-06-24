@@ -1,5 +1,6 @@
-import { isAllDayEvent } from "@/components/helpers";
+import type {} from '@mui/x-date-pickers/AdapterDateFnsV3'; // important for the build to work
 import { CalendarEvent } from "@/components/types";
+import { isAllDayEvent } from "@/components/helpers";
 import { FlexRow } from "@/components/wrappers";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CircleIcon from "@mui/icons-material/Circle";

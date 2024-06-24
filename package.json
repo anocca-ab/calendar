@@ -37,7 +37,8 @@
     "@docusaurus/module-type-aliases": "^3.3.2",
     "@docusaurus/tsconfig": "^3.3.2",
     "@docusaurus/types": "^3.3.2",
-    "prettier": "^2.8.8",
+    "@types/bun": "^1.1.5",
+    "prettier": "^3.3.2",
     "tsup": "^8.0.2",
     "typescript": "^5.4.5"
   },

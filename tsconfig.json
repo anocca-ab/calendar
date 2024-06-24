@@ -4,6 +4,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "strict": true,
+    "module": "esnext",
+    "target": "ESNext",
     "paths": {
       "@/*": ["./src/components/calendar/*"],
       "@site/*": ["./*"]
