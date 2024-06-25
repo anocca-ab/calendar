@@ -3,7 +3,10 @@ import { CalendarEvent, StartDay } from "../types";
 import {
   StartOfWeekOptions,
   addDays,
+  differenceInCalendarDays,
+  endOfDay,
   format,
+  getWeeksInMonth,
   isSameDay,
   isSameWeek,
   startOfMonth,
@@ -11,6 +14,15 @@ import {
   startOfYear,
 } from "date-fns";
 import { FlexCol, FlexRow } from "../wrappers";
+import { useDragableEvents } from "../week_calendar/use_mouse";
+import { eventGrid } from "../month_calendar/event_grid";
+import {
+  CalendarAllDayEvent,
+  MonthCalendarEvent,
+} from "../month_calendar/calendar_events";
+import { ModifiableEvent } from "../week_calendar/types";
+import { getEventEnd, isAllDayEvent } from "../helpers";
+import React from "react";
 
 type Resolution = "year" | "month" | "3-years" | "3-months";
 
@@ -29,7 +41,8 @@ const parseDefaultProps = (
 
   const startTime =
     resolution === "month"
-      ? startOfWeek(startOfMonth(rawSt), startOpts)
+      ? // ? startOfWeek(startOfMonth(rawSt), startOpts)
+        startOfMonth(rawSt)
       : resolution === "3-months"
         ? startOfMonth(rawSt)
         : resolution === "year"
@@ -113,7 +126,23 @@ export function Timeline(props: {
    */
   onEditEvent?: (event: CalendarEvent) => void;
 }) {
-  const { events, startTime, resolution, now } = parseDefaultProps(props);
+  const {
+    events: calendarEvents,
+    startTime,
+    resolution,
+    now,
+    startDay,
+  } = parseDefaultProps(props);
+
+  const [allEvents, draggedEvent, setDraggedEvent] =
+    useDragableEvents(calendarEvents);
+
+  const { eventProperties, events, moreButtons, grid } = eventGrid(
+    allEvents,
+    startDay,
+    startOfMonth(startTime),
+  );
+
   return (
     <Box>
       <Header startTime={startTime} resolution={resolution} now={now} />
@@ -122,6 +151,8 @@ export function Timeline(props: {
         resolution={resolution}
         now={now}
         events={events}
+        eventProperties={eventProperties}
+        startDay={startDay}
       />
     </Box>
   );
@@ -132,25 +163,147 @@ function Grid({
   now,
   resolution,
   events,
+  eventProperties,
+  startDay,
 }: {
+  startDay: StartDay;
   startTime: Date;
   now: Date;
   resolution: Resolution;
-  events: CalendarEvent[];
+  events: ModifiableEvent[];
+  eventProperties: {
+    [index: string]: {
+      row: number;
+      day: number;
+      week: number;
+      maxRow: number;
+    };
+  };
 }) {
+  const weeksOfMonth = getWeeksInMonth(now, {
+    weekStartsOn: startDay === "monday" ? 1 : 0,
+  });
+
   return (
     <Box
       sx={{
         position: "relative",
+        height: "120px",
       }}
     >
-      {events.map((event, index) => {
+      {/* {events.map((event, index) => {
+        if (resolution === "month") {
+        }
         return (
           <Box key={index}>
             <Typography variant="event">{event.title}</Typography>
           </Box>
         );
-      })}
+      })} */}
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+        }}
+      >
+        {events.map((event, index) => {
+          const { week, day, row, maxRow } = eventProperties[`${index}`];
+          let width = differenceInCalendarDays(event.end, event.start);
+          if (event.end.getTime() === endOfDay(event.end).getTime()) {
+            width += 1;
+          }
+          const dataProps: any = {
+            "data-type": "timeline-month-calendar-event",
+            "data-calendar-event": JSON.stringify({
+              x: day,
+              colX: 0,
+              index,
+              w: Math.max(width, 1),
+            }),
+          };
+          const props: React.ComponentPropsWithoutRef<
+            typeof CalendarAllDayEvent | typeof MonthCalendarEvent
+          > = {
+            event: event.sourceEvent,
+            sx: {
+              width: `${width * 16 - 1}px`,
+              left: `${week * day * 16}px`,
+              top: row * (16 + 1) + 1 + 32,
+              height: "16px",
+              position: "absolute",
+              zIndex: 2,
+            },
+            ...dataProps,
+          };
+
+          const startOfWeekOfEventEnd = startOfWeek(
+            getEventEnd(event.sourceEvent),
+            {
+              weekStartsOn: startDay === "monday" ? 1 : 0,
+            },
+          );
+          const firstWeekStart = startOfWeek(startDay, {
+            weekStartsOn: startDay === "monday" ? 1 : 0,
+          });
+
+          const triangleLeft =
+            week === 0 &&
+            width === 7 &&
+            !isSameWeek(event.sourceEvent.start, firstWeekStart);
+          const triangleRight =
+            weeksOfMonth === week + 1 &&
+            width === 7 &&
+            !isSameWeek(event.end, startOfWeekOfEventEnd);
+          const triangle = triangleRight
+            ? "right"
+            : triangleLeft
+              ? "left"
+              : undefined;
+
+          return (
+            <React.Fragment key={index}>
+              {(maxRow <= 5 ? row < 5 : row < 4) ? (
+                // it is not part of the "more" button
+                isAllDayEvent(event) ? (
+                  <>
+                    {/* <CalendarAllDayEvent
+                      key={index}
+                      {...props}
+                      triangle={undefined}
+                    /> */}
+                    <Box
+                      zIndex={2}
+                      sx={{
+                        width: `${width * 16 - 1}px`,
+                        left: `${week * day * 16}px`,
+                        top: row * (16 + 1) + 1 + 32,
+                        height: "16px",
+                        position: "absolute",
+                        backgroundColor: "red",
+                      }}
+                    />
+                  </>
+                ) : (
+                  <>
+                    {/* <MonthCalendarEvent key={index} {...props} state="normal" /> */}
+                    <Box
+                      zIndex={2}
+                      sx={{
+                        width: `${8 - 1}px`,
+                        left: `${week * day * 16}px`,
+                        top: row * (16 + 1) + 1 + 32,
+                        height: "16px",
+                        position: "absolute",
+                        backgroundColor: "red",
+                      }}
+                    />
+                  </>
+                )
+              ) : null}
+            </React.Fragment>
+          );
+        })}
+      </Box>
     </Box>
   );
 }
