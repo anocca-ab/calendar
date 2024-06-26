@@ -8,8 +8,6 @@ import {
   areIntervalsOverlapping,
   differenceInCalendarDays,
   endOfDay,
-  endOfMonth,
-  endOfWeek,
   endOfYear,
   format,
   isSameDay,
@@ -21,10 +19,8 @@ import {
   startOfYear,
 } from "date-fns";
 import React from "react";
-import { eventGrid, monthCalendarRange } from "../event_grid";
+import { eventGrid } from "../event_grid";
 import { DEFAULT_COLOR, getEventEnd } from "../helpers";
-import { filterEventsInMonth } from "../month_calendar/filter_events_in_month";
-import { EventTypography } from "../month_calendar/helpers";
 import { CalendarEvent, StartDay } from "../types";
 import { ModifiableEvent } from "../week_calendar/types";
 import { useDragableEvents } from "../week_calendar/use_mouse";
@@ -301,9 +297,12 @@ function Grid({
                     alignItems: "center",
                   }}
                 >
-                  <EventTypography>
+                  <Typography
+                    variant="event"
+                    color={(theme) => theme.palette.primary.contrastText}
+                  >
                     {event.sourceEvent.title ?? "(No title)"}
-                  </EventTypography>
+                  </Typography>
                 </FlexRow>
               </Box>
             </React.Fragment>

@@ -1,8 +1,8 @@
 import { isAllDayEvent } from "@/components/helpers";
 import { CalendarEvent } from "@/components/types";
 import { FlexRow } from "@/components/wrappers";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CircleIcon from "@mui/icons-material/Circle";
+// import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+// import CircleIcon from "@mui/icons-material/Circle";
 import {
   Box,
   Button,
@@ -356,9 +356,9 @@ export function CreateEvent({
                 (hex) => (
                   <MenuItem key={hex} value={hex}>
                     {eventColor === hex ? (
-                      <CheckCircleIcon style={{ color: hex }} />
+                      <Box sx={{ color: hex, width: "8px", height: "8px" }} />
                     ) : (
-                      <CircleIcon style={{ color: hex }} />
+                      <Box sx={{ color: hex, width: "8px", height: "8px" }} />
                     )}
                   </MenuItem>
                 )

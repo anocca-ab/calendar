@@ -4,7 +4,7 @@ import { DEFAULT_COLOR, mergeSx } from "../helpers";
 import type { CalendarEvent } from "../types";
 import { Triangle } from "../week_calendar/week_calendar";
 import { FlexCol, FlexRow } from "../wrappers";
-import { EventTypography, widthToPct } from "./helpers";
+import { widthToPct } from "../helpers";
 
 export function CalendarAllDayEvent({
   event,
@@ -54,7 +54,12 @@ export function CalendarAllDayEvent({
           alignItems: "center",
         }}
       >
-        <EventTypography>{event.title ?? "(No title)"}</EventTypography>
+        <Typography
+          variant="event"
+          color={(theme) => theme.palette.primary.contrastText}
+        >
+          {event.title ?? "(No title)"}
+        </Typography>
       </FlexRow>
       {triangle === "right" && (
         <Triangle
@@ -90,7 +95,7 @@ export function MonthCalendarEvent({
           justifyContent: "flex-start",
           background: "none",
           minWidth: "auto",
-          overflow: 'hidden',
+          overflow: "hidden",
           boxShadow:
             state === "selected"
               ? (theme) => theme.shadows[1]

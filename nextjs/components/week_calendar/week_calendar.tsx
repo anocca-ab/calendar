@@ -15,8 +15,7 @@ import {
   startOfDay,
 } from "date-fns";
 import React from "react";
-import { getEventColor, isAllDayEvent, mergeSx } from "../helpers";
-import { CalendarNavigationBar } from "../navigation_bar/calendar_navigation_bar";
+import { getEventColor, isAllDayEvent, mergeSx, widthToPct } from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarConfigContext, useCalendar } from "./context";
@@ -38,7 +37,6 @@ import {
   useDragableEvents,
   useMouse,
 } from "./use_mouse";
-import { widthToPct } from "../month_calendar/helpers";
 
 const parseDefaultProps = (
   props: React.ComponentPropsWithRef<typeof WeekCalendar>

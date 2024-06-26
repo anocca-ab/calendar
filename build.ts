@@ -2,13 +2,15 @@ import { Glob, $ } from "bun";
 import { mkdir, rmdir } from "node:fs/promises";
 import path from "node:path";
 
+const baseDir = "lib-out";
+
 const glob = new Glob("**/*.{ts,tsx}");
 
-await rmdir("lib-out", { recursive: true });
-await mkdir("lib-out", { recursive: true });
+await rmdir(baseDir, { recursive: true });
+await mkdir(baseDir, { recursive: true });
 
 await Bun.write(
-  "lib-out/package.json",
+  path.join(baseDir, "package.json"),
   JSON.stringify(
     {
       name: "@anocca/calendar",
@@ -38,7 +40,7 @@ await Bun.write(
   ),
 );
 await Bun.write(
-  "lib-out/tsconfig.json",
+  path.join(baseDir, "tsconfig.json"),
   JSON.stringify(
     {
       compilerOptions: {
@@ -75,20 +77,20 @@ for await (const file of glob.scan("nextjs/components")) {
     continue;
   }
   const dir = path.parse(file).dir;
-  const outDir = path.join("lib-out", dir);
+  const outDir = path.join(baseDir, dir);
   await mkdir(outDir, { recursive: true });
   const f = Bun.file(path.join("nextjs/components", file));
-  await Bun.write(path.join("lib-out", file), f);
+  await Bun.write(path.join(baseDir, file), f);
 }
 
-await Bun.write("lib-out/bun.lockb", Bun.file("lib-out.lockb"));
+await Bun.write(path.join(baseDir, "bun.lockb"), Bun.file("lib-out.lockb"));
 
-await $`cd lib-out && bun install`;
+await $`cd ${baseDir} && bun install`;
 
-await Bun.write("lib-out.lockb", Bun.file("lib-out/bun.lockb"));
+await Bun.write("lib-out.lockb", Bun.file(path.join(baseDir, "bun.lockb")));
 
 await Bun.write(
-  "lib-out/index.ts",
+  path.join(baseDir, "index.ts"),
   [
     "export { WeekCalendar } from './week_calendar/week_calendar';",
     "export { MonthCalendar } from './month_calendar/month_calendar';",
@@ -101,8 +103,11 @@ interface PickerValidDateLookup {
   "date-fns": Date;
 }
 `;
-$`${extraDateType} >> lib-out/node_modules/@mui/x-date-pickers/models/pickers.d.ts`;
+$`${extraDateType} >> ${path.join(baseDir, "node_modules/@mui/x-date-pickers/models/pickers.d.ts")}`;
 
-await Bun.write("lib-out/global.d.ts", Bun.file("nextjs/global.d.ts"));
+await Bun.write(
+  path.join(baseDir, "global.d.ts"),
+  Bun.file("nextjs/global.d.ts"),
+);
 
-await $`cd lib-out && bunx tsc`;
+await $`cd ${baseDir} && bunx tsc`;

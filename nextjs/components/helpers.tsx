@@ -215,3 +215,7 @@ export function getEventEnd(event: CalendarEvent) {
 }
 
 export const DEFAULT_COLOR = "#FF7043";
+
+export function widthToPct(width: number, daysInWeek: number): string {
+  return String((width / (120 * daysInWeek)) * 100) + "%";
+}

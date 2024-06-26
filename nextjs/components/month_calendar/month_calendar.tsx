@@ -33,7 +33,7 @@ import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarAllDayEvent, MonthCalendarEvent } from "./calendar_events";
 import { filterEventsInMonth } from "./filter_events_in_month";
 import { splitMultiWeekEvents } from "./split_multi_week_events";
-import { widthToPct } from "./helpers";
+import { widthToPct } from "../helpers";
 
 export const MonthCalendarConfigContext = createContext<
   | undefined
