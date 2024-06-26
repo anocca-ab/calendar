@@ -18,7 +18,7 @@ const meta = {
   title: "Month Calendar",
   component: MonthCalendar,
   parameters: {
-    layout: "centered",
+    // layout: "centered",
   },
   tags: ["autodocs"],
   argTypes: {

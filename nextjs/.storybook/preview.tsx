@@ -32,6 +32,13 @@ const preview: Preview = {
             height: '1620px',
           },
         },
+        monthCalendar: {
+          name: "Month calendar",
+          styles: {
+            width: '936px',
+            height: '632px',
+          },
+        },
         ...INITIAL_VIEWPORTS,
         ...MINIMAL_VIEWPORTS,
       },

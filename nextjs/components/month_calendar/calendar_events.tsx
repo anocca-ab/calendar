@@ -4,7 +4,7 @@ import { DEFAULT_COLOR, mergeSx } from "../helpers";
 import type { CalendarEvent } from "../types";
 import { Triangle } from "../week_calendar/week_calendar";
 import { FlexCol, FlexRow } from "../wrappers";
-import { EventTypography } from "./helpers";
+import { EventTypography, widthToPct } from "./helpers";
 
 export function CalendarAllDayEvent({
   event,
@@ -27,6 +27,8 @@ export function CalendarAllDayEvent({
           p: 0,
           m: 0,
           background: "none",
+          minWidth: "auto",
+          overflow: "hidden",
           "*": {
             pointerEvents: "none",
           },
@@ -74,6 +76,7 @@ export function MonthCalendarEvent({
   event: CalendarEvent;
   state: "normal" | "hover" | "selected";
 } & React.ComponentPropsWithRef<typeof Button>) {
+  const daysInWeek = 7;
   return (
     <Box
       component={Button}
@@ -81,11 +84,13 @@ export function MonthCalendarEvent({
       sx={mergeSx(
         {
           position: "absolute",
-          width: "110px",
+          width: widthToPct(110, daysInWeek),
           height: "16px",
           p: 0,
           justifyContent: "flex-start",
-          background: (theme) => theme.palette.background.paper,
+          background: "none",
+          minWidth: "auto",
+          overflow: 'hidden',
           boxShadow:
             state === "selected"
               ? (theme) => theme.shadows[1]
@@ -99,11 +104,6 @@ export function MonthCalendarEvent({
     >
       <FlexRow
         sx={{
-          backgroundColor:
-            state === "hover"
-              ? "var(--Light-Primary-Shades-8p, rgba(25, 118, 210, 0.08))"
-              : undefined,
-
           alignItems: "center",
           gap: "6px",
           flexShrink: 0,

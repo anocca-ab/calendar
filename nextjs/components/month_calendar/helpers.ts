@@ -58,6 +58,6 @@ export function groupNonOverlappingEvents(
   return groups;
 }
 
-export function widthToPct(width: number, daysInAWeek: number): string {
-  return String((width / (120 * daysInAWeek)) * 100) + "%";
+export function widthToPct(width: number, daysInWeek: number): string {
+  return String((width / (120 * daysInWeek)) * 100) + "%";
 }

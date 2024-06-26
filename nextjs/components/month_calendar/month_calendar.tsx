@@ -16,6 +16,7 @@ import {
   startOfWeek,
 } from "date-fns";
 import React, { createContext, useContext } from "react";
+import { eventGrid, monthCalendarRange } from "../event_grid";
 import { getEventEnd, isAllDayEvent, mergeSx } from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
 import { ModifiableEvent } from "../week_calendar/types";
@@ -24,15 +25,15 @@ import {
   EventContainer,
   MouseState,
   dayDiff,
+  dayUnitToPx,
   useDragableEvents,
   useMouse,
 } from "../week_calendar/use_mouse";
 import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarAllDayEvent, MonthCalendarEvent } from "./calendar_events";
-import { eventGrid, monthCalendarRange } from "../event_grid";
-import { MonthCalendarHeader } from "./month_calendar_header";
 import { filterEventsInMonth } from "./filter_events_in_month";
 import { splitMultiWeekEvents } from "./split_multi_week_events";
+import { widthToPct } from "./helpers";
 
 export const MonthCalendarConfigContext = createContext<
   | undefined
@@ -255,291 +256,288 @@ export function MonthCalendar(props: {
         startOfMonth: startOfMonth,
       }}
     >
-      <FlexCol width="904px" gap="1px">
-        <FlexRow width="100%">
-          {/* Week Indicator */}
+      <FlexRow width="100%">
+        {/* Week Indicator */}
+        <FlexCol
+          gap="1px"
+          sx={{
+            width: "20px",
+            height: `${weeksOfMonth * 120}px`,
+            alignItems: "stretch",
+          }}
+        >
+          {[...Array(weeksOfMonth)].map((_, i) => {
+            return <WeekIndicator key={i} title={`${i + 1}`} />;
+          })}
+        </FlexCol>
+
+        {/* Grid */}
+        <Box
+          sx={{
+            position: "relative",
+            height: `${weeksOfMonth * 120}px`,
+            flex: 1,
+          }}
+        >
+          {/* Horizontal lines */}
           <FlexCol
-            gap="1px"
             sx={{
-              width: "20px",
-              height: `${weeksOfMonth * 120}px`,
+              gap: "119px",
+              position: "absolute",
               alignItems: "stretch",
+              inset: 0,
             }}
           >
             {[...Array(weeksOfMonth)].map((_, i) => {
-              return <WeekIndicator key={i} title={`${i + 1}`} />;
+              return (
+                <Divider
+                  key={i}
+                  sx={{
+                    opacity: i === 0 || i === weeksOfMonth ? 0 : 1,
+                  }}
+                />
+              );
             })}
           </FlexCol>
 
-          {/* Grid */}
-          <Box
+          {/* Vertical lines */}
+          <FlexRow
             sx={{
-              position: "relative",
-              width: "840px",
-              height: `${weeksOfMonth * 120}px`,
+              position: "absolute",
+              alignItems: "stretch",
+              justifyContent: "space-between",
+              inset: 0,
             }}
           >
-            {/* Horizontal lines */}
-            <FlexCol
-              sx={{
-                gap: "119px",
-                position: "absolute",
-                alignItems: "stretch",
-                inset: 0,
-              }}
-            >
-              {[...Array(weeksOfMonth)].map((_, i) => {
-                return (
-                  <Divider
-                    key={i}
-                    sx={{
-                      opacity: i === 0 || i === weeksOfMonth ? 0 : 1,
-                    }}
-                  />
-                );
-              })}
-            </FlexCol>
+            {[...Array(8)].map((_, i) => {
+              return (
+                <Divider
+                  key={i}
+                  orientation="vertical"
+                  sx={{
+                    opacity: i === 0 ? 0 : 1,
+                    width: "1px",
+                  }}
+                />
+              );
+            })}
+          </FlexRow>
 
-            {/* Vertical lines */}
-            <FlexRow
-              sx={{
-                position: "absolute",
-                alignItems: "stretch",
-                justifyContent: "flex-start",
-                inset: 0,
-                gap: "119px",
-              }}
-            >
-              {[...Array(8)].map((_, i) => {
-                return (
-                  <Divider
-                    key={i}
-                    orientation="vertical"
-                    sx={{
-                      opacity: i === 0 ? 0 : 1,
-                      width: "1px",
-                    }}
-                  />
-                );
-              })}
-            </FlexRow>
+          {/* Clickable days */}
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+            }}
+          >
+            {[...Array(weeksOfMonth * 7)].map((_, i) => {
+              // Calculate the left position
+              const left = widthToPct((i % 7) * 120, daysInWeek);
 
-            {/* Clickable days */}
-            <Box
-              sx={{
-                position: "absolute",
-                inset: 0,
-              }}
-            >
-              {[...Array(weeksOfMonth * 7)].map((_, i) => {
-                // Calculate the top position
-                const left = (i % 7) * 120;
+              // Calculate the top position
+              const top = Math.floor(i / 7) * 120;
 
-                // Calculate the top position
-                const top = Math.floor(i / 7) * 120;
+              const beginningOfCurrentWeek = addWeeks(
+                startOfWeek(startOfMonth, {
+                  weekStartsOn: startDay === "monday" ? 1 : 0,
+                }),
+                Math.floor(i / 7)
+              );
 
-                const beginningOfCurrentWeek = addWeeks(
-                  startOfWeek(startOfMonth, {
-                    weekStartsOn: startDay === "monday" ? 1 : 0,
-                  }),
-                  Math.floor(i / 7)
-                );
+              const currentDate = addDays(beginningOfCurrentWeek, i % 7);
+              const isInCurrentMonth = isSameMonth(currentDate, startOfMonth);
+              const dayNumber = getDate(currentDate);
+              const monthName = format(currentDate, "MMM");
+              const active = isSameDay(now, currentDate);
 
-                const currentDate = addDays(beginningOfCurrentWeek, i % 7);
-                const isInCurrentMonth = isSameMonth(currentDate, startOfMonth);
-                const dayNumber = getDate(currentDate);
-                const monthName = format(currentDate, "MMM");
-                const active = isSameDay(now, currentDate);
-
-                return (
-                  <FlexCol
-                    p={0}
-                    m={0}
-                    key={i}
-                    component={Button}
-                    onClick={
-                      onCreateEvent
-                        ? () => {
-                            const start = startOfDay(currentDate);
-                            const end = endOfDay(currentDate);
-                            onCreateEvent(start, end);
-                          }
-                        : undefined
-                    }
-                    position="absolute"
-                    width="119px"
-                    height="119px"
-                    left={`${left}px`}
-                    top={`${top}px`}
-                    justifyContent="flex-start"
-                    pt="4px"
-                    zIndex={1}
+              return (
+                <FlexCol
+                  p={0}
+                  m={0}
+                  key={i}
+                  component={Button}
+                  onClick={
+                    onCreateEvent
+                      ? () => {
+                          const start = startOfDay(currentDate);
+                          const end = endOfDay(currentDate);
+                          onCreateEvent(start, end);
+                        }
+                      : undefined
+                  }
+                  position="absolute"
+                  width={widthToPct(119, daysInWeek)}
+                  height="119px"
+                  left={`${left}`}
+                  top={`${top}px`}
+                  justifyContent="flex-start"
+                  pt="4px"
+                  zIndex={1}
+                >
+                  <FlexRow
+                    width="24px"
+                    height="24px"
+                    justifyContent="center"
+                    alignItems="center"
+                    gap="4px"
                   >
-                    <FlexRow
-                      width="24px"
-                      height="24px"
-                      justifyContent="center"
-                      alignItems="center"
-                      gap="4px"
-                    >
-                      {dayNumber === 1 && (
-                        <Typography
-                          variant="body2"
-                          color={
-                            isInCurrentMonth
-                              ? (theme) => theme.palette.text.primary
-                              : (theme) => theme.palette.text.secondary
-                          }
-                        >
-                          {monthName}
-                        </Typography>
-                      )}
-                      {active && (
-                        <Box
-                          sx={{
-                            width: 24,
-                            height: 24,
-                            position: "absolute",
-                            borderRadius: 24,
-                            backgroundColor: (theme) =>
-                              theme.palette.primary.main,
-                          }}
-                        ></Box>
-                      )}
+                    {dayNumber === 1 && (
                       <Typography
-                        zIndex={1}
                         variant="body2"
                         color={
-                          active
-                            ? (theme) => theme.palette.primary.contrastText
-                            : isInCurrentMonth
+                          isInCurrentMonth
                             ? (theme) => theme.palette.text.primary
                             : (theme) => theme.palette.text.secondary
                         }
                       >
-                        {dayNumber}
+                        {monthName}
                       </Typography>
-                    </FlexRow>
-                  </FlexCol>
-                );
-              })}
-            </Box>
+                    )}
+                    {active && (
+                      <Box
+                        sx={{
+                          width: 24,
+                          height: 24,
+                          position: "absolute",
+                          borderRadius: 24,
+                          backgroundColor: (theme) =>
+                            theme.palette.primary.main,
+                        }}
+                      ></Box>
+                    )}
+                    <Typography
+                      zIndex={1}
+                      variant="body2"
+                      color={
+                        active
+                          ? (theme) => theme.palette.primary.contrastText
+                          : isInCurrentMonth
+                          ? (theme) => theme.palette.text.primary
+                          : (theme) => theme.palette.text.secondary
+                      }
+                    >
+                      {dayNumber}
+                    </Typography>
+                  </FlexRow>
+                </FlexCol>
+              );
+            })}
+          </Box>
 
-            {/* Events */}
-            <Box
-              sx={{
-                position: "absolute",
-                inset: 0,
-              }}
-              ref={eventContainerRef}
-            >
-              <>
-                {moreButtons.map((moreButton, index) => {
-                  const { week, day, events } = moreButton;
-                  const row = 4;
-                  return (
-                    <MoreEventsButton
-                      className="more-events-button"
-                      numHiddenEvents={events.length}
-                      key={index}
-                      sx={{
-                        width: 119 - 1,
-                        left: `${day * 120 + 2}px`,
-                        top: week * 120 + row * (16 + 1) + 1 + 32,
-                        height: "16px",
-                        position: "absolute",
-                        zIndex: 2,
-                      }}
-                    />
-                  );
-                })}
-              </>
-              <>
-                {events.map((event, index) => {
-                  const { week, day, row, maxRow } =
-                    eventProperties[`${index}`];
-                  let width = differenceInCalendarDays(event.end, event.start);
-                  if (event.end.getTime() === endOfDay(event.end).getTime()) {
-                    width += 1;
-                  }
-                  const dataProps: any = {
-                    "data-type": "month-calendar-event",
-                    "data-calendar-event": JSON.stringify({
-                      x: day,
-                      colX: 0,
-                      index,
-                      w: Math.max(width, 1),
-                    }),
-                  };
-                  const props: React.ComponentPropsWithoutRef<
-                    typeof CalendarAllDayEvent | typeof MonthCalendarEvent
-                  > = {
-                    event: event.sourceEvent,
-                    sx: {
-                      width: width * 119 - 1,
-                      left: `${day * 120 + 2}px`,
+          {/* Events */}
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+            }}
+            ref={eventContainerRef}
+          >
+            <>
+              {moreButtons.map((moreButton, index) => {
+                const { week, day, events } = moreButton;
+                const row = 4;
+                return (
+                  <MoreEventsButton
+                    className="more-events-button"
+                    numHiddenEvents={events.length}
+                    key={index}
+                    sx={{
+                      width: widthToPct(119 - 1, daysInWeek),
+                      left: `${widthToPct(day * 120 + 2, daysInWeek)}`,
                       top: week * 120 + row * (16 + 1) + 1 + 32,
                       height: "16px",
                       position: "absolute",
                       zIndex: 2,
-                    },
-                    ...dataProps,
-                  };
+                    }}
+                  />
+                );
+              })}
+            </>
+            <>
+              {events.map((event, index) => {
+                const { week, day, row, maxRow } = eventProperties[`${index}`];
+                let width = differenceInCalendarDays(event.end, event.start);
+                if (event.end.getTime() === endOfDay(event.end).getTime()) {
+                  width += 1;
+                }
+                width = Math.max(width, 1);
+                const dataProps: any = {
+                  "data-type": "month-calendar-event",
+                  "data-calendar-event": JSON.stringify({
+                    x: day,
+                    colX: 0,
+                    index,
+                    w: Math.max(width, 1),
+                  }),
+                };
+                const props: React.ComponentPropsWithoutRef<
+                  typeof CalendarAllDayEvent | typeof MonthCalendarEvent
+                > = {
+                  event: event.sourceEvent,
+                  sx: {
+                    width: widthToPct(width * 119 - 1, daysInWeek),
+                    left: `${widthToPct(day * 120 + 2, daysInWeek)}`,
+                    top: week * 120 + row * (16 + 1) + 1 + 32,
+                    height: "16px",
+                    position: "absolute",
+                    zIndex: 2,
+                  },
+                  ...dataProps,
+                };
 
-                  const startOfWeekOfEventEnd = startOfWeek(
-                    getEventEnd(event.sourceEvent),
-                    {
-                      weekStartsOn: startDay === "monday" ? 1 : 0,
-                    }
-                  );
-                  const firstWeekStart = startOfWeek(startOfMonth, {
+                const startOfWeekOfEventEnd = startOfWeek(
+                  getEventEnd(event.sourceEvent),
+                  {
                     weekStartsOn: startDay === "monday" ? 1 : 0,
-                  });
+                  }
+                );
+                const firstWeekStart = startOfWeek(startOfMonth, {
+                  weekStartsOn: startDay === "monday" ? 1 : 0,
+                });
 
-                  const triangleLeft =
-                    week === 0 &&
-                    width === 7 &&
-                    !isSameWeek(event.sourceEvent.start, firstWeekStart);
-                  const triangleRight =
-                    weeksOfMonth === week + 1 &&
-                    width === 7 &&
-                    !isSameWeek(event.end, startOfWeekOfEventEnd);
-                  const triangle = triangleRight
-                    ? "right"
-                    : triangleLeft
-                    ? "left"
-                    : undefined;
+                const triangleLeft =
+                  week === 0 &&
+                  width === 7 &&
+                  !isSameWeek(event.sourceEvent.start, firstWeekStart);
+                const triangleRight =
+                  weeksOfMonth === week + 1 &&
+                  width === 7 &&
+                  !isSameWeek(event.end, startOfWeekOfEventEnd);
+                const triangle = triangleRight
+                  ? "right"
+                  : triangleLeft
+                  ? "left"
+                  : undefined;
 
-                  return (
-                    <React.Fragment key={index}>
-                      {(maxRow <= 5 ? row < 5 : row < 4) ? (
-                        // it is not part of the "more" button
-                        isAllDayEvent(event) ? (
-                          <>
-                            <CalendarAllDayEvent
-                              key={index}
-                              {...props}
-                              triangle={triangle}
-                            />
-                          </>
-                        ) : (
-                          <>
-                            <MonthCalendarEvent
-                              key={index}
-                              {...props}
-                              state="normal"
-                            />
-                          </>
-                        )
-                      ) : null}
-                    </React.Fragment>
-                  );
-                })}
-              </>
-            </Box>
+                return (
+                  <React.Fragment key={index}>
+                    {(maxRow <= 5 ? row < 5 : row < 4) ? (
+                      // it is not part of the "more" button
+                      isAllDayEvent(event) ? (
+                        <>
+                          <CalendarAllDayEvent
+                            key={index}
+                            {...props}
+                            triangle={triangle}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <MonthCalendarEvent
+                            key={index}
+                            {...props}
+                            state="normal"
+                          />
+                        </>
+                      )
+                    ) : null}
+                  </React.Fragment>
+                );
+              })}
+            </>
           </Box>
-        </FlexRow>
-      </FlexCol>
+        </Box>
+      </FlexRow>
     </MonthCalendarConfigContext.Provider>
   );
 }
@@ -594,6 +592,9 @@ function MoreEventsButton({
           position: "absolute",
           bottom: "1px",
           borderRadius: "4px",
+          overflow: "hidden",
+          minWidth: "auto",
+          whiteSpace: "nowrap",
         },
         buttonProps.sx
       )}

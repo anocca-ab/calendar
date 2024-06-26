@@ -362,7 +362,7 @@ export function dayDiff(
   return delta;
 }
 
-function dayUnitToPx(
+export function dayUnitToPx(
   width: number,
   daysInWeek: number,
   container: EventContainer
