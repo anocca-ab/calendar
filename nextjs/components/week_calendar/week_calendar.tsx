@@ -32,6 +32,7 @@ import { TimeIndicator } from "./time_indicator";
 import { ModifiableEvent } from "./types";
 import {
   DragPosition,
+  EventContainer,
   MouseState,
   dayDiff,
   useDragableEvents,
@@ -246,10 +247,17 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
    */
   function calculateNewTime(
     state: MouseState,
-    dragged: DragPosition<ModifiableEvent>
+    dragged: DragPosition<ModifiableEvent>,
+    container: EventContainer
   ) {
     if (state.pos && state.pos0) {
-      const addedDays = dayDiff(state.pos, state.pos0, dragged, daysInWeek);
+      const addedDays = dayDiff(
+        state.pos,
+        state.pos0,
+        dragged,
+        daysInWeek,
+        container
+      );
       if (addedDays !== 0) {
         return {
           start: addDays(dragged.event.start, addedDays),
@@ -276,12 +284,14 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
       }
     : undefined;
 
+  const eventContainerRef = React.useRef<HTMLDivElement>(null);
   const effectRefs = React.useRef({
     onMoveEvent,
     events,
     onEditEvent,
     setDraggedEvent,
     calculateNewTime,
+    eventContainerRef,
   });
 
   effectRefs.current = {
@@ -290,6 +300,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
     onEditEvent,
     setDraggedEvent,
     calculateNewTime,
+    eventContainerRef,
   };
 
   useMouse("week-calendar-all-day-event", effectRefs, workWeek);
@@ -353,6 +364,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
             display: "flex",
             position: "relative",
           }}
+          ref={eventContainerRef}
         >
           {weekDays}
 
@@ -794,18 +806,27 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
     });
   });
 
+  const eventContainerRef = React.useRef<HTMLDivElement>(null);
+
   // handle drag and drop
   /**
    * if event has moved return the new start and end time
    */
   function calculateNewTime(
     state: MouseState,
-    dragged: DragPosition<ModifiableEvent>
+    dragged: DragPosition<ModifiableEvent>,
+    container: EventContainer
   ) {
     if (state.pos && state.pos0) {
       const addedMin =
         state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY;
-      const addedDays = dayDiff(state.pos, state.pos0, dragged, daysInWeek);
+      const addedDays = dayDiff(
+        state.pos,
+        state.pos0,
+        dragged,
+        daysInWeek,
+        container
+      );
 
       let start = dragged.event.sourceEvent.start;
       let end =
@@ -851,6 +872,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
     onEditEvent,
     setDraggedEvent,
     calculateNewTime,
+    eventContainerRef,
   });
 
   effectRefs.current = {
@@ -859,6 +881,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
     onEditEvent,
     setDraggedEvent,
     calculateNewTime,
+    eventContainerRef,
   };
 
   useMouse("week-calendar-sub-day-event", effectRefs, workWeek);
@@ -918,10 +941,12 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
       </FlexRow>
 
       <Box
+        className="grid-events"
         sx={{
           position: "absolute",
           inset: 0,
         }}
+        ref={eventContainerRef}
       >
         {events.map((event, index) => {
           const height = Math.max(
@@ -963,7 +988,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
           );
           const colX = rect.x;
 
-          const { bg, color, } = getEventColor(
+          const { bg, color } = getEventColor(
             now,
             event.sourceEvent.end ?? addMinutes(event.sourceEvent.start, 15),
             theme,

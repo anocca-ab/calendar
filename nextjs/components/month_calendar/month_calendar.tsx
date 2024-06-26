@@ -21,6 +21,7 @@ import { CalendarEvent, StartDay } from "../types";
 import { ModifiableEvent } from "../week_calendar/types";
 import {
   DragPosition,
+  EventContainer,
   MouseState,
   dayDiff,
   useDragableEvents,
@@ -165,10 +166,17 @@ export function MonthCalendar(props: {
    */
   function calculateNewTime(
     state: MouseState,
-    dragged: DragPosition<ModifiableEvent>
+    dragged: DragPosition<ModifiableEvent>,
+    container: EventContainer
   ) {
     if (state.pos && state.pos0) {
-      const addedDays = dayDiff(state.pos, state.pos0, dragged, daysInWeek);
+      const addedDays = dayDiff(
+        state.pos,
+        state.pos0,
+        dragged,
+        daysInWeek,
+        container
+      );
 
       const addedWeeks = Math.round(
         (state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY) /
@@ -214,6 +222,8 @@ export function MonthCalendar(props: {
     : undefined;
   const onCreateEvent = calendarProps.onCreateEvent;
 
+  const eventContainerRef = React.useRef<HTMLDivElement>(null);
+
   const effectRefs = React.useRef({
     onMoveEvent,
     events,
@@ -221,6 +231,7 @@ export function MonthCalendar(props: {
     onCreateEvent,
     setDraggedEvent,
     calculateNewTime,
+    eventContainerRef,
   });
 
   effectRefs.current = {
@@ -230,6 +241,7 @@ export function MonthCalendar(props: {
     onEditEvent,
     setDraggedEvent,
     calculateNewTime,
+    eventContainerRef,
   };
 
   useMouse("month-calendar-event", effectRefs, false);
@@ -419,6 +431,7 @@ export function MonthCalendar(props: {
                 position: "absolute",
                 inset: 0,
               }}
+              ref={eventContainerRef}
             >
               <>
                 {moreButtons.map((moreButton, index) => {

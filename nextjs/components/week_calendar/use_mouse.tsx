@@ -32,6 +32,14 @@ export type MouseState = {
 };
 
 /**
+ * the container holding the events
+ */
+export type EventContainer = {
+  width: number;
+  height: number;
+};
+
+/**
  * The position of the event being dragged
  */
 export type DragPosition<T extends { start: Date; end?: Date | undefined }> = {
@@ -73,9 +81,11 @@ export function useMouse<T extends { start: Date; end?: Date | undefined }>(
     calculateNewTime: (
       state: MouseState,
       dragged: DragPosition<T>,
+      container: EventContainer
     ) => { start: Date; end: Date } | undefined;
+    eventContainerRef: React.MutableRefObject<HTMLDivElement | null>;
   }>,
-  workWeek: boolean,
+  workWeek: boolean
 ) {
   const daysInWeek = workWeek ? 5 : 7;
 
@@ -92,6 +102,8 @@ export function useMouse<T extends { start: Date; end?: Date | undefined }>(
      * Position data regarding the dragged event
      */
     let dragged: undefined | DragPosition<T> = undefined;
+
+    let container: undefined | EventContainer;
 
     /**
      * Same as the React.state draggedEvent, but outside the context of react state
@@ -161,7 +173,7 @@ export function useMouse<T extends { start: Date; end?: Date | undefined }>(
             effectRefs.current.onMoveEvent(
               draggedEvent.source,
               draggedEvent.dragged.start,
-              draggedEvent.dragged.end,
+              draggedEvent.dragged.end
             );
           }
         }
@@ -189,10 +201,17 @@ export function useMouse<T extends { start: Date; end?: Date | undefined }>(
     window.addEventListener("scroll", scroll);
 
     function update() {
+      setUpContainerRefListener();
+
+      if (!container) {
+        return;
+      }
+
       if (state.pos && state.down && state.pos0 && dragged) {
         const newEventTime = effectRefs.current.calculateNewTime(
           state,
           dragged,
+          container
         );
         /**
          * Update the "live" dragged event
@@ -210,11 +229,51 @@ export function useMouse<T extends { start: Date; end?: Date | undefined }>(
         effectRefs.current.setDraggedEvent(draggedEvent);
       }
     }
+
+    let hasSetup = false;
+    let cleanupContainerListener: undefined | (() => void);
+    function setUpContainerRefListener() {
+      if (hasSetup) {
+        return;
+      }
+      const containerEl = effectRefs.current.eventContainerRef.current;
+      if (!containerEl) {
+        return;
+      }
+
+      const rect = containerEl.getBoundingClientRect();
+
+      container = {
+        width: rect.width,
+        height: rect.height,
+      };
+
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (let entry of entries) {
+          const rect = entry.contentRect;
+          container = {
+            width: rect.width,
+            height: rect.height,
+          };
+        }
+      });
+      resizeObserver.observe(containerEl);
+
+      cleanupContainerListener = () => {
+        resizeObserver.disconnect();
+      };
+
+      hasSetup = true;
+    }
+
     return () => {
       window.removeEventListener("mouseup", mouseUp);
       window.removeEventListener("mousemove", mouseMove);
       window.removeEventListener("mousedown", mouseDown);
       window.removeEventListener("scroll", scroll);
+      if (cleanupContainerListener) {
+        cleanupContainerListener();
+      }
     };
   }, [daysInWeek, effectRefs, target]);
 }
@@ -247,10 +306,10 @@ export const useDragableEvents = (events: CalendarEvent[]) => {
     ]);
     allEvents.splice(
       allEvents.findIndex(
-        (ev) => ev.sourceEvent === draggedEvent.source.sourceEvent,
+        (ev) => ev.sourceEvent === draggedEvent.source.sourceEvent
       ),
       1,
-      newDragged,
+      newDragged
     );
   }
   return [allEvents, draggedEvent, setDraggedEvent] as const;
@@ -265,18 +324,23 @@ export function dayDiff(
   pos0: MouseStatePos,
   dragged: DragPosition<ModifiableEvent>,
   daysInWeek: number,
+  container: EventContainer
 ) {
   const rawDelta =
     pos.x +
-    ((pos0.x - dragged.elX + dragged.colX) % 120) -
+    ((pos0.x - dragged.elX + dragged.colX) % dayUnitToPx(120, container)) -
     pos0.x +
     pos.scrollX -
     pos0.scrollX;
   const minDiff = -dragged.x - dragged.w + 1;
   // each event is 120px wide, so we can calculate how many days we have moved
   const delta = Math.min(
-    Math.max(Math.floor(rawDelta / 120), minDiff),
-    daysInWeek - dragged.x - 1,
+    Math.max(Math.floor(rawDelta / dayUnitToPx(120, container)), minDiff),
+    daysInWeek - dragged.x - 1
   );
   return delta;
+}
+
+function dayUnitToPx(width: number, container: EventContainer) {
+  return container.width * (width / (120 * 7));
 }
