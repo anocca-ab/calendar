@@ -23,7 +23,7 @@ export function groupNonOverlappingEvents(
     top: number;
     duration: number;
     event: CalendarEvent;
-  }[],
+  }[]
 ) {
   const groups: {
     left: number;
@@ -40,7 +40,7 @@ export function groupNonOverlappingEvents(
       // Check if the event overlaps with any event in the group
       if (
         !group.some((groupEvent) =>
-          doEventsOverlap(groupEvent.event, event.event),
+          doEventsOverlap(groupEvent.event, event.event)
         )
       ) {
         group.push(event);
@@ -56,4 +56,8 @@ export function groupNonOverlappingEvents(
   });
 
   return groups;
+}
+
+export function widthToPct(width: number, daysInAWeek: number): string {
+  return String((width / (120 * daysInAWeek)) * 100) + "%";
 }

@@ -18,12 +18,13 @@ import {
 import React from "react";
 import { WeekCalendar } from "../components/week_calendar/week_calendar";
 import { manyEvents } from "./many_events";
+import { CalendarNavigationBar } from "@/components/navigation_bar/calendar_navigation_bar";
 
 const meta = {
   title: "Week Calendar",
   component: WeekCalendar,
   parameters: {
-    layout: "centered",
+    // layout: "centered",
   },
   tags: ["autodocs"],
   argTypes: {
@@ -115,10 +116,10 @@ export const WithHuuugeSubDayEvent: Story = {
 };
 
 function InteractiveDemo(
-  props: React.ComponentPropsWithRef<typeof WeekCalendar>,
+  props: React.ComponentPropsWithRef<typeof WeekCalendar>
 ) {
   const [events, setEvents] = React.useState<CalendarEvent[]>(
-    props.events ?? [],
+    props.events ?? []
   );
 
   const [editModalOpen, setEditModalOpen] = React.useState<
@@ -140,7 +141,7 @@ function InteractiveDemo(
   const onMoveEvent = (
     event: CalendarEvent,
     newStart: Date,
-    newEnd: Date | undefined,
+    newEnd: Date | undefined
   ) => {
     setEvents((prev) => {
       return prev.map((ev) => {
@@ -156,6 +157,8 @@ function InteractiveDemo(
     });
   };
 
+  const [currentWeek, setCurrentWeek] = React.useState(new Date());
+
   return (
     <>
       {editModalOpen && (
@@ -165,7 +168,7 @@ function InteractiveDemo(
           onSave={(event: CalendarEvent, originalEvent: CalendarEvent) => {
             if (events.includes(originalEvent)) {
               setEvents(
-                events.map((ev) => (ev === originalEvent ? event : ev)),
+                events.map((ev) => (ev === originalEvent ? event : ev))
               );
             } else {
               // create
@@ -175,8 +178,16 @@ function InteractiveDemo(
           key={editModalOpen.key}
         />
       )}
+      <CalendarNavigationBar
+        now={props.now ?? new Date()}
+        startDay={props.startDay ?? "monday"}
+        currentDate={currentWeek}
+        setCurrentDate={setCurrentWeek}
+        type="week"
+      />
       <WeekCalendar
         {...props}
+        startOfWeek={currentWeek}
         events={events}
         onCreateEvent={(start, end) => {
           onEditEvent({ start, end });

@@ -37,9 +37,10 @@ import {
   useDragableEvents,
   useMouse,
 } from "./use_mouse";
+import { widthToPct } from "../month_calendar/helpers";
 
 const parseDefaultProps = (
-  props: React.ComponentPropsWithRef<typeof WeekCalendar>,
+  props: React.ComponentPropsWithRef<typeof WeekCalendar>
 ) => {
   const events = props.events ?? [];
   let startDay = props.startDay ?? "monday";
@@ -111,7 +112,7 @@ export function WeekCalendar(props: {
   onMoveEvent?: (
     event: CalendarEvent,
     newStart: Date,
-    newEnd: Date | undefined,
+    newEnd: Date | undefined
   ) => void;
 
   /**
@@ -132,18 +133,16 @@ export function WeekCalendar(props: {
     onEditEvent,
   } = parseDefaultProps(props);
 
-  const [currentWeek, setCurrentWeek] = React.useState(startOfWeek);
-
   const allDayEvents: CalendarEvent[] = [];
   const gridEvents: CalendarEvent[] = [];
 
   events.forEach((event) => {
     const eventOverlapWithWeek = areIntervalsOverlapping(
       {
-        start: currentWeek,
-        end: addDays(currentWeek, workWeek ? 5 : 7),
+        start: startOfWeek,
+        end: addDays(startOfWeek, workWeek ? 5 : 7),
       },
-      { start: event.start, end: event.end ?? event.start },
+      { start: event.start, end: event.end ?? event.start }
     );
 
     if (!eventOverlapWithWeek) {
@@ -162,23 +161,16 @@ export function WeekCalendar(props: {
       value={{
         startDay,
         workWeek,
-        startOfWeek: currentWeek,
+        startOfWeek: startOfWeek,
         now,
         onCreateEvent,
         onEditEvent,
         onMoveEvent,
       }}
     >
-      <FlexCol width={workWeek ? "664px" : "904px"}>
+      <FlexCol>
         <FlexCol>
           <Box sx={{ width: 64 }}></Box>
-          <CalendarNavigationBar
-            now={now}
-            startDay={startDay}
-            currentDate={currentWeek}
-            setCurrentDate={setCurrentWeek}
-            type="week"
-          />
           <WeekCalendarHeader events={allDayEvents} />
         </FlexCol>
         <FlexRow width="100%">
@@ -239,7 +231,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
   const daysInWeek = workWeek ? 5 : 7;
 
   const [events, draggedEvent, setDraggedEvent] = useDragableEvents(
-    props.events,
+    props.events
   );
 
   const overlaps = getAllDayOverlaps(startOfWeek, daysInWeek, events);
@@ -254,7 +246,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
    */
   function calculateNewTime(
     state: MouseState,
-    dragged: DragPosition<ModifiableEvent>,
+    dragged: DragPosition<ModifiableEvent>
   ) {
     if (state.pos && state.pos0) {
       const addedDays = dayDiff(state.pos, state.pos0, dragged, daysInWeek);
@@ -263,7 +255,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
           start: addDays(dragged.event.start, addedDays),
           end: addDays(
             dragged.event.end ?? endOfDay(dragged.event.start),
-            addedDays,
+            addedDays
           ),
         };
       }
@@ -329,14 +321,24 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
             : undefined,
           {
             pt: 1,
-          },
+            justifyContent: "flex-start",
+            alignItems: "center",
+            display: "flex",
+            flexDirection: "column",
+            minWidth: "auto",
+            flex: 1,
+          }
         )}
       >
         <DayHeader date={day} active={isSameDay(now, day)} />
         <Box sx={{ height: "12px" }} />
-        <FlexRow sx={{ height: totalHeight }}>
-          <Divider orientation="vertical" />
-        </FlexRow>
+        <FlexRow
+          sx={{
+            height: totalHeight,
+            justifyContent: "flex-start",
+            width: "100%",
+          }}
+        ></FlexRow>
       </Box>
     );
   });
@@ -348,12 +350,39 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
       <Box pl={8}>
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${daysInWeek}, 1fr)`,
+            display: "flex",
             position: "relative",
           }}
         >
           {weekDays}
+
+          <FlexRow
+            className="header-vertical-lines"
+            sx={{
+              position: "absolute",
+              alignItems: "stretch",
+              justifyContent: "flex-start",
+              gap: widthToPct(119, daysInWeek),
+              pointerEvents: "none",
+              height: totalHeight,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          >
+            {[...Array(workWeek ? 6 : 8)].map((_, i) => {
+              return (
+                <Divider
+                  key={i}
+                  orientation="vertical"
+                  sx={{
+                    opacity:
+                      workWeek && i === 5 ? 0 : !workWeek && i == 7 ? 0 : 1,
+                  }}
+                />
+              );
+            })}
+          </FlexRow>
 
           {events.map((event, index) => {
             const start = startOfDay(event.start);
@@ -366,12 +395,12 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
             const y = overlaps[x].indexOf(event);
             const width = differenceInCalendarDays(
               min([end, endOfWeek]),
-              max([start, startOfWeek]),
+              max([start, startOfWeek])
             );
 
             const style = {
               height: 16,
-              width: 119 * width - 8,
+              width: widthToPct(119 * width - 8, daysInWeek),
             };
 
             const dayOverflowRight = differenceInCalendarDays(end, endOfWeek);
@@ -380,7 +409,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
               now,
               end,
               theme,
-              event.sourceEvent.color,
+              event.sourceEvent.color
             );
 
             return (
@@ -409,7 +438,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                     cursor: "pointer",
                     position: "absolute",
                     bottom: totalHeight - y * 17 - 16,
-                    left: x * 120 + 2,
+                    left: widthToPct(x * 120 + 2, daysInWeek),
                     ...style,
                     display: "flex",
                     justifyContent: "stretch",
@@ -425,7 +454,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                     draggedEvent?.source.sourceEvent === event.sourceEvent && {
                       opacity: 0.75,
                       boxShadow: theme.shadows[4],
-                    },
+                    }
                 )}
               >
                 {rawX < 0 ? (
@@ -488,12 +517,14 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
 }
 
 function DayHeader({ date, active }: { date: Date; active?: boolean }) {
+  const { workWeek } = useCalendar();
   const dayOfWeek = format(date, "EEE");
   const dayOfMonthNr = format(date, "d");
+  const daysInWeek = workWeek ? 5 : 7;
 
   return (
     <FlexCol
-      width={120}
+      width={widthToPct(120, daysInWeek)}
       height={52}
       alignItems="center"
       justifyContent="flex-start"
@@ -597,7 +628,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
   const daysInWeek = workWeek ? 5 : 7;
 
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
-    props.events,
+    props.events
   );
 
   /**
@@ -678,7 +709,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
       numCols[index] = maxCliqueSizeForComponent;
 
       const cliquesForEvent = cliques.filter((clique) =>
-        clique.includes(index),
+        clique.includes(index)
       );
       const maxCliqueForEvent = cliquesForEvent.reduce((max, clique) => {
         return clique.length > max.length ? clique : max;
@@ -733,10 +764,10 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
   // construct the horizontal positions
   maxCliques.forEach((clique) => {
     const novelPositions = clique.filter(
-      (evIndex) => typeof horizontalPositions[evIndex] === "undefined",
+      (evIndex) => typeof horizontalPositions[evIndex] === "undefined"
     );
     const fixedPositions = clique.filter(
-      (evIndex) => typeof horizontalPositions[evIndex] !== "undefined",
+      (evIndex) => typeof horizontalPositions[evIndex] !== "undefined"
     );
 
     const horPos: (null | number)[] = [...clique].map(() => null);
@@ -769,7 +800,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
    */
   function calculateNewTime(
     state: MouseState,
-    dragged: DragPosition<ModifiableEvent>,
+    dragged: DragPosition<ModifiableEvent>
   ) {
     if (state.pos && state.pos0) {
       const addedMin =
@@ -870,7 +901,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
           alignItems: "stretch",
           justifyContent: "flex-start",
           inset: 0,
-          gap: "119px",
+          gap: widthToPct(119, daysInWeek),
         }}
       >
         {[...Array(workWeek ? 6 : 8)].map((_, i) => {
@@ -899,14 +930,14 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
                   roundingMethod: "round",
                 })
               : 15,
-            15,
+            15
           );
           const top = differenceInMinutes(
             event.start,
             startOfDay(event.start),
             {
               roundingMethod: "round",
-            },
+            }
           );
           const x = differenceInCalendarDays(event.start, startOfWeek);
           const left = x * 120;
@@ -936,7 +967,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
             now,
             event.sourceEvent.end ?? addMinutes(event.sourceEvent.start, 15),
             theme,
-            event.sourceEvent.color,
+            event.sourceEvent.color
           );
 
           return (
@@ -963,9 +994,9 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
                   padding: 0,
                   margin: 0,
                   top: top + 1,
-                  left: left + colX + 1,
+                  left: widthToPct(left + colX + 1, daysInWeek),
                   height: height - 1,
-                  width: rect.w,
+                  width: widthToPct(rect.w, daysInWeek),
                   zIndex: horPos,
                   "*": {
                     pointerEvents: "none",
@@ -981,7 +1012,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
                   draggedEvent.source.sourceEvent === event.sourceEvent && {
                     opacity: 0.75,
                     boxShadow: theme.shadows[4],
-                  },
+                  }
               )}
             >
               <Box
@@ -1000,7 +1031,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
-                  },
+                  }
                 )}
               >
                 <Typography
@@ -1053,7 +1084,10 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
           sx={{
             position: "absolute",
             top: differenceInMinutes(now, startOfDay(now)),
-            left: differenceInCalendarDays(now, startOfWeek) * 120,
+            left: widthToPct(
+              differenceInCalendarDays(now, startOfWeek) * 120,
+              daysInWeek
+            ),
           }}
         >
           <TimeIndicator />

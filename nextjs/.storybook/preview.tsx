@@ -5,6 +5,10 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import type { Preview } from "@storybook/react";
 import { Roboto } from "next/font/google";
+import {
+  INITIAL_VIEWPORTS,
+  MINIMAL_VIEWPORTS,
+} from "@storybook/addon-viewport";
 
 const roboto = Roboto({
   weight: ["300", "400", "500", "700"],
@@ -17,6 +21,19 @@ const preview: Preview = {
       matchers: {
         color: /(background|color)$/i,
         date: /Date$/i,
+      },
+    },
+    viewport: {
+      viewports: {
+        weekCalendarFullWeek: {
+          name: "Week Calendar Full Week",
+          styles: {
+            width: '936px',
+            height: '1620px',
+          },
+        },
+        ...INITIAL_VIEWPORTS,
+        ...MINIMAL_VIEWPORTS,
       },
     },
   },
