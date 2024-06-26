@@ -115,6 +115,16 @@ export const WithHuuugeSubDayEvent: Story = {
   },
 };
 
+export const WorkWeek: Story = {
+  args: {
+    events: manyEvents,
+    workWeek: true,
+  },
+  render: (props) => {
+    return <InteractiveDemo {...props} />;
+  },
+};
+
 function InteractiveDemo(
   props: React.ComponentPropsWithRef<typeof WeekCalendar>
 ) {

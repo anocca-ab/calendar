@@ -328,19 +328,27 @@ export function dayDiff(
 ) {
   const rawDelta =
     pos.x +
-    ((pos0.x - dragged.elX + dragged.colX) % dayUnitToPx(120, container)) -
+    ((pos0.x - dragged.elX + dragged.colX) %
+      dayUnitToPx(120, daysInWeek, container)) -
     pos0.x +
     pos.scrollX -
     pos0.scrollX;
   const minDiff = -dragged.x - dragged.w + 1;
   // each event is 120px wide, so we can calculate how many days we have moved
   const delta = Math.min(
-    Math.max(Math.floor(rawDelta / dayUnitToPx(120, container)), minDiff),
+    Math.max(
+      Math.floor(rawDelta / dayUnitToPx(120, daysInWeek, container)),
+      minDiff
+    ),
     daysInWeek - dragged.x - 1
   );
   return delta;
 }
 
-function dayUnitToPx(width: number, container: EventContainer) {
-  return container.width * (width / (120 * 7));
+function dayUnitToPx(
+  width: number,
+  daysInWeek: number,
+  container: EventContainer
+) {
+  return container.width * (width / (120 * daysInWeek));
 }
