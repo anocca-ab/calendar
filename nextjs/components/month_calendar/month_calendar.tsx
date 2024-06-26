@@ -28,8 +28,10 @@ import {
 } from "../week_calendar/use_mouse";
 import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarAllDayEvent, MonthCalendarEvent } from "./calendar_events";
-import { eventGrid } from "./event_grid";
+import { eventGrid, monthCalendarRange } from "../event_grid";
 import { MonthCalendarHeader } from "./month_calendar_header";
+import { filterEventsInMonth } from "./filter_events_in_month";
+import { splitMultiWeekEvents } from "./split_multi_week_events";
 
 export const MonthCalendarConfigContext = createContext<
   | undefined
@@ -41,7 +43,7 @@ export const MonthCalendarConfigContext = createContext<
       onMoveEvent?: (
         event: CalendarEvent,
         newStart: Date,
-        newEnd: Date | undefined,
+        newEnd: Date | undefined
       ) => void;
     }
 >(undefined);
@@ -55,7 +57,7 @@ export const useMonthCalendar = () => {
 };
 
 const parseDefaultProps = (
-  props: React.ComponentPropsWithRef<typeof MonthCalendar>,
+  props: React.ComponentPropsWithRef<typeof MonthCalendar>
 ) => {
   const events = props.events ?? [];
   let startDay = props.startDay ?? "monday";
@@ -112,7 +114,7 @@ export function MonthCalendar(props: {
   onMoveEvent?: (
     event: CalendarEvent,
     newStart: Date,
-    newEnd: Date | undefined,
+    newEnd: Date | undefined
   ) => void;
 
   /**
@@ -124,18 +126,33 @@ export function MonthCalendar(props: {
 }) {
   const { startDay, now, startOfMonth, ...calendarProps } =
     parseDefaultProps(props);
-  const [currentMonth, setCurrentMonth] = React.useState(startOfMonth);
 
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
-    calendarProps.events,
+    calendarProps.events
   );
 
   const daysInWeek = 7;
 
-  const { eventProperties, events, moreButtons } = eventGrid(
+  // step 0.
+  // get all the events that are part of the month
+  const eventsInMonth: ModifiableEvent[] = filterEventsInMonth(
     allEvents,
     startDay,
-    currentMonth,
+    startOfMonth
+  );
+
+  // step 1.
+  // split up events that span multiple weeks into multiple events that span a maximum of 1 week
+  // we also trim the events so they perfectly fit into our grid (see step 3)
+  /**
+   * Events that cross into a new week are split into two events or more
+   */
+  const splitEvents = splitMultiWeekEvents(eventsInMonth, startDay);
+
+  const { eventProperties, events, moreButtons } = eventGrid(
+    splitEvents,
+    startDay,
+    monthCalendarRange(startDay, startOfMonth).startOfMonthCalendar
   );
 
   const weeksOfMonth = getWeeksInMonth(now, {
@@ -148,14 +165,14 @@ export function MonthCalendar(props: {
    */
   function calculateNewTime(
     state: MouseState,
-    dragged: DragPosition<ModifiableEvent>,
+    dragged: DragPosition<ModifiableEvent>
   ) {
     if (state.pos && state.pos0) {
       const addedDays = dayDiff(state.pos, state.pos0, dragged, daysInWeek);
 
       const addedWeeks = Math.round(
         (state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY) /
-          120,
+          120
       );
 
       let start = dragged.event.sourceEvent.start;
@@ -223,12 +240,10 @@ export function MonthCalendar(props: {
         startDay,
         now,
         ...calendarProps,
-        startOfMonth: currentMonth,
+        startOfMonth: startOfMonth,
       }}
     >
       <FlexCol width="904px" gap="1px">
-        <MonthCalendarHeader setCurrentMonth={setCurrentMonth} />
-
         <FlexRow width="100%">
           {/* Week Indicator */}
           <FlexCol
@@ -312,14 +327,14 @@ export function MonthCalendar(props: {
                 const top = Math.floor(i / 7) * 120;
 
                 const beginningOfCurrentWeek = addWeeks(
-                  startOfWeek(currentMonth, {
+                  startOfWeek(startOfMonth, {
                     weekStartsOn: startDay === "monday" ? 1 : 0,
                   }),
-                  Math.floor(i / 7),
+                  Math.floor(i / 7)
                 );
 
                 const currentDate = addDays(beginningOfCurrentWeek, i % 7);
-                const isInCurrentMonth = isSameMonth(currentDate, currentMonth);
+                const isInCurrentMonth = isSameMonth(currentDate, startOfMonth);
                 const dayNumber = getDate(currentDate);
                 const monthName = format(currentDate, "MMM");
                 const active = isSameDay(now, currentDate);
@@ -386,8 +401,8 @@ export function MonthCalendar(props: {
                           active
                             ? (theme) => theme.palette.primary.contrastText
                             : isInCurrentMonth
-                              ? (theme) => theme.palette.text.primary
-                              : (theme) => theme.palette.text.secondary
+                            ? (theme) => theme.palette.text.primary
+                            : (theme) => theme.palette.text.secondary
                         }
                       >
                         {dayNumber}
@@ -462,9 +477,9 @@ export function MonthCalendar(props: {
                     getEventEnd(event.sourceEvent),
                     {
                       weekStartsOn: startDay === "monday" ? 1 : 0,
-                    },
+                    }
                   );
-                  const firstWeekStart = startOfWeek(currentMonth, {
+                  const firstWeekStart = startOfWeek(startOfMonth, {
                     weekStartsOn: startDay === "monday" ? 1 : 0,
                   });
 
@@ -479,8 +494,8 @@ export function MonthCalendar(props: {
                   const triangle = triangleRight
                     ? "right"
                     : triangleLeft
-                      ? "left"
-                      : undefined;
+                    ? "left"
+                    : undefined;
 
                   return (
                     <React.Fragment key={index}>
@@ -567,7 +582,7 @@ function MoreEventsButton({
           bottom: "1px",
           borderRadius: "4px",
         },
-        buttonProps.sx,
+        buttonProps.sx
       )}
     >
       <Typography

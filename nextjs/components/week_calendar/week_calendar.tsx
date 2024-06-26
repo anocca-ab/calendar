@@ -963,7 +963,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
           );
           const colX = rect.x;
 
-          const { bg, color } = getEventColor(
+          const { bg, color, } = getEventColor(
             now,
             event.sourceEvent.end ?? addMinutes(event.sourceEvent.start, 15),
             theme,

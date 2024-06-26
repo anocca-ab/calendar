@@ -1,21 +1,18 @@
 import {
   StartOfWeekOptions,
   addDays,
-  areIntervalsOverlapping,
-  differenceInCalendarWeeks,
   differenceInDays,
   differenceInWeeks,
   endOfWeek,
   startOfMonth as fnsStartOfMonth,
   format,
   lastDayOfMonth,
-  max,
-  min,
   startOfWeek,
 } from "date-fns";
-import { getEventEnd } from "../helpers";
-import { StartDay } from "../types";
-import { ModifiableEvent } from "../week_calendar/types";
+import { StartDay } from "./types";
+import { ModifiableEvent } from "./week_calendar/types";
+import { splitMultiWeekEvents } from "./month_calendar/split_multi_week_events";
+import { filterEventsInMonth } from "./month_calendar/filter_events_in_month";
 
 export function monthCalendarRange(startDay: StartDay, startOfMonth: Date) {
   const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
@@ -30,100 +27,13 @@ export function monthCalendarRange(startDay: StartDay, startOfMonth: Date) {
   return { startOfMonthCalendar, endOfMonthCalendar };
 }
 
-export function filterEventsInMonth(
-  _events: ModifiableEvent[],
-  startDay: StartDay,
-  startOfMonth: Date,
-) {
-  const { startOfMonthCalendar, endOfMonthCalendar } = monthCalendarRange(
-    startDay,
-    startOfMonth,
-  );
-  const eventsInMonth: ModifiableEvent[] = _events
-    .filter((event) => {
-      return areIntervalsOverlapping(
-        { start: startOfMonthCalendar, end: endOfMonthCalendar },
-        { start: event.start, end: getEventEnd(event) },
-      );
-    })
-    .map((event) => {
-      let start = max([event.start, startOfMonthCalendar]);
-      let end = min([getEventEnd(event), endOfMonthCalendar]);
-      return {
-        sourceEvent: event.sourceEvent,
-        start: start,
-        end: end,
-      };
-    });
-  return eventsInMonth;
-}
-
-/**
- * Events that cross into a new week are split into two events or more.
- * split up events that span multiple weeks into multiple events that span a maximum of 1 week
- * we also trim the events so they perfectly fit into our grid (see step 3)
- */
-export function splitMultiWeekEvents(
-  eventsInMonth: ModifiableEvent[],
-  startDay: StartDay,
-) {
-  const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
-    startDay === "monday" ? 1 : 0;
-  const events: ModifiableEvent[] = eventsInMonth.flatMap((defaultEvent) => {
-    let parts: { start: Date; end: Date }[] = [];
-    if (
-      differenceInCalendarWeeks(defaultEvent.end, defaultEvent.start, {
-        weekStartsOn,
-      }) > 0
-    ) {
-      // split event up into multiple events to not overflow a single day
-      // an event can't be longer than a day
-      const part0 = {
-        start: defaultEvent.start,
-        end: endOfWeek(defaultEvent.start, { weekStartsOn }),
-      };
-      parts.push(part0);
-      while (true) {
-        const endOfPrevious = parts[parts.length - 1].end;
-        const nextWeekStart = startOfWeek(addDays(endOfPrevious, 1), {
-          weekStartsOn,
-        });
-        const nextWeekEnd = min([
-          endOfWeek(nextWeekStart, {
-            weekStartsOn,
-          }),
-          defaultEvent.end,
-        ]);
-        parts.push({
-          start: nextWeekStart,
-          end: nextWeekEnd,
-        });
-        if (nextWeekEnd.getTime() >= defaultEvent.end.getTime()) {
-          break;
-        }
-      }
-      return parts.map((part) => ({
-        sourceEvent: defaultEvent.sourceEvent,
-        start: part.start,
-        end: part.end,
-      }));
-    }
-    return defaultEvent;
-  });
-  return events;
-}
-
 export function eventGrid(
-  _events: ModifiableEvent[],
+  events: ModifiableEvent[],
   startDay: StartDay,
-  startOfMonth: Date,
+  startTime: Date,
 ) {
   const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
     startDay === "monday" ? 1 : 0;
-  const { startOfMonthCalendar, endOfMonthCalendar } = monthCalendarRange(
-    startDay,
-    startOfMonth,
-  );
 
   /**
    * This will hold all the properties about the events that we need to render them in the correct position
@@ -137,24 +47,7 @@ export function eventGrid(
     ]: { row: number; day: number; week: number; maxRow: number };
   } = {};
 
-  // step 0.
-  // get all the events that are part of the month
-  const eventsInMonth: ModifiableEvent[] = filterEventsInMonth(
-    _events,
-    startDay,
-    startOfMonth,
-  );
 
-  // step 1.
-  // split up events that span multiple weeks into multiple events that span a maximum of 1 week
-  // we also trim the events so they perfectly fit into our grid (see step 3)
-  /**
-   * Events that cross into a new week are split into two events or more
-   */
-  const events: ModifiableEvent[] = splitMultiWeekEvents(
-    eventsInMonth,
-    startDay,
-  );
 
   // step 2.
   // sort the events by 1. start date and 2. duration
@@ -189,7 +82,7 @@ export function eventGrid(
     week: number,
     day: number,
     eventIndex: number,
-    event: ModifiableEvent,
+    event: ModifiableEvent
   ) => {
     grid[week] = grid[week] ?? [];
     grid[week][day] = grid[week][day] ?? [];
@@ -218,10 +111,10 @@ export function eventGrid(
   };
 
   events.forEach((event, index) => {
-    const week = differenceInWeeks(event.start, startOfMonthCalendar);
+    const week = differenceInWeeks(event.start, startTime);
     const day = differenceInDays(
       event.start,
-      startOfWeek(event.start, { weekStartsOn }),
+      startOfWeek(event.start, { weekStartsOn })
     );
 
     assignEventToGrid(week, day, index, event);
@@ -231,7 +124,7 @@ export function eventGrid(
     //  - for a 2 day event, the loop with have d === 1, the end - start === 1 so the loop will loop only once
     for (let d = 1; d <= differenceInDays(event.end, event.start); d++) {
       const start = addDays(event.start, d);
-      const week = differenceInWeeks(start, startOfMonthCalendar);
+      const week = differenceInWeeks(start, startTime);
       const day = differenceInDays(start, startOfWeek(start, { weekStartsOn }));
 
       assignEventToGrid(week, day, index, event);
@@ -244,7 +137,7 @@ export function eventGrid(
       day.forEach((event) => {
         eventProperties[event.index].maxRow = Math.max(
           day.length,
-          eventProperties[event.index].maxRow,
+          eventProperties[event.index].maxRow
         );
       });
     });

@@ -4,7 +4,7 @@ import {
   endOfDay,
   differenceInCalendarWeeks,
 } from "date-fns";
-import { splitMultiWeekEvents } from "./event_grid";
+import { splitMultiWeekEvents } from "./split_multi_week_events";
 import { ModifiableEvent } from "../week_calendar/types";
 
 jest.useFakeTimers().setSystemTime(new Date("2024-06-15"));

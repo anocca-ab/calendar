@@ -18,7 +18,7 @@ import {
 } from "date-fns";
 import { StartDay } from "../types";
 import { ModifiableEvent } from "../week_calendar/types";
-import { monthCalendarRange } from "../month_calendar/event_grid";
+import { monthCalendarRange } from "../event_grid";
 import { getEventEnd } from "../helpers";
 
 export function filterEventsInMonth(

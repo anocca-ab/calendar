@@ -5,10 +5,31 @@ import {
   startOfDay,
   subMinutes,
 } from "date-fns";
-import { CalendarEvent } from "../types";
-import { eventGrid } from "./event_grid";
+import { CalendarEvent } from "./types";
+import { monthCalendarRange, eventGrid as realEventGrid } from "./event_grid";
+import { splitMultiWeekEvents } from "./month_calendar/split_multi_week_events";
+import { filterEventsInMonth } from "./month_calendar/filter_events_in_month";
+import { ModifiableEvent } from "./week_calendar/types";
 
 jest.useFakeTimers().setSystemTime(new Date("2024-06-15"));
+
+const fns = {
+  splitEvents: splitMultiWeekEvents,
+  filterEvents: filterEventsInMonth,
+};
+
+function eventGrid(
+  events: ModifiableEvent[],
+  startDay: "sunday" | "monday",
+  startOfMonth: Date,
+  _fns: typeof fns
+) {
+  return realEventGrid(
+    _fns.splitEvents(_fns.filterEvents(events, startDay, startOfMonth), startDay),
+    startDay,
+    monthCalendarRange(startDay, startOfMonth).startOfMonthCalendar
+  );
+}
 
 const events: CalendarEvent[] = [
   {
@@ -84,7 +105,8 @@ test("works with a task", () => {
 
       "monday",
       new Date(),
-    ).grid,
+      fns
+    ).grid
   ).toMatchInlineSnapshot(`
     [
       ,
@@ -124,7 +146,8 @@ test("works with full day event", () => {
 
       "monday",
       new Date(),
-    ).grid,
+      fns
+    ).grid
   ).toMatchInlineSnapshot(`
     [
       ,
@@ -166,7 +189,8 @@ test("can populate the grid over multiple days", () => {
 
       "monday",
       new Date(),
-    ).grid,
+      fns
+    ).grid
   ).toMatchInlineSnapshot(`
     [
       ,
@@ -219,7 +243,8 @@ test("can populate the grid over multiple days", () => {
 
       "monday",
       new Date(),
-    ).grid,
+      fns
+    ).grid
   ).toMatchInlineSnapshot(`
     [
       ,
@@ -296,7 +321,8 @@ test("works with overlaps", () => {
 
       "monday",
       new Date(),
-    ).grid,
+      fns
+    ).grid
   ).toMatchInlineSnapshot(`
     [
       ,
@@ -377,7 +403,8 @@ test("events are correct", () => {
 
       "monday",
       new Date(),
-    ).events,
+      fns
+    ).events
   ).toMatchInlineSnapshot(`
     [
       {
@@ -432,7 +459,8 @@ test("eventProperties", () => {
 
       "monday",
       new Date(),
-    ).eventProperties,
+      fns
+    ).eventProperties
   ).toMatchInlineSnapshot(`
     {
       "0": {

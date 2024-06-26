@@ -1,6 +1,6 @@
 import { Box, Button, SvgIcon, Typography } from "@mui/material";
 import { format } from "date-fns";
-import { mergeSx } from "../helpers";
+import { DEFAULT_COLOR, mergeSx } from "../helpers";
 import type { CalendarEvent } from "../types";
 import { Triangle } from "../week_calendar/week_calendar";
 import { FlexCol, FlexRow } from "../wrappers";
@@ -31,7 +31,7 @@ export function CalendarAllDayEvent({
             pointerEvents: "none",
           },
         },
-        buttonProps.sx,
+        buttonProps.sx
       )}
     >
       {triangle === "left" && (
@@ -39,12 +39,12 @@ export function CalendarAllDayEvent({
           direction={"left"}
           height={16}
           width={12}
-          color={event.color ?? "#FF7043"}
+          color={event.color ?? DEFAULT_COLOR}
         />
       )}
       <FlexRow
         sx={{
-          backgroundColor: event.color ?? "#FF7043",
+          backgroundColor: event.color ?? DEFAULT_COLOR,
           justifyContent: "flex-start",
           padding: "0px 8px",
           flex: 1,
@@ -59,7 +59,7 @@ export function CalendarAllDayEvent({
           direction={"right"}
           height={16}
           width={12}
-          color={event.color ?? "#FF7043"}
+          color={event.color ?? DEFAULT_COLOR}
         />
       )}
     </Box>
@@ -67,7 +67,7 @@ export function CalendarAllDayEvent({
 }
 
 export function MonthCalendarEvent({
-  event: { title = "(No title)", start, color = "#FF7043" },
+  event: { title = "(No title)", start, color = DEFAULT_COLOR },
   state = "normal",
   ...buttonProps
 }: {
@@ -94,7 +94,7 @@ export function MonthCalendarEvent({
             pointerEvents: "none",
           },
         },
-        buttonProps.sx,
+        buttonProps.sx
       )}
     >
       <FlexRow

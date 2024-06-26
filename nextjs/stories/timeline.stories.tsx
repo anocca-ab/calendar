@@ -7,8 +7,10 @@ import {
   addMinutes,
   endOfDay,
   startOfDay,
+  startOfMonth,
   startOfWeek,
   subDays,
+  subWeeks,
 } from "date-fns";
 
 const meta = {
@@ -47,7 +49,7 @@ const meta = {
     },
   },
   args: {
-    startTime: new Date(),
+    startTime: startOfMonth(new Date()),
     now: new Date(),
     startDay: "monday",
   },
@@ -65,9 +67,20 @@ export const WithEvents: Story = {
   args: {
     events: [
       {
+        start: addDays(
+          startOfDay(startOfWeek(subWeeks(new Date(), 2), { weekStartsOn: 1 })),
+          3
+        ),
+        end: addDays(
+          startOfDay(startOfWeek(subWeeks(new Date(), 2), { weekStartsOn: 1 })),
+          5
+        ),
+        title: "2 days",
+      },
+      {
         start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
         end: endOfDay(
-          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 15),
+          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 15)
         ),
         title: "2 weeks",
       },

@@ -66,7 +66,7 @@ export function CreateEvent({
   };
 
   const [onClosed, setOnClosed] = React.useState<undefined | (() => void)>(
-    undefined,
+    undefined
   );
 
   onCloseModalRef.current = (cb) => {
@@ -80,7 +80,7 @@ export function CreateEvent({
 
   const [title, setTitle] = React.useState(event.title ?? "");
 
-  const [eventColor, setEventColor] = React.useState("orange");
+  const [eventColor, setEventColor] = React.useState(event.color ?? "#FF7043");
 
   const onChangeEventColor = (event: SelectChangeEvent) => {
     setEventColor(event.target.value);
@@ -144,7 +144,7 @@ export function CreateEvent({
                       setEnd(
                         allDay
                           ? addDays(startOfDay(start), 1)
-                          : addHours(start, 1),
+                          : addHours(start, 1)
                       );
                     }
                   }}
@@ -246,8 +246,8 @@ export function CreateEvent({
                           setEnd(
                             addMilliseconds(
                               date,
-                              differenceInMilliseconds(end, start),
-                            ),
+                              differenceInMilliseconds(end, start)
+                            )
                           );
                         }
                         setStart(date);
@@ -365,41 +365,17 @@ export function CreateEvent({
               value={eventColor}
               onChange={onChangeEventColor}
             >
-              <MenuItem value={"orange"}>
-                {eventColor === "orange" ? (
-                  <CheckCircleIcon style={{ color: "#FF7043" }} />
-                ) : (
-                  <CircleIcon style={{ color: "#FF7043" }} />
-                )}
-              </MenuItem>
-              <MenuItem value={"indigo"}>
-                {eventColor === "indigo" ? (
-                  <CheckCircleIcon style={{ color: "#5C6BC0" }} />
-                ) : (
-                  <CircleIcon style={{ color: "#5C6BC0" }} />
-                )}
-              </MenuItem>
-              <MenuItem value={"pink"}>
-                {eventColor === "pink" ? (
-                  <CheckCircleIcon style={{ color: "#EC407A" }} />
-                ) : (
-                  <CircleIcon style={{ color: "#EC407A" }} />
-                )}
-              </MenuItem>
-              <MenuItem value={"teal"}>
-                {eventColor === "teal" ? (
-                  <CheckCircleIcon style={{ color: "#26A69A" }} />
-                ) : (
-                  <CircleIcon style={{ color: "#26A69A" }} />
-                )}
-              </MenuItem>
-              <MenuItem value={"red"}>
-                {eventColor === "red" ? (
-                  <CheckCircleIcon style={{ color: "#EF5350" }} />
-                ) : (
-                  <CircleIcon style={{ color: "#EF5350" }} />
-                )}
-              </MenuItem>
+              {["#FF7043", "#5C6BC0", "#EC407A", "#26A69A", "#EF5350"].map(
+                (hex) => (
+                  <MenuItem key={hex} value={hex}>
+                    {eventColor === hex ? (
+                      <CheckCircleIcon style={{ color: hex }} />
+                    ) : (
+                      <CircleIcon style={{ color: hex }} />
+                    )}
+                  </MenuItem>
+                )
+              )}
             </Select>
             <Typography variant="body1">Event color</Typography>
           </FlexRow>
@@ -417,7 +393,7 @@ export function CreateEvent({
                   title,
                   color: eventColor,
                 },
-                event,
+                event
               );
               handleClose();
             }}

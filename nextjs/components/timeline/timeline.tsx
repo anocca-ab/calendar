@@ -1,34 +1,39 @@
 import { Box, Typography } from "@mui/material";
-import { CalendarEvent, StartDay } from "../types";
 import {
   StartOfWeekOptions,
   addDays,
+  addMonths,
+  addWeeks,
+  addYears,
+  areIntervalsOverlapping,
   differenceInCalendarDays,
   endOfDay,
+  endOfMonth,
+  endOfWeek,
+  endOfYear,
   format,
-  getWeeksInMonth,
   isSameDay,
   isSameWeek,
+  max,
+  min,
   startOfMonth,
   startOfWeek,
   startOfYear,
 } from "date-fns";
-import { FlexCol, FlexRow } from "../wrappers";
-import { useDragableEvents } from "../week_calendar/use_mouse";
-import { eventGrid } from "./event_grid";
-import {
-  CalendarAllDayEvent,
-  MonthCalendarEvent,
-} from "../month_calendar/calendar_events";
-import { ModifiableEvent } from "../week_calendar/types";
-import { getEventEnd, isAllDayEvent } from "../helpers";
 import React from "react";
+import { eventGrid, monthCalendarRange } from "../event_grid";
+import { DEFAULT_COLOR, getEventEnd } from "../helpers";
+import { filterEventsInMonth } from "../month_calendar/filter_events_in_month";
 import { EventTypography } from "../month_calendar/helpers";
+import { CalendarEvent, StartDay } from "../types";
+import { ModifiableEvent } from "../week_calendar/types";
+import { useDragableEvents } from "../week_calendar/use_mouse";
+import { FlexCol, FlexRow } from "../wrappers";
 
 type Resolution = "year" | "month" | "3-years" | "3-months";
 
 const parseDefaultProps = (
-  props: React.ComponentPropsWithRef<typeof Timeline>,
+  props: React.ComponentPropsWithRef<typeof Timeline>
 ) => {
   const events = props.events ?? [];
   let startDay = props.startDay ?? "monday";
@@ -42,19 +47,18 @@ const parseDefaultProps = (
 
   const startTime =
     resolution === "month"
-      ? // ? startOfWeek(startOfMonth(rawSt), startOpts)
-        startOfMonth(rawSt)
+      ? startOfWeek(rawSt, startOpts)
       : resolution === "3-months"
-        ? startOfMonth(rawSt)
-        : resolution === "year"
-          ? startOfYear(rawSt)
-          : resolution === "3-years"
-            ? startOfYear(rawSt)
-            : undefined;
+      ? startOfMonth(rawSt)
+      : resolution === "year"
+      ? startOfYear(rawSt)
+      : resolution === "3-years"
+      ? startOfYear(rawSt)
+      : undefined;
 
   if (!startTime) {
     throw new Error(
-      'invalid resolution, must be one of "month", "3-months", "year", "3-years"',
+      'invalid resolution, must be one of "month", "3-months", "year", "3-years"'
     );
   }
 
@@ -78,7 +82,7 @@ export function Timeline(props: {
    */
   events?: CalendarEvent[];
   /**
-   * Will be e.g. start of the year / month / quarter / 3 years / 3 months depending on the resolution
+   * Will be e.g. start of the week / year / month / quarter / 3 years / 3 months depending on the resolution
    * @default new Date()
    */
   startTime?: Date;
@@ -117,7 +121,7 @@ export function Timeline(props: {
   onMoveEvent?: (
     event: CalendarEvent,
     newStart: Date,
-    newEnd: Date | undefined,
+    newEnd: Date | undefined
   ) => void;
 
   /**
@@ -127,22 +131,8 @@ export function Timeline(props: {
    */
   onEditEvent?: (event: CalendarEvent) => void;
 }) {
-  const {
-    events: calendarEvents,
-    startTime,
-    resolution,
-    now,
-    startDay,
-  } = parseDefaultProps(props);
-
-  const [allEvents, draggedEvent, setDraggedEvent] =
-    useDragableEvents(calendarEvents);
-
-  const { eventProperties, events, moreButtons, grid } = eventGrid(
-    allEvents,
-    startDay,
-    startOfMonth(startTime),
-  );
+  const { events, startTime, resolution, now, startDay } =
+    parseDefaultProps(props);
 
   return (
     <Box>
@@ -152,35 +142,102 @@ export function Timeline(props: {
         resolution={resolution}
         now={now}
         events={events}
-        eventProperties={eventProperties}
         startDay={startDay}
       />
     </Box>
   );
 }
 
+const getTimelineRange = (
+  resolution: Resolution,
+  startTime: Date,
+  startDay: StartDay
+): [Date, Date] => {
+  const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
+    startDay === "monday" ? 1 : 0;
+  if (resolution === "month") {
+    return [startOfWeek(startTime, { weekStartsOn }), addWeeks(startTime, 6)];
+  }
+  if (resolution === "year") {
+    return [startOfYear(startTime), endOfYear(startTime)];
+  }
+  if (resolution === "3-months") {
+    return [startOfMonth(startTime), addMonths(startTime, 3)];
+  }
+  if (resolution === "3-years") {
+    return [startOfYear(startTime), addYears(startTime, 3)];
+  }
+  throw new Error("Invalid resolution");
+};
+
+function filterEventsInTimeline(
+  _events: ModifiableEvent[],
+  resolution: Resolution,
+  startTime: Date,
+  startDay: StartDay
+) {
+  const [timelineStart, timelineEnd] = getTimelineRange(
+    resolution,
+    startTime,
+    startDay
+  );
+
+  const eventsInTimeline: ModifiableEvent[] = _events
+    .filter((event) => {
+      return areIntervalsOverlapping(
+        {
+          start: timelineStart,
+          end: timelineEnd,
+        },
+        { start: event.start, end: getEventEnd(event) }
+      );
+    })
+    .map((event) => {
+      let start = max([event.start, timelineStart]);
+      let end = min([getEventEnd(event), timelineEnd]);
+      return {
+        sourceEvent: event.sourceEvent,
+        start: start,
+        end: end,
+      };
+    });
+  return eventsInTimeline;
+}
+
 function Grid({
   startTime,
-  now,
-  resolution,
-  events,
-  eventProperties,
+  events: sourceEvents,
   startDay,
+  resolution,
 }: {
   startDay: StartDay;
   startTime: Date;
   now: Date;
   resolution: Resolution;
-  events: ModifiableEvent[];
-  eventProperties: {
-    [index: string]: {
-      row: number;
-      day: number;
-      hourSlot: number;
-      maxRow: number;
-    };
-  };
+  events: CalendarEvent[];
 }) {
+  const [allEvents, draggedEvent, setDraggedEvent] =
+    useDragableEvents(sourceEvents);
+
+  const eventsInTimeline: ModifiableEvent[] = filterEventsInTimeline(
+    allEvents,
+    resolution,
+    startTime,
+    startDay
+  );
+
+  const { eventProperties, events, moreButtons, grid } = eventGrid(
+    eventsInTimeline,
+    startDay,
+    startTime
+  );
+
+  const [timelineStart, timelineEnd] = getTimelineRange(
+    resolution,
+    startTime,
+    startDay
+  );
+
   return (
     <Box
       sx={{
@@ -195,7 +252,17 @@ function Grid({
         }}
       >
         {events.map((event, index) => {
-          const { hourSlot, day, row, maxRow } = eventProperties[`${index}`];
+          const { day, row, maxRow } = eventProperties[`${index}`];
+
+          const start = timelineStart.getTime();
+          const end = timelineEnd.getTime();
+          const totalSecondsOfMonth = end - start;
+
+          const x =
+            (720 * (event.start.getTime() - start)) / totalSecondsOfMonth;
+          const w =
+            (720 * (event.end.getTime() - event.start.getTime())) /
+            totalSecondsOfMonth;
 
           let width = differenceInCalendarDays(event.end, event.start);
           if (event.end.getTime() === endOfDay(event.end).getTime()) {
@@ -211,72 +278,34 @@ function Grid({
             }),
           };
 
-          const props: React.ComponentPropsWithoutRef<
-            typeof CalendarAllDayEvent | typeof MonthCalendarEvent
-          > = {
-            event: event.sourceEvent,
-            sx: {
-              width: `${width * 16 - 1}px`,
-              left: `${day * 16 + hourSlot * 2}px`,
-              top: row * (16 + 1) + 1 + 32,
-              height: "16px",
-              position: "absolute",
-              zIndex: 2,
-            },
-            ...dataProps,
-          };
-          console.log("event", event.sourceEvent, eventProperties[`${index}`]);
-
           return (
             <React.Fragment key={index}>
-              {(maxRow <= 5 ? row < 5 : row < 4) ? (
-                // it is not part of the "more" button
-                isAllDayEvent(event) ? (
-                  <>
-                    <Box
-                      zIndex={2}
-                      sx={{
-                        width: `${width * 16 - 1}px`,
-                        left: `${day * 16 + hourSlot * 2}px`,
-                        top: row * (16 + 1) + 1 + 32,
-                        height: "16px",
-                        position: "absolute",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <FlexRow
-                        sx={{
-                          backgroundColor: event.sourceEvent.color ?? "#FF7043",
-                          justifyContent: "flex-start",
-                          padding: "0px 8px",
-                          flex: 1,
-                          borderRadius: "4px",
-                          alignItems: "center",
-                        }}
-                      >
-                        <EventTypography>
-                          {event.sourceEvent.title ?? "(No title)"}
-                        </EventTypography>
-                      </FlexRow>
-                    </Box>
-                  </>
-                ) : (
-                  <>
-                    {/* <MonthCalendarEvent key={index} {...props} state="normal" /> */}
-                    <Box
-                      zIndex={2}
-                      sx={{
-                        width: `${(hourSlot + 1) * 2}px`,
-                        left: `${day * 16 + hourSlot * 2}px`,
-                        top: row * (16 + 1) + 1 + 32,
-                        height: "16px",
-                        position: "absolute",
-                        backgroundColor: "blue",
-                      }}
-                    />
-                  </>
-                )
-              ) : null}
+              <Box
+                zIndex={2}
+                sx={{
+                  width: `${w}px`,
+                  left: `${x}px`,
+                  top: row * (16 + 1) + 1 + 32,
+                  height: "16px",
+                  position: "absolute",
+                  overflow: "hidden",
+                }}
+              >
+                <FlexRow
+                  sx={{
+                    backgroundColor: event.sourceEvent.color ?? DEFAULT_COLOR,
+                    justifyContent: "flex-start",
+                    padding: "0px 8px",
+                    flex: 1,
+                    borderRadius: "4px",
+                    alignItems: "center",
+                  }}
+                >
+                  <EventTypography>
+                    {event.sourceEvent.title ?? "(No title)"}
+                  </EventTypography>
+                </FlexRow>
+              </Box>
             </React.Fragment>
           );
         })}
@@ -358,7 +387,7 @@ function Header({
                       borderRadius: "1px",
                     }}
                   ></Box>
-                </Box>,
+                </Box>
               );
             }
             return els;

@@ -93,8 +93,8 @@ type ParsedColor = {
   hsla: Hsla;
   rgba: Rgba;
   contrastText: "white" | "black";
-  saturated: Hsla;
-  saturatedContrastText: "white" | "black";
+  unsaturated: Hsla;
+  unsaturatedContrastText: "white" | "black";
 };
 
 const colorCache = new Map<string, ParsedColor>();
@@ -112,7 +112,7 @@ export function parseColor(background: string): ParsedColor | undefined {
   }
   if (!offScreenCanavs) {
     const existingCanvas = document.getElementById(
-      "calendar-off-screen-canvas",
+      "calendar-off-screen-canvas"
     );
     if (existingCanvas && existingCanvas instanceof HTMLCanvasElement) {
       offScreenCanavs = existingCanvas;
@@ -151,27 +151,29 @@ export function parseColor(background: string): ParsedColor | undefined {
       cssString: `rgba(${red}, ${green}, ${blue}, ${alpha})`,
     };
     const hsla = rgbaToHsla(rgba);
-    const saturated: Hsla = {
+    const unsaturated: Hsla = {
       ...hsla,
       s: Math.max(hsla.s - 10, 0),
       l: Math.min(hsla.l + 5, 100),
     };
-    saturated.cssString = `hsla(${saturated.h}, ${saturated.s}%, ${saturated.l}%, ${saturated.a})`;
+    unsaturated.cssString = `hsla(${unsaturated.h}, ${unsaturated.s}%, ${unsaturated.l}%, ${unsaturated.a})`;
     const contrastText = getContrastText(imageData);
 
     c.clearRect(x, y, 1, 1);
-    c.fillStyle = saturated.cssString;
+    c.fillStyle = unsaturated.cssString;
     c.fillRect(x, y, 1, 1);
-    const saturatedContrastText = getContrastText(
-      c.getImageData(x, y, 1, 1).data,
-    );
+    const unsaturatedContrastText = contrastText;
+    // or if we want the contrast text to be calculated on the more unsaturated color
+    // const saturatedContrastText = getContrastText(
+    //   c.getImageData(x, y, 1, 1).data
+    // );
 
     const result: ParsedColor = {
       hsla,
       rgba,
       contrastText,
-      saturated,
-      saturatedContrastText,
+      unsaturated: unsaturated,
+      unsaturatedContrastText: unsaturatedContrastText,
     };
     return result;
   }
@@ -182,19 +184,20 @@ export function getEventColor(
   now: Date,
   end: Date,
   theme: Theme,
-  eventColor?: string,
+  eventColor?: string
 ) {
-  const parsedColor = parseColor(eventColor ?? "hsl(0 50 50)");
+  const parsedColor = parseColor(eventColor ?? DEFAULT_COLOR);
 
   const bg = parsedColor
     ? end.getTime() - now.getTime() < 0
-      ? parsedColor?.saturated.cssString
+      ? parsedColor?.unsaturated.cssString
       : parsedColor?.hsla.cssString
-    : "hsl(0 50 50)";
+    : DEFAULT_COLOR;
   const color = parsedColor
     ? (end.getTime() - now.getTime() < 0
-        ? parsedColor.saturatedContrastText
-        : parsedColor.contrastText) === "black"
+        ? parsedColor.unsaturatedContrastText
+        : parsedColor.contrastText) ===
+      (theme.palette.mode === "dark" ? "white" : "black")
       ? theme.palette.text.primary
       : theme.palette.primary.contrastText
     : "black";
@@ -210,3 +213,5 @@ export function getEventEnd(event: CalendarEvent) {
   }
   return event.end ?? endOfDay(event.start);
 }
+
+export const DEFAULT_COLOR = "#FF7043";
