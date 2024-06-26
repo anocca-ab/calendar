@@ -15,7 +15,7 @@ import {
 } from "date-fns";
 import { FlexCol, FlexRow } from "../wrappers";
 import { useDragableEvents } from "../week_calendar/use_mouse";
-import { eventGrid } from "../month_calendar/event_grid";
+import { eventGrid } from "./event_grid";
 import {
   CalendarAllDayEvent,
   MonthCalendarEvent,
@@ -23,6 +23,7 @@ import {
 import { ModifiableEvent } from "../week_calendar/types";
 import { getEventEnd, isAllDayEvent } from "../helpers";
 import React from "react";
+import { EventTypography } from "../month_calendar/helpers";
 
 type Resolution = "year" | "month" | "3-years" | "3-months";
 
@@ -175,15 +176,11 @@ function Grid({
     [index: string]: {
       row: number;
       day: number;
-      week: number;
+      hourSlot: number;
       maxRow: number;
     };
   };
 }) {
-  const weeksOfMonth = getWeeksInMonth(now, {
-    weekStartsOn: startDay === "monday" ? 1 : 0,
-  });
-
   return (
     <Box
       sx={{
@@ -191,15 +188,6 @@ function Grid({
         height: "120px",
       }}
     >
-      {/* {events.map((event, index) => {
-        if (resolution === "month") {
-        }
-        return (
-          <Box key={index}>
-            <Typography variant="event">{event.title}</Typography>
-          </Box>
-        );
-      })} */}
       <Box
         sx={{
           position: "absolute",
@@ -207,7 +195,8 @@ function Grid({
         }}
       >
         {events.map((event, index) => {
-          const { week, day, row, maxRow } = eventProperties[`${index}`];
+          const { hourSlot, day, row, maxRow } = eventProperties[`${index}`];
+
           let width = differenceInCalendarDays(event.end, event.start);
           if (event.end.getTime() === endOfDay(event.end).getTime()) {
             width += 1;
@@ -221,13 +210,14 @@ function Grid({
               w: Math.max(width, 1),
             }),
           };
+
           const props: React.ComponentPropsWithoutRef<
             typeof CalendarAllDayEvent | typeof MonthCalendarEvent
           > = {
             event: event.sourceEvent,
             sx: {
               width: `${width * 16 - 1}px`,
-              left: `${week * day * 16}px`,
+              left: `${day * 16 + hourSlot * 2}px`,
               top: row * (16 + 1) + 1 + 32,
               height: "16px",
               position: "absolute",
@@ -235,30 +225,7 @@ function Grid({
             },
             ...dataProps,
           };
-
-          const startOfWeekOfEventEnd = startOfWeek(
-            getEventEnd(event.sourceEvent),
-            {
-              weekStartsOn: startDay === "monday" ? 1 : 0,
-            },
-          );
-          const firstWeekStart = startOfWeek(startDay, {
-            weekStartsOn: startDay === "monday" ? 1 : 0,
-          });
-
-          const triangleLeft =
-            week === 0 &&
-            width === 7 &&
-            !isSameWeek(event.sourceEvent.start, firstWeekStart);
-          const triangleRight =
-            weeksOfMonth === week + 1 &&
-            width === 7 &&
-            !isSameWeek(event.end, startOfWeekOfEventEnd);
-          const triangle = triangleRight
-            ? "right"
-            : triangleLeft
-              ? "left"
-              : undefined;
+          console.log("event", event.sourceEvent, eventProperties[`${index}`]);
 
           return (
             <React.Fragment key={index}>
@@ -266,22 +233,32 @@ function Grid({
                 // it is not part of the "more" button
                 isAllDayEvent(event) ? (
                   <>
-                    {/* <CalendarAllDayEvent
-                      key={index}
-                      {...props}
-                      triangle={undefined}
-                    /> */}
                     <Box
                       zIndex={2}
                       sx={{
                         width: `${width * 16 - 1}px`,
-                        left: `${week * day * 16}px`,
+                        left: `${day * 16 + hourSlot * 2}px`,
                         top: row * (16 + 1) + 1 + 32,
                         height: "16px",
                         position: "absolute",
-                        backgroundColor: "red",
+                        overflow: "hidden",
                       }}
-                    />
+                    >
+                      <FlexRow
+                        sx={{
+                          backgroundColor: event.sourceEvent.color ?? "#FF7043",
+                          justifyContent: "flex-start",
+                          padding: "0px 8px",
+                          flex: 1,
+                          borderRadius: "4px",
+                          alignItems: "center",
+                        }}
+                      >
+                        <EventTypography>
+                          {event.sourceEvent.title ?? "(No title)"}
+                        </EventTypography>
+                      </FlexRow>
+                    </Box>
                   </>
                 ) : (
                   <>
@@ -289,12 +266,12 @@ function Grid({
                     <Box
                       zIndex={2}
                       sx={{
-                        width: `${8 - 1}px`,
-                        left: `${week * day * 16}px`,
+                        width: `${(hourSlot + 1) * 2}px`,
+                        left: `${day * 16 + hourSlot * 2}px`,
                         top: row * (16 + 1) + 1 + 32,
                         height: "16px",
                         position: "absolute",
-                        backgroundColor: "red",
+                        backgroundColor: "blue",
                       }}
                     />
                   </>

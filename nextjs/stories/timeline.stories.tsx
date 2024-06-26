@@ -1,6 +1,15 @@
 import { Timeline } from "@/components/timeline/timeline";
 import type { Meta, StoryObj } from "@storybook/react";
 import { manyEvents } from "./many_events";
+import {
+  addDays,
+  addHours,
+  addMinutes,
+  endOfDay,
+  startOfDay,
+  startOfWeek,
+  subDays,
+} from "date-fns";
 
 const meta = {
   title: "Timeline Calendar",
@@ -54,6 +63,39 @@ export const EmptyCalendar: Story = {
 
 export const WithEvents: Story = {
   args: {
-    events: manyEvents,
+    events: [
+      {
+        start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
+        end: endOfDay(
+          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 15),
+        ),
+        title: "2 weeks",
+      },
+      {
+        start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
+        end: endOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
+        title: "All day event",
+      },
+      {
+        start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
+        end: endOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 2)),
+        title: "3 day",
+      },
+      {
+        start: addHours(startOfDay(addDays(new Date(), 2)), 5),
+        end: addMinutes(addHours(startOfDay(addDays(new Date(), 3)), 5), 35),
+        title: "35 min ",
+      },
+      {
+        start: addHours(startOfDay(addDays(new Date(), 3)), 5),
+        end: addHours(startOfDay(addDays(new Date(), 3)), 6),
+        title: "1 hour ",
+      },
+      {
+        start: addHours(startOfDay(addDays(new Date(), 3)), 7),
+        end: addHours(startOfDay(addDays(new Date(), 3)), 9),
+        title: "2 hours",
+      },
+    ],
   },
 };
