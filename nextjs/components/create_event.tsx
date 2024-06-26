@@ -347,19 +347,6 @@ export function CreateEvent({
             <Box width={24} />
 
             <Select
-              // sx={{
-              //   boxShadow: "none",
-              //   ".MuiOutlinedInput-input": {
-              //     p: 0,
-              //   },
-              //   ".MuiOutlinedInput-notchedOutline": {
-              //     border: 0,
-              //   },
-              //   "&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-              //     {
-              //       border: "none",
-              //     },
-              // }}
               variant="standard"
               size="small"
               value={eventColor}
@@ -395,6 +382,12 @@ export function CreateEvent({
                 },
                 event
               );
+              console.log("@ev", {
+                start,
+                end,
+                title,
+                color: eventColor,
+              });
               handleClose();
             }}
           >

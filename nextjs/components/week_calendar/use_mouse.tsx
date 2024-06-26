@@ -66,21 +66,25 @@ export type DragPosition<T extends { start: Date; end?: Date | undefined }> = {
   colX: number;
 };
 
-export function useMouse<T extends { start: Date; end?: Date | undefined }>(
+export function useMouse(
   target: string,
   effectRefs: React.MutableRefObject<{
-    onMoveEvent?: (event: T, start: Date, end: Date | undefined) => void;
-    onEditEvent?: (event: T) => void;
-    events: T[];
+    onMoveEvent?: (
+      event: ModifiableEvent,
+      start: Date,
+      end: Date | undefined
+    ) => void;
+    onEditEvent?: (event: ModifiableEvent) => void;
+    events: ModifiableEvent[];
     setDraggedEvent: React.Dispatch<
-      React.SetStateAction<DraggedEvent<T> | undefined>
+      React.SetStateAction<DraggedEvent<ModifiableEvent> | undefined>
     >;
     /**
      * if event has moved return the new start and end time
      */
     calculateNewTime: (
       state: MouseState,
-      dragged: DragPosition<T>,
+      dragged: DragPosition<ModifiableEvent>,
       container: EventContainer
     ) => { start: Date; end: Date } | undefined;
     eventContainerRef: React.MutableRefObject<HTMLDivElement | null>;
@@ -101,7 +105,7 @@ export function useMouse<T extends { start: Date; end?: Date | undefined }>(
     /**
      * Position data regarding the dragged event
      */
-    let dragged: undefined | DragPosition<T> = undefined;
+    let dragged: undefined | DragPosition<ModifiableEvent> = undefined;
 
     let container: undefined | EventContainer;
 
@@ -109,7 +113,7 @@ export function useMouse<T extends { start: Date; end?: Date | undefined }>(
      * Same as the React.state draggedEvent, but outside the context of react state
      * A "live" version, whereas the state version is only updated after react component updates
      */
-    let draggedEvent: DraggedEvent<T> | undefined = undefined;
+    let draggedEvent: DraggedEvent<ModifiableEvent> | undefined = undefined;
     const mouseDown = (ev: MouseEvent) => {
       if (ev.target instanceof HTMLElement) {
         if (ev.target.dataset.type === target) {
@@ -170,10 +174,23 @@ export function useMouse<T extends { start: Date; end?: Date | undefined }>(
       if (draggedEvent) {
         if (draggedEvent.dragged) {
           if (effectRefs.current.onMoveEvent) {
+            const sourceEvent = draggedEvent.source.sourceEvent;
+            const newStart = draggedEvent.dragged.start;
+            let newEnd: Date | undefined = draggedEvent.dragged.end;
+            if (!sourceEvent.end) {
+              // maintain as full day task
+              newEnd = undefined;
+            } else if (
+              sourceEvent.start.getTime() === sourceEvent.end?.getTime()
+            ) {
+              // maintain as sub day task
+              newEnd = newStart;
+            }
+
             effectRefs.current.onMoveEvent(
               draggedEvent.source,
-              draggedEvent.dragged.start,
-              draggedEvent.dragged.end
+              newStart,
+              newEnd
             );
           }
         }
