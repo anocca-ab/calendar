@@ -449,7 +449,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
                     cursor: "pointer",
                     position: "absolute",
                     bottom: totalHeight - y * 17 - 16,
-                    left: widthToPct(x * 120 + 2, daysInWeek),
+                    left: widthToPct(x * 120 + 1, daysInWeek),
                     ...style,
                     display: "flex",
                     justifyContent: "stretch",
