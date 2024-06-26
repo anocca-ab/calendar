@@ -125,6 +125,16 @@ export const WorkWeek: Story = {
   },
 };
 
+export const WeekStartsOnSunday: Story = {
+  args: {
+    events: manyEvents,
+    startDay: "sunday",
+  },
+  render: (props) => {
+    return <InteractiveDemo {...props} />;
+  },
+};
+
 function InteractiveDemo(
   props: React.ComponentPropsWithRef<typeof WeekCalendar>
 ) {

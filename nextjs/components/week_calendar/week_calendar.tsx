@@ -373,8 +373,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
             sx={{
               position: "absolute",
               alignItems: "stretch",
-              justifyContent: "flex-start",
-              gap: widthToPct(119, daysInWeek),
+              justifyContent: "space-between",
               pointerEvents: "none",
               height: totalHeight,
               left: 0,
@@ -922,9 +921,8 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
         sx={{
           position: "absolute",
           alignItems: "stretch",
-          justifyContent: "flex-start",
+          justifyContent: "space-between",
           inset: 0,
-          gap: widthToPct(119, daysInWeek),
         }}
       >
         {[...Array(workWeek ? 6 : 8)].map((_, i) => {
