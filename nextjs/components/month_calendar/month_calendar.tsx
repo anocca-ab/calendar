@@ -341,7 +341,7 @@ export function MonthCalendar(props: {
             })}
           </FlexRow>
 
-          <MonthCalendarViewBar />
+          <MonthCalendarWeekdayBar />
 
           {/* Clickable days */}
           <Box
@@ -642,7 +642,7 @@ function MoreEventsButton({
   );
 }
 
-function MonthCalendarViewBar() {
+function MonthCalendarWeekdayBar() {
   const { startOfMonth, startDay, now } = useMonthCalendar();
   const daysInWeek = 7;
 
