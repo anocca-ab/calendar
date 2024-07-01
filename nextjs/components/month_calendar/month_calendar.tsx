@@ -416,34 +416,40 @@ export function MonthCalendar(props: {
                         {monthName}
                       </Typography>
                     )}
-                    <Box sx={{ width: 24, height: 24, position: "relative" }}>
-                      {active && (
-                        <Box
-                          sx={{
-                            width: 24,
-                            height: 24,
-                            position: "absolute",
-                            borderRadius: 24,
-                            backgroundColor: (theme) =>
-                              theme.palette.primary.main,
-                          }}
-                        />
-                      )}
-                      <Typography
-                        zIndex={1}
-                        position="absolute"
-                        variant="body2"
-                        sx={{ top: "2px", left: "7px" }}
-                        color={
-                          active
-                            ? (theme) => theme.palette.primary.contrastText
-                            : isInCurrentMonth
-                              ? (theme) => theme.palette.text.primary
-                              : (theme) => theme.palette.text.secondary
-                        }
+                    <Box
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        position: "relative",
+                      }}
+                    >
+                      <FlexRow
+                        sx={{
+                          height: 24,
+                          width: 24,
+                          justifyContent: "center",
+                          alignItems: "center",
+                          position: "absolute",
+                          borderRadius: 24,
+                          backgroundColor: active
+                            ? (theme) => theme.palette.primary.main
+                            : "inherit",
+                        }}
                       >
-                        {dayNumber}
-                      </Typography>
+                        <Typography
+                          zIndex={1}
+                          variant="body2"
+                          color={
+                            active
+                              ? (theme) => theme.palette.primary.contrastText
+                              : isInCurrentMonth
+                                ? (theme) => theme.palette.text.primary
+                                : (theme) => theme.palette.text.secondary
+                          }
+                        >
+                          {dayNumber}
+                        </Typography>
+                      </FlexRow>
                     </Box>
                   </FlexRow>
                 </FlexCol>
@@ -456,6 +462,7 @@ export function MonthCalendar(props: {
             sx={{
               position: "absolute",
               inset: 0,
+              top: "20px",
             }}
             ref={eventContainerRef}
           >
@@ -651,7 +658,7 @@ export function MonthCalendarViewBar() {
       ),
       "EEE",
     );
-    console.log("dayOfWeek", dayOfWeek, format(now, "EEE"));
+
     weekDays.push(
       <FlexCol
         key={`weekday-${index}`}
