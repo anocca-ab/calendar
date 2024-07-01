@@ -268,11 +268,9 @@ export function MonthCalendar(props: {
         >
           <FlexCol
             sx={{
-              bgcolor: "#ECEFF1",
+              bgcolor: "rgba(236,239,241,1)",
               height: "20px",
-              // width: "20px",
               alignItems: "center",
-              // gap: "10px",
               borderRadius: "4px",
             }}
           >
@@ -580,7 +578,8 @@ function WeekIndicator({ title }: { title: string }) {
   return (
     <FlexCol
       sx={{
-        bgcolor: "#ECEFF1",
+        // bgcolor: "#ECEFF1",
+        bgcolor: "rgba(236,239,241,1)",
         height: "119px",
         padding: "4px 0px",
         alignItems: "center",
@@ -643,7 +642,7 @@ function MoreEventsButton({
   );
 }
 
-export function MonthCalendarViewBar() {
+function MonthCalendarViewBar() {
   const { startOfMonth, startDay, now } = useMonthCalendar();
   const daysInWeek = 7;
 
@@ -667,7 +666,17 @@ export function MonthCalendarViewBar() {
         justifyContent="center"
         alignItems="center"
       >
-        <Typography variant="caption">{dayOfWeek}</Typography>
+        <Typography
+          variant="caption"
+          sx={{
+            color: (theme) =>
+              (theme.palette.mode === "dark" ? "white" : "black")
+                ? theme.palette.text.primary
+                : theme.palette.primary.contrastText,
+          }}
+        >
+          {dayOfWeek}
+        </Typography>
         {dayOfWeek === format(now, "EEE") && (
           <Divider
             orientation="horizontal"
