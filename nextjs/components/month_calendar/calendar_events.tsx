@@ -33,7 +33,7 @@ export function CalendarAllDayEvent({
             pointerEvents: "none",
           },
         },
-        buttonProps.sx
+        buttonProps.sx,
       )}
     >
       {triangle === "left" && (
@@ -104,11 +104,15 @@ export function MonthCalendarEvent({
             pointerEvents: "none",
           },
         },
-        buttonProps.sx
+        buttonProps.sx,
       )}
     >
       <FlexRow
         sx={{
+          bgcolor: (theme) =>
+            theme.palette.mode === "light"
+              ? theme.palette.background.default
+              : "white",
           alignItems: "center",
           gap: "6px",
           flexShrink: 0,

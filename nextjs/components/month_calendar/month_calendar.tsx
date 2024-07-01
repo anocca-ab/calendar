@@ -45,7 +45,7 @@ export const MonthCalendarConfigContext = createContext<
       onMoveEvent?: (
         event: CalendarEvent,
         newStart: Date,
-        newEnd: Date | undefined
+        newEnd: Date | undefined,
       ) => void;
     }
 >(undefined);
@@ -59,7 +59,7 @@ export const useMonthCalendar = () => {
 };
 
 const parseDefaultProps = (
-  props: React.ComponentPropsWithRef<typeof MonthCalendar>
+  props: React.ComponentPropsWithRef<typeof MonthCalendar>,
 ) => {
   const events = props.events ?? [];
   let startDay = props.startDay ?? "monday";
@@ -116,7 +116,7 @@ export function MonthCalendar(props: {
   onMoveEvent?: (
     event: CalendarEvent,
     newStart: Date,
-    newEnd: Date | undefined
+    newEnd: Date | undefined,
   ) => void;
 
   /**
@@ -130,7 +130,7 @@ export function MonthCalendar(props: {
     parseDefaultProps(props);
 
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
-    calendarProps.events
+    calendarProps.events,
   );
 
   const daysInWeek = 7;
@@ -140,7 +140,7 @@ export function MonthCalendar(props: {
   const eventsInMonth: ModifiableEvent[] = filterEventsInMonth(
     allEvents,
     startDay,
-    startOfMonth
+    startOfMonth,
   );
 
   // step 1.
@@ -154,7 +154,7 @@ export function MonthCalendar(props: {
   const { eventProperties, events, moreButtons } = eventGrid(
     splitEvents,
     startDay,
-    monthCalendarRange(startDay, startOfMonth).startOfMonthCalendar
+    monthCalendarRange(startDay, startOfMonth).startOfMonthCalendar,
   );
 
   const weeksOfMonth = getWeeksInMonth(now, {
@@ -168,7 +168,7 @@ export function MonthCalendar(props: {
   function calculateNewTime(
     state: MouseState,
     dragged: DragPosition<ModifiableEvent>,
-    container: EventContainer
+    container: EventContainer,
   ) {
     if (state.pos && state.pos0) {
       const addedDays = dayDiff(
@@ -176,12 +176,12 @@ export function MonthCalendar(props: {
         state.pos0,
         dragged,
         daysInWeek,
-        container
+        container,
       );
 
       const addedWeeks = Math.round(
         (state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY) /
-          120
+          120,
       );
 
       let start = dragged.event.sourceEvent.start;
@@ -341,7 +341,7 @@ export function MonthCalendar(props: {
                 startOfWeek(startOfMonth, {
                   weekStartsOn: startDay === "monday" ? 1 : 0,
                 }),
-                Math.floor(i / 7)
+                Math.floor(i / 7),
               );
 
               const currentDate = addDays(beginningOfCurrentWeek, i % 7);
@@ -375,7 +375,7 @@ export function MonthCalendar(props: {
                   zIndex={1}
                 >
                   <FlexRow
-                    width="24px"
+                    width="100px"
                     height="24px"
                     justifyContent="center"
                     alignItems="center"
@@ -393,31 +393,35 @@ export function MonthCalendar(props: {
                         {monthName}
                       </Typography>
                     )}
-                    {active && (
-                      <Box
-                        sx={{
-                          width: 24,
-                          height: 24,
-                          position: "absolute",
-                          borderRadius: 24,
-                          backgroundColor: (theme) =>
-                            theme.palette.primary.main,
-                        }}
-                      ></Box>
-                    )}
-                    <Typography
-                      zIndex={1}
-                      variant="body2"
-                      color={
-                        active
-                          ? (theme) => theme.palette.primary.contrastText
-                          : isInCurrentMonth
-                          ? (theme) => theme.palette.text.primary
-                          : (theme) => theme.palette.text.secondary
-                      }
-                    >
-                      {dayNumber}
-                    </Typography>
+                    <Box sx={{ width: 24, height: 24, position: "relative" }}>
+                      {active && (
+                        <Box
+                          sx={{
+                            width: 24,
+                            height: 24,
+                            position: "absolute",
+                            borderRadius: 24,
+                            backgroundColor: (theme) =>
+                              theme.palette.primary.main,
+                          }}
+                        />
+                      )}
+                      <Typography
+                        zIndex={1}
+                        position="absolute"
+                        variant="body2"
+                        sx={{ top: "2px", left: "7px" }}
+                        color={
+                          active
+                            ? (theme) => theme.palette.primary.contrastText
+                            : isInCurrentMonth
+                              ? (theme) => theme.palette.text.primary
+                              : (theme) => theme.palette.text.secondary
+                        }
+                      >
+                        {dayNumber}
+                      </Typography>
+                    </Box>
                   </FlexRow>
                 </FlexCol>
               );
@@ -489,7 +493,7 @@ export function MonthCalendar(props: {
                   getEventEnd(event.sourceEvent),
                   {
                     weekStartsOn: startDay === "monday" ? 1 : 0,
-                  }
+                  },
                 );
                 const firstWeekStart = startOfWeek(startOfMonth, {
                   weekStartsOn: startDay === "monday" ? 1 : 0,
@@ -506,8 +510,8 @@ export function MonthCalendar(props: {
                 const triangle = triangleRight
                   ? "right"
                   : triangleLeft
-                  ? "left"
-                  : undefined;
+                    ? "left"
+                    : undefined;
 
                 return (
                   <React.Fragment key={index}>
@@ -546,7 +550,7 @@ function WeekIndicator({ title }: { title: string }) {
   return (
     <FlexCol
       sx={{
-        backgroundColor: "var(--Blue-Gray-50, #ECEFF1);",
+        bgcolor: "#ECEFF1",
         height: "119px",
         padding: "4px 0px",
         alignItems: "center",
@@ -560,12 +564,7 @@ function WeekIndicator({ title }: { title: string }) {
           alignItems: "center",
         }}
       >
-        <Typography
-          variant="body2"
-          color="var(--Light-Text-Primary, rgba(0, 0, 0, 0.87));"
-        >
-          {title}
-        </Typography>
+        <Typography variant="body2">{title}</Typography>
       </FlexCol>
     </FlexCol>
   );
@@ -596,7 +595,7 @@ function MoreEventsButton({
           minWidth: "auto",
           whiteSpace: "nowrap",
         },
-        buttonProps.sx
+        buttonProps.sx,
       )}
     >
       <Typography
