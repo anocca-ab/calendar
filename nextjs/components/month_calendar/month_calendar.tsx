@@ -15,9 +15,9 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
-import React, { createContext, useContext } from "react";
+import React, { ReactElement, createContext, useContext } from "react";
 import { eventGrid, monthCalendarRange } from "../event_grid";
-import { getEventEnd, isAllDayEvent, mergeSx } from "../helpers";
+import { getEventEnd, isAllDayEvent, mergeSx, widthToPct } from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
 import { ModifiableEvent } from "../week_calendar/types";
 import {
@@ -25,7 +25,6 @@ import {
   EventContainer,
   MouseState,
   dayDiff,
-  dayUnitToPx,
   useDragableEvents,
   useMouse,
 } from "../week_calendar/use_mouse";
@@ -33,7 +32,6 @@ import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarAllDayEvent, MonthCalendarEvent } from "./calendar_events";
 import { filterEventsInMonth } from "./filter_events_in_month";
 import { splitMultiWeekEvents } from "./split_multi_week_events";
-import { widthToPct } from "../helpers";
 
 export const MonthCalendarConfigContext = createContext<
   | undefined
@@ -256,16 +254,37 @@ export function MonthCalendar(props: {
         startOfMonth: startOfMonth,
       }}
     >
+      {/* <MonthCalendarViewBar /> */}
+
       <FlexRow width="100%">
         {/* Week Indicator */}
         <FlexCol
           gap="1px"
           sx={{
             width: "20px",
-            height: `${weeksOfMonth * 120}px`,
+            height: `${weeksOfMonth * 120 + 20}px`,
             alignItems: "stretch",
           }}
         >
+          <FlexCol
+            sx={{
+              bgcolor: "#ECEFF1",
+              height: "20px",
+              // width: "20px",
+              alignItems: "center",
+              // gap: "10px",
+              borderRadius: "4px",
+            }}
+          >
+            <FlexCol
+              sx={{
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Typography variant="body2">W</Typography>
+            </FlexCol>
+          </FlexCol>
           {[...Array(weeksOfMonth)].map((_, i) => {
             return <WeekIndicator key={i} title={`${i + 1}`} />;
           })}
@@ -275,7 +294,7 @@ export function MonthCalendar(props: {
         <Box
           sx={{
             position: "relative",
-            height: `${weeksOfMonth * 120}px`,
+            height: `${weeksOfMonth * 120 + 20}px`,
             flex: 1,
           }}
         >
@@ -286,6 +305,7 @@ export function MonthCalendar(props: {
               position: "absolute",
               alignItems: "stretch",
               inset: 0,
+              top: "20px",
             }}
           >
             {[...Array(weeksOfMonth)].map((_, i) => {
@@ -323,11 +343,14 @@ export function MonthCalendar(props: {
             })}
           </FlexRow>
 
+          <MonthCalendarViewBar />
+
           {/* Clickable days */}
           <Box
             sx={{
               position: "absolute",
               inset: 0,
+              top: "20px",
             }}
           >
             {[...Array(weeksOfMonth * 7)].map((_, i) => {
@@ -610,5 +633,51 @@ function MoreEventsButton({
         }}
       >{`${numHiddenEvents} more`}</Typography>
     </Button>
+  );
+}
+
+export function MonthCalendarViewBar() {
+  const { startOfMonth, startDay, now } = useMonthCalendar();
+  const daysInWeek = 7;
+
+  const weekDays: ReactElement[] = [];
+  [...Array(daysInWeek)].forEach((_, index) => {
+    const dayOfWeek = format(
+      addDays(
+        startOfWeek(startOfMonth, {
+          weekStartsOn: startDay === "monday" ? 1 : 0,
+        }),
+        index,
+      ),
+      "EEE",
+    );
+    console.log("dayOfWeek", dayOfWeek, format(now, "EEE"));
+    weekDays.push(
+      <FlexCol
+        key={`weekday-${index}`}
+        width={widthToPct(120, 7)}
+        height="20px"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Typography variant="caption">{dayOfWeek}</Typography>
+        {dayOfWeek === format(now, "EEE") && (
+          <Divider
+            orientation="horizontal"
+            sx={{ width: "25px", height: "1px" }}
+          />
+        )}
+      </FlexCol>,
+    );
+  });
+
+  return (
+    <FlexRow
+      sx={{
+        width: "100%",
+      }}
+    >
+      {weekDays}
+    </FlexRow>
   );
 }

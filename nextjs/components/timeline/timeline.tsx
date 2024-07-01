@@ -29,7 +29,7 @@ import { FlexCol, FlexRow } from "../wrappers";
 type Resolution = "year" | "month" | "3-years" | "3-months";
 
 const parseDefaultProps = (
-  props: React.ComponentPropsWithRef<typeof Timeline>
+  props: React.ComponentPropsWithRef<typeof Timeline>,
 ) => {
   const events = props.events ?? [];
   let startDay = props.startDay ?? "monday";
@@ -45,16 +45,16 @@ const parseDefaultProps = (
     resolution === "month"
       ? startOfWeek(rawSt, startOpts)
       : resolution === "3-months"
-      ? startOfMonth(rawSt)
-      : resolution === "year"
-      ? startOfYear(rawSt)
-      : resolution === "3-years"
-      ? startOfYear(rawSt)
-      : undefined;
+        ? startOfMonth(rawSt)
+        : resolution === "year"
+          ? startOfYear(rawSt)
+          : resolution === "3-years"
+            ? startOfYear(rawSt)
+            : undefined;
 
   if (!startTime) {
     throw new Error(
-      'invalid resolution, must be one of "month", "3-months", "year", "3-years"'
+      'invalid resolution, must be one of "month", "3-months", "year", "3-years"',
     );
   }
 
@@ -117,7 +117,7 @@ export function Timeline(props: {
   onMoveEvent?: (
     event: CalendarEvent,
     newStart: Date,
-    newEnd: Date | undefined
+    newEnd: Date | undefined,
   ) => void;
 
   /**
@@ -147,7 +147,7 @@ export function Timeline(props: {
 const getTimelineRange = (
   resolution: Resolution,
   startTime: Date,
-  startDay: StartDay
+  startDay: StartDay,
 ): [Date, Date] => {
   const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
     startDay === "monday" ? 1 : 0;
@@ -170,12 +170,12 @@ function filterEventsInTimeline(
   _events: ModifiableEvent[],
   resolution: Resolution,
   startTime: Date,
-  startDay: StartDay
+  startDay: StartDay,
 ) {
   const [timelineStart, timelineEnd] = getTimelineRange(
     resolution,
     startTime,
-    startDay
+    startDay,
   );
 
   const eventsInTimeline: ModifiableEvent[] = _events
@@ -185,7 +185,7 @@ function filterEventsInTimeline(
           start: timelineStart,
           end: timelineEnd,
         },
-        { start: event.start, end: getEventEnd(event) }
+        { start: event.start, end: getEventEnd(event) },
       );
     })
     .map((event) => {
@@ -219,19 +219,19 @@ function Grid({
     allEvents,
     resolution,
     startTime,
-    startDay
+    startDay,
   );
 
   const { eventProperties, events, moreButtons, grid } = eventGrid(
     eventsInTimeline,
     startDay,
-    startTime
+    startTime,
   );
 
   const [timelineStart, timelineEnd] = getTimelineRange(
     resolution,
     startTime,
-    startDay
+    startDay,
   );
 
   return (
@@ -386,7 +386,7 @@ function Header({
                       borderRadius: "1px",
                     }}
                   ></Box>
-                </Box>
+                </Box>,
               );
             }
             return els;

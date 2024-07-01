@@ -6,20 +6,17 @@ import {
   differenceInCalendarMonths,
   differenceInDays,
   differenceInHours,
-  differenceInWeeks,
   endOfMonth,
-  endOfWeek,
   format,
   max,
   min,
   startOfDay,
   startOfMonth,
-  startOfWeek,
 } from "date-fns";
-import { StartDay } from "../types";
-import { ModifiableEvent } from "../week_calendar/types";
 import { monthCalendarRange } from "../event_grid";
 import { getEventEnd } from "../helpers";
+import { StartDay } from "../types";
+import { ModifiableEvent } from "../week_calendar/types";
 
 export function filterEventsInMonth(
   _events: ModifiableEvent[],
