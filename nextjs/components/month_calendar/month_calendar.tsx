@@ -373,8 +373,6 @@ export function MonthCalendar(props: {
 
               return (
                 <FlexCol
-                  p={0}
-                  m={0}
                   key={i}
                   component={Button}
                   onClick={
@@ -386,14 +384,20 @@ export function MonthCalendar(props: {
                         }
                       : undefined
                   }
-                  position="absolute"
-                  width={widthToPct(119, daysInWeek)}
-                  height="119px"
-                  left={`${left}`}
-                  top={`${top}px`}
-                  justifyContent="flex-start"
-                  pt="4px"
-                  zIndex={1}
+                  sx={{
+                    height: "119px",
+                    width: widthToPct(119, daysInWeek),
+                    minWidth: "auto",
+                    overflow: "hidden",
+                    p: 0,
+                    pt: "4px",
+                    m: 0,
+                    position: "absolute",
+                    left: `${left}`,
+                    top: `${top}px`,
+                    justifyContent: "flex-start",
+                    zIndex: 1,
+                  }}
                 >
                   <FlexRow
                     width="100px"
@@ -402,7 +406,7 @@ export function MonthCalendar(props: {
                     alignItems="center"
                     gap="4px"
                   >
-                    {dayNumber === 1 && (
+                    {dayNumber === 1 && !active && (
                       <Typography
                         variant="body2"
                         color={
@@ -578,7 +582,6 @@ function WeekIndicator({ title }: { title: string }) {
   return (
     <FlexCol
       sx={{
-        // bgcolor: "#ECEFF1",
         bgcolor: "rgba(236,239,241,1)",
         height: "119px",
         padding: "4px 0px",
