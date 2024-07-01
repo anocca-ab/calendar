@@ -188,6 +188,14 @@ function InteractiveDemo(
               setEvents([...events, event]);
             }
           }}
+          onDelete={(event: CalendarEvent) => {
+            if (events.includes(event)) {
+              const eventIndex = events.findIndex((ev) => ev === event);
+              const a = [...events];
+              a.splice(eventIndex, 1);
+              setEvents(a);
+            }
+          }}
           key={editModalOpen.key}
         />
       )}

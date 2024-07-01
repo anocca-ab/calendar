@@ -45,10 +45,12 @@ export function CreateEvent({
   event,
   onCloseModalRef,
   onSave,
+  onDelete,
 }: {
   event: CalendarEvent;
   onCloseModalRef: { current?: (cb: () => void) => void };
   onSave: (event: CalendarEvent, originalEvent: CalendarEvent) => void;
+  onDelete: (event: CalendarEvent) => void;
 }) {
   const [start, setStart] = React.useState(event.start);
   const [end, setEnd] = React.useState(event.end);
@@ -66,7 +68,7 @@ export function CreateEvent({
   };
 
   const [onClosed, setOnClosed] = React.useState<undefined | (() => void)>(
-    undefined
+    undefined,
   );
 
   onCloseModalRef.current = (cb) => {
@@ -144,7 +146,7 @@ export function CreateEvent({
                       setEnd(
                         allDay
                           ? addDays(startOfDay(start), 1)
-                          : addHours(start, 1)
+                          : addHours(start, 1),
                       );
                     }
                   }}
@@ -246,8 +248,8 @@ export function CreateEvent({
                           setEnd(
                             addMilliseconds(
                               date,
-                              differenceInMilliseconds(end, start)
-                            )
+                              differenceInMilliseconds(end, start),
+                            ),
                           );
                         }
                         setStart(date);
@@ -361,38 +363,50 @@ export function CreateEvent({
                       <Box sx={{ color: hex, width: "8px", height: "8px" }} />
                     )}
                   </MenuItem>
-                )
+                ),
               )}
             </Select>
             <Typography variant="body1">Event color</Typography>
           </FlexRow>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
+        <DialogActions sx={{ justifyContent: "space-between" }}>
           <Button
-            type="submit"
             variant="contained"
+            color="error"
             onClick={() => {
-              onSave(
-                {
+              onDelete(event);
+              handleClose();
+            }}
+          >
+            Delete event
+          </Button>
+          <FlexRow>
+            <Button onClick={handleClose}>Cancel</Button>
+            <Button
+              type="submit"
+              variant="contained"
+              onClick={() => {
+                onSave(
+                  {
+                    start,
+                    end,
+                    title,
+                    color: eventColor,
+                  },
+                  event,
+                );
+                console.log("@ev", {
                   start,
                   end,
                   title,
                   color: eventColor,
-                },
-                event
-              );
-              console.log("@ev", {
-                start,
-                end,
-                title,
-                color: eventColor,
-              });
-              handleClose();
-            }}
-          >
-            Save
-          </Button>
+                });
+                handleClose();
+              }}
+            >
+              Save
+            </Button>
+          </FlexRow>
         </DialogActions>
       </Dialog>
     </React.Fragment>

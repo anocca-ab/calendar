@@ -136,10 +136,10 @@ export const WeekStartsOnSunday: Story = {
 };
 
 function InteractiveDemo(
-  props: React.ComponentPropsWithRef<typeof WeekCalendar>
+  props: React.ComponentPropsWithRef<typeof WeekCalendar>,
 ) {
   const [events, setEvents] = React.useState<CalendarEvent[]>(
-    props.events ?? []
+    props.events ?? [],
   );
 
   const [editModalOpen, setEditModalOpen] = React.useState<
@@ -161,7 +161,7 @@ function InteractiveDemo(
   const onMoveEvent = (
     event: CalendarEvent,
     newStart: Date,
-    newEnd: Date | undefined
+    newEnd: Date | undefined,
   ) => {
     setEvents((prev) => {
       return prev.map((ev) => {
@@ -188,11 +188,19 @@ function InteractiveDemo(
           onSave={(event: CalendarEvent, originalEvent: CalendarEvent) => {
             if (events.includes(originalEvent)) {
               setEvents(
-                events.map((ev) => (ev === originalEvent ? event : ev))
+                events.map((ev) => (ev === originalEvent ? event : ev)),
               );
             } else {
               // create
               setEvents([...events, event]);
+            }
+          }}
+          onDelete={(event: CalendarEvent) => {
+            if (events.includes(event)) {
+              const eventIndex = events.findIndex((ev) => ev === event);
+              const a = [...events];
+              a.splice(eventIndex, 1);
+              setEvents(a);
             }
           }}
           key={editModalOpen.key}
