@@ -1,5 +1,6 @@
 import { CreateEvent } from "@/components/create_event";
 import { MonthCalendar } from "@/components/month_calendar/month_calendar";
+import { CalendarNavigationBar } from "@/components/navigation_bar/calendar_navigation_bar";
 import { CalendarEvent } from "@/components/types";
 import { Meta, StoryObj } from "@storybook/react";
 import {
@@ -169,6 +170,8 @@ function InteractiveDemo(
     });
   };
 
+  const [currentMonth, setCurrentMonth] = React.useState(new Date());
+
   return (
     <>
       {editModalOpen && (
@@ -188,8 +191,16 @@ function InteractiveDemo(
           key={editModalOpen.key}
         />
       )}
+      <CalendarNavigationBar
+        now={props.now ?? new Date()}
+        startDay={props.startDay ?? "monday"}
+        currentDate={currentMonth}
+        setCurrentDate={setCurrentMonth}
+        type="month"
+      />
       <MonthCalendar
         {...props}
+        startOfMonth={currentMonth}
         events={events}
         onCreateEvent={(start, end) => {
           onEditEvent({ start, end });
