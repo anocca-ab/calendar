@@ -12,18 +12,22 @@ import React, { useCallback } from "react";
 import { FlexRow } from "../wrappers";
 
 const ChevronLeft = (props: React.ComponentProps<"svg">) => (
-  <SvgIcon>
+  <SvgIcon
+    sx={{
+      fill: (theme) => (theme.palette.mode === "dark" ? "white" : "inherit"),
+    }}
+  >
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width={24}
       height={24}
-      fill="black"
       viewBox="0 0 24 24"
+      fill="inherit"
       color="inherit"
       {...props}
     >
       <path
-        fill="#000"
+        fill="inherit"
         fillOpacity={0.54}
         d="M15.705 7.41 14.295 6l-6 6 6 6 1.41-1.41-4.58-4.59 4.58-4.59Z"
       />
@@ -116,7 +120,17 @@ function MonthYearRowDate({ date }: { date: Date }) {
 
   return (
     <FlexRow width={106} height={32}>
-      <Typography variant="h5">{monthYear}</Typography>
+      <Typography
+        variant="h5"
+        sx={{
+          color: (theme) =>
+            (theme.palette.mode === "dark" ? "white" : "black")
+              ? theme.palette.text.primary
+              : theme.palette.primary.contrastText,
+        }}
+      >
+        {monthYear}
+      </Typography>
     </FlexRow>
   );
 }
