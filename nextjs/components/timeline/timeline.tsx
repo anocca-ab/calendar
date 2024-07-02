@@ -260,12 +260,12 @@ function Grid({
           end = addDays(end, addedDays);
         }
 
-        // if (addedDays !== 0) {
+        if (addedDays !== 0) {
           return {
             start,
             end,
           };
-        // }
+        }
       }
       return undefined;
     },

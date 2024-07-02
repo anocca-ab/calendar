@@ -66,7 +66,15 @@ export const EmptyCalendar: Story = {
 
 export const WithInteractivity: Story = {
   args: {
-    events: manyEvents,
+    events: [
+      {
+        start: startOfDay(new Date()),
+        end: endOfDay(
+          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
+        ),
+        title: "A loong day event",
+      },
+    ],
   },
   render: (props) => {
     return <InteractiveDemo type="timeline" {...props} />;

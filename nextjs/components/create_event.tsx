@@ -68,7 +68,7 @@ export function CreateEvent({
   };
 
   const [onClosed, setOnClosed] = React.useState<undefined | (() => void)>(
-    undefined,
+    undefined
   );
 
   onCloseModalRef.current = (cb) => {
@@ -146,7 +146,7 @@ export function CreateEvent({
                       setEnd(
                         allDay
                           ? addDays(startOfDay(start), 1)
-                          : addHours(start, 1),
+                          : addHours(start, 1)
                       );
                     }
                   }}
@@ -248,8 +248,8 @@ export function CreateEvent({
                           setEnd(
                             addMilliseconds(
                               date,
-                              differenceInMilliseconds(end, start),
-                            ),
+                              differenceInMilliseconds(end, start)
+                            )
                           );
                         }
                         setStart(date);
@@ -357,13 +357,16 @@ export function CreateEvent({
               {["#FF7043", "#5C6BC0", "#EC407A", "#26A69A", "#EF5350"].map(
                 (hex) => (
                   <MenuItem key={hex} value={hex}>
-                    {eventColor === hex ? (
-                      <Box sx={{ color: hex, width: "8px", height: "8px" }} />
-                    ) : (
-                      <Box sx={{ color: hex, width: "8px", height: "8px" }} />
-                    )}
+                    <Box
+                      sx={{
+                        background: hex,
+                        width: "24px",
+                        aspectRatio: 1,
+                        borderRadius: "24px",
+                      }}
+                    />
                   </MenuItem>
-                ),
+                )
               )}
             </Select>
             <Typography variant="body1">Event color</Typography>
@@ -393,14 +396,8 @@ export function CreateEvent({
                     title,
                     color: eventColor,
                   },
-                  event,
+                  event
                 );
-                console.log("@ev", {
-                  start,
-                  end,
-                  title,
-                  color: eventColor,
-                });
                 handleClose();
               }}
             >

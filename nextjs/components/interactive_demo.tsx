@@ -59,6 +59,10 @@ export function InteractiveDemo(props: {
       ? WeekCalendar
       : Timeline;
 
+  if (editModalOpen) {
+    console.log("edit modal open", events.includes(editModalOpen.event));
+  }
+
   return (
     <>
       {editModalOpen && (
@@ -100,7 +104,10 @@ export function InteractiveDemo(props: {
         onCreateEvent={(start, end) => {
           onEditEvent({ start, end });
         }}
-        onEditEvent={onEditEvent}
+        onEditEvent={(ev) => {
+          console.log(events.includes(ev));
+          onEditEvent(ev);
+        }}
         onMoveEvent={onMoveEvent}
       />
     </>
