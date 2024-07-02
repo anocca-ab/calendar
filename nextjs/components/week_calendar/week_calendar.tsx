@@ -35,6 +35,7 @@ import {
   MouseState,
   dayDiff,
   useDragableEvents,
+  useEffectRefs,
   useMouse,
 } from "../use_mouse";
 
@@ -269,37 +270,12 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
     return undefined;
   }
 
-  const ome = calendarProps.onMoveEvent;
-  const onMoveEvent = ome
-    ? (event: ModifiableEvent, start: Date, end?: Date) => {
-        ome(event.sourceEvent, start, end);
-      }
-    : undefined;
-  const oev = calendarProps.onEditEvent;
-  const onEditEvent = oev
-    ? (event: ModifiableEvent) => {
-        oev(event.sourceEvent);
-      }
-    : undefined;
-
-  const eventContainerRef = React.useRef<HTMLDivElement>(null);
-  const effectRefs = React.useRef({
-    onMoveEvent,
+  const [effectRefs, eventContainerRef] = useEffectRefs(
     events,
-    onEditEvent,
     setDraggedEvent,
     calculateNewTime,
-    eventContainerRef,
-  });
-
-  effectRefs.current = {
-    onMoveEvent,
-    events,
-    onEditEvent,
-    setDraggedEvent,
-    calculateNewTime,
-    eventContainerRef,
-  };
+    calendarProps
+  );
 
   useMouse("week-calendar-all-day-event", effectRefs, workWeek);
 
@@ -803,8 +779,6 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
     });
   });
 
-  const eventContainerRef = React.useRef<HTMLDivElement>(null);
-
   // handle drag and drop
   /**
    * if event has moved return the new start and end time
@@ -850,36 +824,12 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
     return undefined;
   }
 
-  const ome = calendarProps.onMoveEvent;
-  const onMoveEvent = ome
-    ? (event: ModifiableEvent, start: Date, end?: Date) => {
-        ome(event.sourceEvent, start, end);
-      }
-    : undefined;
-  const oev = calendarProps.onEditEvent;
-  const onEditEvent = oev
-    ? (event: ModifiableEvent) => {
-        oev(event.sourceEvent);
-      }
-    : undefined;
-
-  const effectRefs = React.useRef({
-    onMoveEvent,
+  const [effectRefs, eventContainerRef] = useEffectRefs(
     events,
-    onEditEvent,
     setDraggedEvent,
     calculateNewTime,
-    eventContainerRef,
-  });
-
-  effectRefs.current = {
-    onMoveEvent,
-    events,
-    onEditEvent,
-    setDraggedEvent,
-    calculateNewTime,
-    eventContainerRef,
-  };
+    calendarProps
+  );
 
   useMouse("week-calendar-sub-day-event", effectRefs, workWeek);
 
