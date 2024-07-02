@@ -14,6 +14,7 @@ import {
   subWeeks,
 } from "date-fns";
 import React from "react";
+import { InteractiveDemo } from "@/components/interactive_demo";
 
 const meta = {
   title: "Month Calendar",
@@ -124,98 +125,6 @@ export const FilledCalendar: Story = {
     ],
   },
   render: (props) => {
-    return <InteractiveDemo {...props} />;
+    return <InteractiveDemo type="month" {...props} />;
   },
 };
-
-function InteractiveDemo(
-  props: React.ComponentPropsWithRef<typeof MonthCalendar>,
-) {
-  const [events, setEvents] = React.useState<CalendarEvent[]>(
-    props.events ?? [],
-  );
-
-  const [editModalOpen, setEditModalOpen] = React.useState<
-    undefined | { event: CalendarEvent; key: number }
-  >();
-
-  const onCloseModal = React.useRef<undefined | ((cb: () => void) => void)>();
-
-  const onEditEvent = (event: CalendarEvent) => {
-    if (onCloseModal.current) {
-      onCloseModal.current(() => {
-        setEditModalOpen({ event, key: Math.random() });
-      });
-    } else {
-      setEditModalOpen({ event, key: Math.random() });
-    }
-  };
-
-  const onMoveEvent = (
-    event: CalendarEvent,
-    newStart: Date,
-    newEnd: Date | undefined,
-  ) => {
-    setEvents((prev) => {
-      return prev.map((ev) => {
-        if (ev === event) {
-          return {
-            ...ev,
-            start: newStart,
-            end: newEnd,
-          };
-        }
-        return ev;
-      });
-    });
-  };
-
-  const [currentMonth, setCurrentMonth] = React.useState(new Date());
-
-  return (
-    <>
-      {editModalOpen && (
-        <CreateEvent
-          event={editModalOpen.event}
-          onCloseModalRef={onCloseModal}
-          onSave={(event: CalendarEvent, originalEvent: CalendarEvent) => {
-            if (events.includes(originalEvent)) {
-              setEvents(
-                events.map((ev) => (ev === originalEvent ? event : ev)),
-              );
-            } else {
-              // create
-              setEvents([...events, event]);
-            }
-          }}
-          onDelete={(event: CalendarEvent) => {
-            if (events.includes(event)) {
-              const eventIndex = events.findIndex((ev) => ev === event);
-              const a = [...events];
-              a.splice(eventIndex, 1);
-              setEvents(a);
-            }
-          }}
-          key={editModalOpen.key}
-        />
-      )}
-      <CalendarNavigationBar
-        now={props.now ?? new Date()}
-        startDay={props.startDay ?? "monday"}
-        currentDate={currentMonth}
-        setCurrentDate={setCurrentMonth}
-        type="month"
-      />
-      <MonthCalendar
-        {...props}
-        startOfMonth={currentMonth}
-        events={events}
-        onCreateEvent={(start, end) => {
-          onEditEvent({ start, end });
-        }}
-        onEditEvent={onEditEvent}
-        onMoveEvent={onMoveEvent}
-      />
-    </>
-  );
-}

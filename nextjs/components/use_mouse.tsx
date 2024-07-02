@@ -1,8 +1,8 @@
 import { addMinutes, max } from "date-fns";
 import React from "react";
-import { getEventEnd } from "../helpers";
-import { CalendarEvent } from "../types";
-import { ModifiableEvent } from "./types";
+import { getEventEnd } from "./helpers";
+import { CalendarEvent } from "./types";
+import { ModifiableEvent } from "./week_calendar/types";
 
 export type DraggedEvent<T extends { start: Date; end?: Date | undefined }> = {
   /**
@@ -369,3 +369,62 @@ export function dayUnitToPx(
 ) {
   return container.width * (width / (120 * daysInWeek));
 }
+
+export const useEffectRefs = (
+  events: ModifiableEvent[],
+  setDraggedEvent: React.Dispatch<
+    React.SetStateAction<DraggedEvent<ModifiableEvent> | undefined>
+  >,
+  calculateNewTime: (
+    state: MouseState,
+    dragged: DragPosition<ModifiableEvent>,
+    container: EventContainer
+  ) => { start: Date; end: Date } | undefined,
+  calendarProps: {
+    onMoveEvent?: (
+      event: CalendarEvent,
+      newStart: Date,
+      newEnd: Date | undefined
+    ) => void;
+    onEditEvent?: (event: CalendarEvent) => void;
+    onCreateEvent?: (start: Date, end: Date) => void;
+  }
+) => {
+  const ome = calendarProps.onMoveEvent;
+  const onMoveEvent = ome
+    ? (event: ModifiableEvent, start: Date, end?: Date) => {
+        ome(event.sourceEvent, start, end);
+      }
+    : undefined;
+  const oev = calendarProps.onEditEvent;
+  const onEditEvent = oev
+    ? (event: ModifiableEvent) => {
+        oev(event.sourceEvent);
+      }
+    : undefined;
+  const onCreateEvent = calendarProps.onCreateEvent;
+
+  const eventContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const effectRefs = React.useRef({
+    onMoveEvent,
+    events,
+    onEditEvent,
+    onCreateEvent,
+    setDraggedEvent,
+    calculateNewTime,
+    eventContainerRef,
+  });
+
+  effectRefs.current = {
+    onMoveEvent,
+    events,
+    onCreateEvent,
+    onEditEvent,
+    setDraggedEvent,
+    calculateNewTime,
+    eventContainerRef,
+  };
+
+  return [effectRefs, eventContainerRef] as const;
+};

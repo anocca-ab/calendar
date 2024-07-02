@@ -36,7 +36,7 @@ import {
   dayDiff,
   useDragableEvents,
   useMouse,
-} from "./use_mouse";
+} from "../use_mouse";
 
 const parseDefaultProps = (
   props: React.ComponentPropsWithRef<typeof WeekCalendar>

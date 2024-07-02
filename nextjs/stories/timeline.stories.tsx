@@ -12,6 +12,7 @@ import {
   subDays,
   subWeeks,
 } from "date-fns";
+import { InteractiveDemo } from "@/components/interactive_demo";
 
 const meta = {
   title: "Timeline Calendar",
@@ -63,6 +64,15 @@ export const EmptyCalendar: Story = {
   args: {},
 };
 
+export const WithInteractivity: Story = {
+  args: {
+    events: manyEvents,
+  },
+  render: (props) => {
+    return <InteractiveDemo type="timeline" {...props} />;
+  },
+};
+
 export const WithEvents: Story = {
   args: {
     events: [
@@ -93,6 +103,7 @@ export const WithEvents: Story = {
         start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
         end: endOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 2)),
         title: "3 day",
+        color: "blue",
       },
       {
         start: addHours(startOfDay(addDays(new Date(), 2)), 5),

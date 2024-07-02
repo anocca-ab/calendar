@@ -1,7 +1,8 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import {
   StartOfWeekOptions,
   addDays,
+  addMinutes,
   addMonths,
   addWeeks,
   addYears,
@@ -23,13 +24,13 @@ import { eventGrid } from "../event_grid";
 import { DEFAULT_COLOR, getEventEnd } from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
 import { ModifiableEvent } from "../week_calendar/types";
-import { useDragableEvents } from "../week_calendar/use_mouse";
+import { useDragableEvents, useEffectRefs, useMouse } from "../use_mouse";
 import { FlexCol, FlexRow } from "../wrappers";
 
 type Resolution = "year" | "month" | "3-years" | "3-months";
 
 const parseDefaultProps = (
-  props: React.ComponentPropsWithRef<typeof Timeline>,
+  props: React.ComponentPropsWithRef<typeof Timeline>
 ) => {
   const events = props.events ?? [];
   let startDay = props.startDay ?? "monday";
@@ -45,16 +46,16 @@ const parseDefaultProps = (
     resolution === "month"
       ? startOfWeek(rawSt, startOpts)
       : resolution === "3-months"
-        ? startOfMonth(rawSt)
-        : resolution === "year"
-          ? startOfYear(rawSt)
-          : resolution === "3-years"
-            ? startOfYear(rawSt)
-            : undefined;
+      ? startOfMonth(rawSt)
+      : resolution === "year"
+      ? startOfYear(rawSt)
+      : resolution === "3-years"
+      ? startOfYear(rawSt)
+      : undefined;
 
   if (!startTime) {
     throw new Error(
-      'invalid resolution, must be one of "month", "3-months", "year", "3-years"',
+      'invalid resolution, must be one of "month", "3-months", "year", "3-years"'
     );
   }
 
@@ -117,7 +118,7 @@ export function Timeline(props: {
   onMoveEvent?: (
     event: CalendarEvent,
     newStart: Date,
-    newEnd: Date | undefined,
+    newEnd: Date | undefined
   ) => void;
 
   /**
@@ -127,19 +128,12 @@ export function Timeline(props: {
    */
   onEditEvent?: (event: CalendarEvent) => void;
 }) {
-  const { events, startTime, resolution, now, startDay } =
-    parseDefaultProps(props);
+  const p = parseDefaultProps(props);
 
   return (
     <Box>
-      <Header startTime={startTime} resolution={resolution} now={now} />
-      <Grid
-        startTime={startTime}
-        resolution={resolution}
-        now={now}
-        events={events}
-        startDay={startDay}
-      />
+      <Header {...p} />
+      <Grid {...p} />
     </Box>
   );
 }
@@ -147,7 +141,7 @@ export function Timeline(props: {
 const getTimelineRange = (
   resolution: Resolution,
   startTime: Date,
-  startDay: StartDay,
+  startDay: StartDay
 ): [Date, Date] => {
   const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
     startDay === "monday" ? 1 : 0;
@@ -170,12 +164,12 @@ function filterEventsInTimeline(
   _events: ModifiableEvent[],
   resolution: Resolution,
   startTime: Date,
-  startDay: StartDay,
+  startDay: StartDay
 ) {
   const [timelineStart, timelineEnd] = getTimelineRange(
     resolution,
     startTime,
-    startDay,
+    startDay
   );
 
   const eventsInTimeline: ModifiableEvent[] = _events
@@ -185,7 +179,7 @@ function filterEventsInTimeline(
           start: timelineStart,
           end: timelineEnd,
         },
-        { start: event.start, end: getEventEnd(event) },
+        { start: event.start, end: getEventEnd(event) }
       );
     })
     .map((event) => {
@@ -205,12 +199,20 @@ function Grid({
   events: sourceEvents,
   startDay,
   resolution,
+  ...calendarProps
 }: {
   startDay: StartDay;
   startTime: Date;
   now: Date;
   resolution: Resolution;
   events: CalendarEvent[];
+  onCreateEvent?: (start: Date, end: Date) => void;
+  onEditEvent?: (event: CalendarEvent) => void;
+  onMoveEvent?: (
+    event: CalendarEvent,
+    newStart: Date,
+    newEnd: Date | undefined
+  ) => void;
 }) {
   const [allEvents, draggedEvent, setDraggedEvent] =
     useDragableEvents(sourceEvents);
@@ -219,20 +221,58 @@ function Grid({
     allEvents,
     resolution,
     startTime,
-    startDay,
+    startDay
   );
 
   const { eventProperties, events, moreButtons, grid } = eventGrid(
     eventsInTimeline,
     startDay,
-    startTime,
+    startTime
   );
 
   const [timelineStart, timelineEnd] = getTimelineRange(
     resolution,
     startTime,
-    startDay,
+    startDay
   );
+
+  const [effectRefs, eventContainerRef] = useEffectRefs(
+    events,
+    setDraggedEvent,
+    (state, dragged, container) => {
+      if (state.pos && state.pos0) {
+        // const addedDays = dayDiff(
+        //   state.pos,
+        //   state.pos0,
+        //   dragged,
+        //   daysInWeek,
+        //   container
+        // );
+        const addedDays = 0;
+
+        let start = dragged.event.sourceEvent.start;
+        let end =
+          dragged.event.sourceEvent.end ??
+          addMinutes(dragged.event.sourceEvent.start, 15);
+
+        if (addedDays !== 0) {
+          start = addDays(start, addedDays);
+          end = addDays(end, addedDays);
+        }
+
+        // if (addedDays !== 0) {
+          return {
+            start,
+            end,
+          };
+        // }
+      }
+      return undefined;
+    },
+    calendarProps
+  );
+
+  useMouse("timeline-event", effectRefs, false);
 
   return (
     <Box
@@ -246,6 +286,7 @@ function Grid({
           position: "absolute",
           inset: 0,
         }}
+        ref={eventContainerRef}
       >
         {events.map((event, index) => {
           const { day, row, maxRow } = eventProperties[`${index}`];
@@ -264,37 +305,45 @@ function Grid({
           if (event.end.getTime() === endOfDay(event.end).getTime()) {
             width += 1;
           }
-          const dataProps: any = {
-            "data-type": "timeline-month-calendar-event",
-            "data-calendar-event": JSON.stringify({
-              x: day,
-              colX: 0,
-              index,
-              w: Math.max(width, 1),
-            }),
-          };
 
           return (
             <React.Fragment key={index}>
               <Box
                 zIndex={2}
+                component={Button}
+                data-type={"timeline-event"}
+                data-calendar-event={JSON.stringify({
+                  x: day,
+                  colX: 0,
+                  index,
+                  w: Math.max(width, 1),
+                })}
                 sx={{
+                  minWidth: "auto",
                   width: `${w}px`,
                   left: `${x}px`,
                   top: row * (16 + 1) + 1 + 32,
                   height: "16px",
                   position: "absolute",
                   overflow: "hidden",
+                  borderRadius: "4px",
+                  padding: 0,
+                  margin: 0,
                 }}
               >
-                <FlexRow
+                <Box
                   sx={{
                     backgroundColor: event.sourceEvent.color ?? DEFAULT_COLOR,
+                    display: "flex",
                     justifyContent: "flex-start",
                     padding: "0px 8px",
                     flex: 1,
-                    borderRadius: "4px",
                     alignItems: "center",
+                    whiteSpace: "nowrap",
+                    pointerEvents: "none",
+                    "*": {
+                      pointerEvents: "none",
+                    },
                   }}
                 >
                   <Typography
@@ -303,7 +352,7 @@ function Grid({
                   >
                     {event.sourceEvent.title ?? "(No title)"}
                   </Typography>
-                </FlexRow>
+                </Box>
               </Box>
             </React.Fragment>
           );
@@ -386,7 +435,7 @@ function Header({
                       borderRadius: "1px",
                     }}
                   ></Box>
-                </Box>,
+                </Box>
               );
             }
             return els;

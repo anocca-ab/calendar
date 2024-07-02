@@ -26,8 +26,9 @@ import {
   MouseState,
   dayDiff,
   useDragableEvents,
+  useEffectRefs,
   useMouse,
-} from "../week_calendar/use_mouse";
+} from "../use_mouse";
 import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarAllDayEvent, MonthCalendarEvent } from "./calendar_events";
 import { filterEventsInMonth } from "./filter_events_in_month";
@@ -43,7 +44,7 @@ export const MonthCalendarConfigContext = createContext<
       onMoveEvent?: (
         event: CalendarEvent,
         newStart: Date,
-        newEnd: Date | undefined,
+        newEnd: Date | undefined
       ) => void;
     }
 >(undefined);
@@ -57,7 +58,7 @@ export const useMonthCalendar = () => {
 };
 
 const parseDefaultProps = (
-  props: React.ComponentPropsWithRef<typeof MonthCalendar>,
+  props: React.ComponentPropsWithRef<typeof MonthCalendar>
 ) => {
   const events = props.events ?? [];
   let startDay = props.startDay ?? "monday";
@@ -114,7 +115,7 @@ export function MonthCalendar(props: {
   onMoveEvent?: (
     event: CalendarEvent,
     newStart: Date,
-    newEnd: Date | undefined,
+    newEnd: Date | undefined
   ) => void;
 
   /**
@@ -128,7 +129,7 @@ export function MonthCalendar(props: {
     parseDefaultProps(props);
 
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
-    calendarProps.events,
+    calendarProps.events
   );
 
   const daysInWeek = 7;
@@ -138,7 +139,7 @@ export function MonthCalendar(props: {
   const eventsInMonth: ModifiableEvent[] = filterEventsInMonth(
     allEvents,
     startDay,
-    startOfMonth,
+    startOfMonth
   );
 
   // step 1.
@@ -152,7 +153,7 @@ export function MonthCalendar(props: {
   const { eventProperties, events, moreButtons } = eventGrid(
     splitEvents,
     startDay,
-    monthCalendarRange(startDay, startOfMonth).startOfMonthCalendar,
+    monthCalendarRange(startDay, startOfMonth).startOfMonthCalendar
   );
 
   const weeksOfMonth = getWeeksInMonth(now, {
@@ -166,7 +167,7 @@ export function MonthCalendar(props: {
   function calculateNewTime(
     state: MouseState,
     dragged: DragPosition<ModifiableEvent>,
-    container: EventContainer,
+    container: EventContainer
   ) {
     if (state.pos && state.pos0) {
       const addedDays = dayDiff(
@@ -174,12 +175,12 @@ export function MonthCalendar(props: {
         state.pos0,
         dragged,
         daysInWeek,
-        container,
+        container
       );
 
       const addedWeeks = Math.round(
         (state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY) /
-          120,
+          120
       );
 
       let start = dragged.event.sourceEvent.start;
@@ -207,43 +208,16 @@ export function MonthCalendar(props: {
     return undefined;
   }
 
-  const ome = calendarProps.onMoveEvent;
-  const onMoveEvent = ome
-    ? (event: ModifiableEvent, start: Date, end?: Date) => {
-        ome(event.sourceEvent, start, end);
-      }
-    : undefined;
-  const oev = calendarProps.onEditEvent;
-  const onEditEvent = oev
-    ? (event: ModifiableEvent) => {
-        oev(event.sourceEvent);
-      }
-    : undefined;
-  const onCreateEvent = calendarProps.onCreateEvent;
-
-  const eventContainerRef = React.useRef<HTMLDivElement>(null);
-
-  const effectRefs = React.useRef({
-    onMoveEvent,
+  const [effectRefs, eventContainerRef] = useEffectRefs(
     events,
-    onEditEvent,
-    onCreateEvent,
     setDraggedEvent,
     calculateNewTime,
-    eventContainerRef,
-  });
-
-  effectRefs.current = {
-    onMoveEvent,
-    events,
-    onCreateEvent,
-    onEditEvent,
-    setDraggedEvent,
-    calculateNewTime,
-    eventContainerRef,
-  };
+    calendarProps
+  );
 
   useMouse("month-calendar-event", effectRefs, false);
+
+  const { onCreateEvent} = calendarProps;
 
   return (
     <MonthCalendarConfigContext.Provider
@@ -362,7 +336,7 @@ export function MonthCalendar(props: {
                 startOfWeek(startOfMonth, {
                   weekStartsOn: startDay === "monday" ? 1 : 0,
                 }),
-                Math.floor(i / 7),
+                Math.floor(i / 7)
               );
 
               const currentDate = addDays(beginningOfCurrentWeek, i % 7);
@@ -445,8 +419,8 @@ export function MonthCalendar(props: {
                             active
                               ? (theme) => theme.palette.primary.contrastText
                               : isInCurrentMonth
-                                ? (theme) => theme.palette.text.primary
-                                : (theme) => theme.palette.text.secondary
+                              ? (theme) => theme.palette.text.primary
+                              : (theme) => theme.palette.text.secondary
                           }
                         >
                           {dayNumber}
@@ -525,7 +499,7 @@ export function MonthCalendar(props: {
                   getEventEnd(event.sourceEvent),
                   {
                     weekStartsOn: startDay === "monday" ? 1 : 0,
-                  },
+                  }
                 );
                 const firstWeekStart = startOfWeek(startOfMonth, {
                   weekStartsOn: startDay === "monday" ? 1 : 0,
@@ -542,8 +516,8 @@ export function MonthCalendar(props: {
                 const triangle = triangleRight
                   ? "right"
                   : triangleLeft
-                    ? "left"
-                    : undefined;
+                  ? "left"
+                  : undefined;
 
                 return (
                   <React.Fragment key={index}>
@@ -627,7 +601,7 @@ function MoreEventsButton({
           minWidth: "auto",
           whiteSpace: "nowrap",
         },
-        buttonProps.sx,
+        buttonProps.sx
       )}
     >
       <Typography
@@ -656,9 +630,9 @@ function MonthCalendarWeekdayBar() {
         startOfWeek(startOfMonth, {
           weekStartsOn: startDay === "monday" ? 1 : 0,
         }),
-        index,
+        index
       ),
-      "EEE",
+      "EEE"
     );
 
     weekDays.push(
@@ -686,7 +660,7 @@ function MonthCalendarWeekdayBar() {
             sx={{ width: "25px", height: "1px" }}
           />
         )}
-      </FlexCol>,
+      </FlexCol>
     );
   });
 

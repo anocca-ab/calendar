@@ -46,7 +46,7 @@ export function CalendarNavigationBar({
   startDay: "monday" | "sunday";
   currentDate: Date;
   setCurrentDate: React.Dispatch<React.SetStateAction<Date>>;
-  type: "week" | "month";
+  type: "week" | "month" | "timeline";
 }) {
   const [localDate, setLocalDate] = React.useState(currentDate);
   const onPressLeft = useCallback(() => {
