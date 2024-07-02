@@ -343,13 +343,17 @@ export function dayDiff(
   daysInWeek: number,
   container: EventContainer
 ) {
-  const rawDelta =
-    pos.x +
-    ((pos0.x - dragged.elX + dragged.colX) %
-      dayUnitToPx(120, daysInWeek, container)) -
-    pos0.x +
-    pos.scrollX -
-    pos0.scrollX;
+  let rawDelta = pos.x + -pos0.x + pos.scrollX - pos0.scrollX;
+
+  /**
+   * offset the rawDelta to be relative to 120 * x
+   */
+  const offset =
+    (pos0.x - dragged.elX + dayUnitToPx(dragged.colX, daysInWeek, container)) %
+    dayUnitToPx(120, daysInWeek, container);
+
+  rawDelta += offset;
+
   const minDiff = -dragged.x - dragged.w + 1;
   // each event is 120px wide, so we can calculate how many days we have moved
   const delta = Math.min(
