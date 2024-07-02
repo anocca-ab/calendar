@@ -3,6 +3,7 @@ import {
   addDays,
   addMinutes,
   addWeeks,
+  areIntervalsOverlapping,
   differenceInCalendarDays,
   endOfDay,
   format,
@@ -15,7 +16,13 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
-import React, { ReactElement, createContext, useContext } from "react";
+import React, {
+  ReactElement,
+  createContext,
+  useContext,
+  useRef,
+  useState,
+} from "react";
 import { eventGrid, monthCalendarRange } from "../event_grid";
 import { getEventEnd, isAllDayEvent, mergeSx, widthToPct } from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
@@ -44,7 +51,7 @@ export const MonthCalendarConfigContext = createContext<
       onMoveEvent?: (
         event: CalendarEvent,
         newStart: Date,
-        newEnd: Date | undefined
+        newEnd: Date | undefined,
       ) => void;
     }
 >(undefined);
@@ -58,7 +65,7 @@ export const useMonthCalendar = () => {
 };
 
 const parseDefaultProps = (
-  props: React.ComponentPropsWithRef<typeof MonthCalendar>
+  props: React.ComponentPropsWithRef<typeof MonthCalendar>,
 ) => {
   const events = props.events ?? [];
   let startDay = props.startDay ?? "monday";
@@ -115,7 +122,7 @@ export function MonthCalendar(props: {
   onMoveEvent?: (
     event: CalendarEvent,
     newStart: Date,
-    newEnd: Date | undefined
+    newEnd: Date | undefined,
   ) => void;
 
   /**
@@ -129,8 +136,14 @@ export function MonthCalendar(props: {
     parseDefaultProps(props);
 
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
-    calendarProps.events
+    calendarProps.events,
   );
+
+  const [modalEvents, setModalEvents] = useState<{
+    events: ModifiableEvent[];
+    day: Date;
+  }>({ events: [], day: new Date() });
+  const modalRef = useRef<HTMLDivElement>(null);
 
   const daysInWeek = 7;
 
@@ -139,7 +152,7 @@ export function MonthCalendar(props: {
   const eventsInMonth: ModifiableEvent[] = filterEventsInMonth(
     allEvents,
     startDay,
-    startOfMonth
+    startOfMonth,
   );
 
   // step 1.
@@ -153,7 +166,7 @@ export function MonthCalendar(props: {
   const { eventProperties, events, moreButtons } = eventGrid(
     splitEvents,
     startDay,
-    monthCalendarRange(startDay, startOfMonth).startOfMonthCalendar
+    monthCalendarRange(startDay, startOfMonth).startOfMonthCalendar,
   );
 
   const weeksOfMonth = getWeeksInMonth(now, {
@@ -167,7 +180,7 @@ export function MonthCalendar(props: {
   function calculateNewTime(
     state: MouseState,
     dragged: DragPosition<ModifiableEvent>,
-    container: EventContainer
+    container: EventContainer,
   ) {
     if (state.pos && state.pos0) {
       const addedDays = dayDiff(
@@ -175,12 +188,12 @@ export function MonthCalendar(props: {
         state.pos0,
         dragged,
         daysInWeek,
-        container
+        container,
       );
 
       const addedWeeks = Math.round(
         (state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY) /
-          120
+          120,
       );
 
       let start = dragged.event.sourceEvent.start;
@@ -212,12 +225,12 @@ export function MonthCalendar(props: {
     events,
     setDraggedEvent,
     calculateNewTime,
-    calendarProps
+    calendarProps,
   );
 
   useMouse("month-calendar-event", effectRefs, false);
 
-  const { onCreateEvent} = calendarProps;
+  const { onCreateEvent } = calendarProps;
 
   return (
     <MonthCalendarConfigContext.Provider
@@ -228,8 +241,6 @@ export function MonthCalendar(props: {
         startOfMonth: startOfMonth,
       }}
     >
-      {/* <MonthCalendarViewBar /> */}
-
       <FlexRow width="100%">
         {/* Week Indicator */}
         <FlexCol
@@ -336,7 +347,7 @@ export function MonthCalendar(props: {
                 startOfWeek(startOfMonth, {
                   weekStartsOn: startDay === "monday" ? 1 : 0,
                 }),
-                Math.floor(i / 7)
+                Math.floor(i / 7),
               );
 
               const currentDate = addDays(beginningOfCurrentWeek, i % 7);
@@ -419,8 +430,8 @@ export function MonthCalendar(props: {
                             active
                               ? (theme) => theme.palette.primary.contrastText
                               : isInCurrentMonth
-                              ? (theme) => theme.palette.text.primary
-                              : (theme) => theme.palette.text.secondary
+                                ? (theme) => theme.palette.text.primary
+                                : (theme) => theme.palette.text.secondary
                           }
                         >
                           {dayNumber}
@@ -444,12 +455,110 @@ export function MonthCalendar(props: {
           >
             <>
               {moreButtons.map((moreButton, index) => {
-                const { week, day, events } = moreButton;
+                const { week, day, events: moreButtonEvents } = moreButton;
                 const row = 4;
                 return (
                   <MoreEventsButton
+                    onClick={() => {
+                      let startWeekDay = startOfDay(
+                        startOfWeek(startOfMonth, {
+                          weekStartsOn: startDay === "monday" ? 1 : 0,
+                        }),
+                      );
+
+                      let endWeekDay = endOfDay(
+                        startOfWeek(startOfMonth, {
+                          weekStartsOn: startDay === "monday" ? 1 : 0,
+                        }),
+                      );
+
+                      if (week === 0) {
+                        if (day === 0) {
+                          setModalEvents({
+                            events: [
+                              ...events.filter((event) =>
+                                areIntervalsOverlapping(
+                                  { start: startWeekDay, end: endWeekDay },
+                                  { start: event.start, end: event.end },
+                                ),
+                              ),
+                            ],
+                            day: startWeekDay,
+                          });
+                        } else {
+                          // console.log(addDays(startWeekDay, day));
+                          setModalEvents({
+                            events: [
+                              ...events.filter((event) =>
+                                areIntervalsOverlapping(
+                                  {
+                                    start: startOfDay(
+                                      addDays(startWeekDay, day),
+                                    ),
+                                    end: endOfDay(addDays(startWeekDay, day)),
+                                  },
+                                  { start: event.start, end: event.end },
+                                ),
+                              ),
+                            ],
+                            day: startOfDay(addDays(startWeekDay, day)),
+                          });
+                        }
+                      } else {
+                        if (day === 0) {
+                          setModalEvents({
+                            events: [
+                              ...events.filter((event) =>
+                                areIntervalsOverlapping(
+                                  {
+                                    start: startOfDay(
+                                      addWeeks(startWeekDay, week),
+                                    ),
+                                    end: endOfDay(addWeeks(startWeekDay, week)),
+                                  },
+                                  { start: event.start, end: event.end },
+                                ),
+                              ),
+                            ],
+                            day: startOfDay(addWeeks(startWeekDay, week)),
+                          });
+                        } else {
+                          setModalEvents({
+                            events: [
+                              ...events.filter((event) =>
+                                areIntervalsOverlapping(
+                                  {
+                                    start: startOfDay(
+                                      addDays(
+                                        addWeeks(startWeekDay, week),
+                                        day,
+                                      ),
+                                    ),
+                                    end: endOfDay(
+                                      addDays(
+                                        addWeeks(startWeekDay, week),
+                                        day,
+                                      ),
+                                    ),
+                                  },
+                                  { start: event.start, end: event.end },
+                                ),
+                              ),
+                            ],
+                            day: startOfDay(
+                              addDays(addWeeks(startWeekDay, week), day),
+                            ),
+                          });
+                        }
+                      }
+                      if (modalRef.current) {
+                        modalRef.current.style.visibility = "visible";
+                        modalRef.current.style.left = `${widthToPct(day * 120 - 20, daysInWeek)}`;
+                        modalRef.current.style.top = `${week * 120 + row - 20}px`;
+                      }
+                    }}
                     className="more-events-button"
-                    numHiddenEvents={events.length}
+                    numHiddenEvents={moreButtonEvents.length}
                     key={index}
                     sx={{
                       width: widthToPct(119 - 1, daysInWeek),
@@ -466,85 +575,126 @@ export function MonthCalendar(props: {
             <>
               {events.map((event, index) => {
                 const { week, day, row, maxRow } = eventProperties[`${index}`];
-                let width = differenceInCalendarDays(event.end, event.start);
-                if (event.end.getTime() === endOfDay(event.end).getTime()) {
-                  width += 1;
-                }
-                width = Math.max(width, 1);
-                const dataProps: any = {
-                  "data-type": "month-calendar-event",
-                  "data-calendar-event": JSON.stringify({
-                    x: day,
-                    colX: 0,
-                    index,
-                    w: Math.max(width, 1),
-                  }),
-                };
-                const props: React.ComponentPropsWithoutRef<
-                  typeof CalendarAllDayEvent | typeof MonthCalendarEvent
-                > = {
-                  event: event.sourceEvent,
-                  sx: {
-                    width: widthToPct(width * 119 - 1, daysInWeek),
-                    left: `${widthToPct(day * 120 + 2, daysInWeek)}`,
-                    top: week * 120 + row * (16 + 1) + 1 + 32,
-                    height: "16px",
-                    position: "absolute",
-                    zIndex: 2,
-                  },
-                  ...dataProps,
-                };
-
-                const startOfWeekOfEventEnd = startOfWeek(
-                  getEventEnd(event.sourceEvent),
-                  {
-                    weekStartsOn: startDay === "monday" ? 1 : 0,
-                  }
-                );
-                const firstWeekStart = startOfWeek(startOfMonth, {
-                  weekStartsOn: startDay === "monday" ? 1 : 0,
+                return renderEventComponent({
+                  event,
+                  eventIndex: index,
+                  startDay,
+                  startOfMonth,
+                  weeksOfMonth,
+                  row,
+                  day,
+                  week,
+                  maxRow,
                 });
-
-                const triangleLeft =
-                  week === 0 &&
-                  width === 7 &&
-                  !isSameWeek(event.sourceEvent.start, firstWeekStart);
-                const triangleRight =
-                  weeksOfMonth === week + 1 &&
-                  width === 7 &&
-                  !isSameWeek(event.end, startOfWeekOfEventEnd);
-                const triangle = triangleRight
-                  ? "right"
-                  : triangleLeft
-                  ? "left"
-                  : undefined;
-
-                return (
-                  <React.Fragment key={index}>
-                    {(maxRow <= 5 ? row < 5 : row < 4) ? (
-                      // it is not part of the "more" button
-                      isAllDayEvent(event) ? (
-                        <>
-                          <CalendarAllDayEvent
-                            key={index}
-                            {...props}
-                            triangle={triangle}
-                          />
-                        </>
-                      ) : (
-                        <>
-                          <MonthCalendarEvent
-                            key={index}
-                            {...props}
-                            state="normal"
-                          />
-                        </>
-                      )
-                    ) : null}
-                  </React.Fragment>
-                );
               })}
             </>
+          </Box>
+
+          {/** More events modal */}
+          <Box
+            ref={modalRef}
+            sx={{
+              visibility: "hidden",
+              px: "4px",
+              py: "2px",
+              height: "fit-content",
+              width: "140px",
+              position: "absolute",
+              inset: 0,
+              zIndex: 2,
+              bgcolor: (theme) =>
+                theme.palette.mode === "light"
+                  ? theme.palette.background.default
+                  : "white",
+              boxShadow: (theme) => theme.shadows[1],
+            }}
+          >
+            <FlexCol width="100%" position="relative">
+              <FlexCol height="56px">
+                <FlexRow
+                  height="40px"
+                  width="100%"
+                  justifyContent="center"
+                  alignItems="center"
+                >
+                  <Typography
+                    zIndex={2}
+                    variant="body2"
+                    color={
+                      isSameDay(modalEvents.day, startOfMonth)
+                        ? (theme) => theme.palette.primary.contrastText
+                        : isSameMonth(modalEvents.day, startOfMonth)
+                          ? (theme) => theme.palette.text.primary
+                          : (theme) => theme.palette.text.secondary
+                    }
+                  >
+                    {format(modalEvents.day, "EEE")}
+                  </Typography>
+                </FlexRow>
+                <FlexRow
+                  height="40px"
+                  width="100%"
+                  justifyContent="center"
+                  alignItems="center"
+                >
+                  <Typography
+                    zIndex={2}
+                    variant="body2"
+                    color={
+                      isSameDay(modalEvents.day, startOfMonth)
+                        ? (theme) => theme.palette.primary.contrastText
+                        : isSameMonth(modalEvents.day, startOfMonth)
+                          ? (theme) => theme.palette.text.primary
+                          : (theme) => theme.palette.text.secondary
+                    }
+                  >
+                    {format(modalEvents.day, "d")}
+                  </Typography>
+                </FlexRow>
+              </FlexCol>
+              <FlexCol
+                zIndex={2}
+                gap="1px"
+                sx={{
+                  "*": {
+                    pointerEvents: "none",
+                  },
+                }}
+              >
+                {modalEvents.events.map((event, index) => {
+                  return event && isAllDayEvent(event) ? (
+                    <>
+                      <CalendarAllDayEvent
+                        key={index}
+                        event={event.sourceEvent}
+                        sx={{ width: "119px", position: "unset" }}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <MonthCalendarEvent
+                        key={index}
+                        event={event.sourceEvent}
+                        style={{ width: "119px" }}
+                        sx={{ position: "unset", zIndex: 2 }}
+                        state="normal"
+                      />
+                    </>
+                  );
+                })}
+              </FlexCol>
+              <Button
+                variant="text"
+                size="small"
+                onClick={() => {
+                  if (modalRef.current) {
+                    modalRef.current.style.visibility = "hidden";
+                  }
+                }}
+              >
+                Close
+              </Button>
+            </FlexCol>
           </Box>
         </Box>
       </FlexRow>
@@ -601,7 +751,7 @@ function MoreEventsButton({
           minWidth: "auto",
           whiteSpace: "nowrap",
         },
-        buttonProps.sx
+        buttonProps.sx,
       )}
     >
       <Typography
@@ -630,9 +780,9 @@ function MonthCalendarWeekdayBar() {
         startOfWeek(startOfMonth, {
           weekStartsOn: startDay === "monday" ? 1 : 0,
         }),
-        index
+        index,
       ),
-      "EEE"
+      "EEE",
     );
 
     weekDays.push(
@@ -660,7 +810,7 @@ function MonthCalendarWeekdayBar() {
             sx={{ width: "25px", height: "1px" }}
           />
         )}
-      </FlexCol>
+      </FlexCol>,
     );
   });
 
@@ -672,5 +822,95 @@ function MonthCalendarWeekdayBar() {
     >
       {weekDays}
     </FlexRow>
+  );
+}
+
+function renderEventComponent({
+  event,
+  eventIndex,
+  startDay,
+  startOfMonth,
+  weeksOfMonth,
+  row,
+  day,
+  week,
+  maxRow,
+}: {
+  event: ModifiableEvent;
+  eventIndex: number;
+  startDay: StartDay;
+  startOfMonth: Date;
+  weeksOfMonth: number;
+  row: number;
+  day: number;
+  week: number;
+  maxRow: number;
+}) {
+  const daysInWeek = 7;
+  let width = differenceInCalendarDays(event.end, event.start);
+  if (event.end.getTime() === endOfDay(event.end).getTime()) {
+    width += 1;
+  }
+  width = Math.max(width, 1);
+  const dataProps: any = {
+    "data-type": "month-calendar-event",
+    "data-calendar-event": JSON.stringify({
+      x: day,
+      colX: 0,
+      eventIndex,
+      w: Math.max(width, 1),
+    }),
+  };
+  const props: React.ComponentPropsWithoutRef<
+    typeof CalendarAllDayEvent | typeof MonthCalendarEvent
+  > = {
+    event: event.sourceEvent,
+    sx: {
+      width: widthToPct(width * 119 - 1, daysInWeek),
+      left: `${widthToPct(day * 120 + 2, daysInWeek)}`,
+      top: week * 120 + row * (16 + 1) + 1 + 32,
+      height: "16px",
+      position: "absolute",
+      zIndex: 2,
+    },
+    ...dataProps,
+  };
+
+  const startOfWeekOfEventEnd = startOfWeek(getEventEnd(event.sourceEvent), {
+    weekStartsOn: startDay === "monday" ? 1 : 0,
+  });
+  const firstWeekStart = startOfWeek(startOfMonth, {
+    weekStartsOn: startDay === "monday" ? 1 : 0,
+  });
+
+  const triangleLeft =
+    week === 0 &&
+    width === 7 &&
+    !isSameWeek(event.sourceEvent.start, firstWeekStart);
+  const triangleRight =
+    weeksOfMonth === week + 1 &&
+    width === 7 &&
+    !isSameWeek(event.end, startOfWeekOfEventEnd);
+  const triangle = triangleRight ? "right" : triangleLeft ? "left" : undefined;
+
+  return (
+    <React.Fragment key={eventIndex}>
+      {(maxRow <= 5 ? row < 5 : row < 4) ? (
+        // it is not part of the "more" button
+        isAllDayEvent(event) ? (
+          <>
+            <CalendarAllDayEvent
+              key={eventIndex}
+              {...props}
+              triangle={triangle}
+            />
+          </>
+        ) : (
+          <>
+            <MonthCalendarEvent key={eventIndex} {...props} state="normal" />
+          </>
+        )
+      ) : null}
+    </React.Fragment>
   );
 }
