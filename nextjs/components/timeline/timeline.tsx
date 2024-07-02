@@ -1,4 +1,4 @@
-import { Box, Button, Typography } from "@mui/material";
+import { Box, BoxProps, Button, Typography } from "@mui/material";
 import {
   StartOfWeekOptions,
   addDays,
@@ -21,7 +21,7 @@ import {
 } from "date-fns";
 import React from "react";
 import { eventGrid } from "../event_grid";
-import { DEFAULT_COLOR, getEventEnd } from "../helpers";
+import { DEFAULT_COLOR, getEventEnd, mergeSx } from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
 import { ModifiableEvent } from "../week_calendar/types";
 import { useDragableEvents, useEffectRefs, useMouse } from "../use_mouse";
@@ -274,6 +274,10 @@ function Grid({
 
   useMouse("timeline-event", effectRefs, false);
 
+  const start = timelineStart.getTime();
+  const end = timelineEnd.getTime();
+  const totalSecondsOfMonth = end - start;
+
   return (
     <Box
       sx={{
@@ -285,15 +289,12 @@ function Grid({
         sx={{
           position: "absolute",
           inset: 0,
+          zIndex: 1,
         }}
         ref={eventContainerRef}
       >
         {events.map((event, index) => {
           const { day, row, maxRow } = eventProperties[`${index}`];
-
-          const start = timelineStart.getTime();
-          const end = timelineEnd.getTime();
-          const totalSecondsOfMonth = end - start;
 
           const x =
             (720 * (event.start.getTime() - start)) / totalSecondsOfMonth;
@@ -358,6 +359,94 @@ function Grid({
           );
         })}
       </Box>
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          zIndex: 2,
+        }}
+      >
+        <TimeIndicator
+          sx={{
+            left:
+              String(
+                (720 * (calendarProps.now.getTime() - start)) /
+                  totalSecondsOfMonth
+              ) + "px",
+          }}
+        />
+      </Box>
+    </Box>
+  );
+}
+
+function TimeIndicator(boxProps: BoxProps) {
+  return (
+    <Box
+      {...boxProps}
+      sx={mergeSx(boxProps.sx, {
+        width: "13px",
+        marginLeft: "-6.5px",
+        marginTop: "0px",
+        height: "100%",
+        position: "absolute",
+        overflow: "hidden",
+      })}
+    >
+      <Box
+        sx={{
+          position: "absolute",
+          backgroundColor: (theme) => theme.palette.background.default,
+          width: "11px",
+          height: "11px",
+          borderRadius: "11px",
+          left: "1px",
+          top: "1px",
+        }}
+      ></Box>
+      <Box
+        sx={{
+          position: "absolute",
+          backgroundColor: (theme) => theme.palette.background.default,
+          width: "11px",
+          height: "11px",
+          borderRadius: "11px",
+          left: "1px",
+          top: "1px",
+        }}
+      ></Box>
+      <Box
+        sx={{
+          position: "absolute",
+          background: "#FFA000",
+          width: "9px",
+          height: "9px",
+          borderRadius: "9px",
+          left: "2px",
+          top: "2px",
+        }}
+      ></Box>
+      <Box
+        sx={{
+          position: "absolute",
+          backgroundColor: (theme) => theme.palette.background.default,
+          width: "3px",
+          height: "100%",
+          left: "5px",
+          top: "11px",
+        }}
+      ></Box>
+      <Box
+        sx={{
+          position: "absolute",
+          background: "#FFA000",
+          width: "1px",
+          height: "100%",
+          left: "6px",
+          top: "2px",
+        }}
+      ></Box>
     </Box>
   );
 }

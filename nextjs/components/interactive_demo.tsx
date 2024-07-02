@@ -59,10 +59,6 @@ export function InteractiveDemo(props: {
       ? WeekCalendar
       : Timeline;
 
-  if (editModalOpen) {
-    console.log("edit modal open", events.includes(editModalOpen.event));
-  }
-
   return (
     <>
       {editModalOpen && (
