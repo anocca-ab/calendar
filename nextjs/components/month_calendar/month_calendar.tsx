@@ -189,16 +189,21 @@ export function MonthCalendar(props: {
         container,
       );
 
+      // for how many weeks minus/plus did we drag the event
       const rawDelta = Math.round(
         (state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY) /
           120,
       );
 
+      // how many weeks plus we can drag
       const maxVal = Math.abs(
         Math.floor((container.height - state.pos0.y) / 120) + 1,
       );
 
+      // how many weeks minus we can drag
       const minVal = weeksOfMonth - 1 - maxVal;
+
+      // depending on the rawDelta sign we get the max/min added weeks
       const addedWeeks =
         Math.sign(rawDelta) > 0
           ? Math.min(rawDelta, maxVal)
