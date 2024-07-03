@@ -1,5 +1,3 @@
-// /Users/richard.samuelsson/projects/aimos/front-end/common/temp/node_modules/.pnpm/file+..+..+..+..+calendar+lib-out_@mui+material@5.11.4_date-fns@2.17.0_react@18.2.0/node_modules/@anocca/calendar
-
 import { Glob } from "bun";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
