@@ -20,6 +20,7 @@ import React, {
   ReactElement,
   createContext,
   useContext,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -166,7 +167,7 @@ export function MonthCalendar(props: {
     monthCalendarRange(startDay, startOfMonth).startOfMonthCalendar,
   );
 
-  const weeksOfMonth = getWeeksInMonth(now, {
+  const weeksOfMonth = getWeeksInMonth(startOfMonth, {
     weekStartsOn: startDay === "monday" ? 1 : 0,
   });
 
@@ -187,10 +188,21 @@ export function MonthCalendar(props: {
         daysInWeek,
         container,
       );
-      const addedWeeks = Math.round(
+
+      const rawDelta = Math.round(
         (state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY) /
           120,
       );
+
+      const maxVal = Math.abs(
+        Math.floor((container.height - state.pos0.y) / 120) + 1,
+      );
+
+      const minVal = weeksOfMonth - 1 - maxVal;
+      const addedWeeks =
+        Math.sign(rawDelta) > 0
+          ? Math.min(rawDelta, maxVal)
+          : Math.max(rawDelta, minVal);
 
       let start = dragged.event.sourceEvent.start;
       let end =
