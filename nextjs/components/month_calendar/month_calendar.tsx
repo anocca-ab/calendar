@@ -579,7 +579,7 @@ export function MonthCalendar(props: {
                       <MonthCalendarEvent
                         key={index}
                         {...props}
-                        event={event}
+                        event={event.sourceEvent}
                         allDayEvent={isAllDayEvent(event)}
                         triangle={triangle}
                         state={

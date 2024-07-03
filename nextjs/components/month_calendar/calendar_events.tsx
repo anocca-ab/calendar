@@ -19,7 +19,7 @@ export function MonthCalendarEvent({
 } & React.ComponentPropsWithRef<typeof Button>) {
   const daysInWeek = 7;
   const { start, title, color } = event;
-
+  console.log(event);
   return (
     <Box
       component={Button}
@@ -97,14 +97,22 @@ export function MonthCalendarEvent({
           <FlexRow gap="6px" alignItems="center">
             <Typography
               variant="event"
-              // color={(theme) => theme.palette.primary.dark}
+              color={(theme) =>
+                theme.palette.mode === "dark"
+                  ? theme.palette.primary.contrastText
+                  : theme.palette.text.primary
+              }
             >
               {`${format(start, "h:mm")}`}
             </Typography>
 
             <Typography
               variant="event"
-              color={(theme) => theme.palette.text.primary}
+              color={(theme) =>
+                theme.palette.mode === "dark"
+                  ? theme.palette.primary.contrastText
+                  : theme.palette.text.primary
+              }
             >
               {title ?? "(No Title)"}
             </Typography>
