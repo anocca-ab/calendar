@@ -192,7 +192,7 @@ export function MonthCalendar(props: {
         (state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY) /
           120,
       );
-      console.log(dragged);
+
       let start = dragged.event.sourceEvent.start;
       let end =
         dragged.event.sourceEvent.end ??
@@ -667,7 +667,7 @@ export function MonthCalendar(props: {
                 }}
               >
                 {moreButtonClicked &&
-                  eventsInMonth
+                  events
                     .filter((ev) =>
                       areIntervalsOverlapping(
                         {
