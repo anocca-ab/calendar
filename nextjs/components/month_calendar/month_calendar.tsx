@@ -20,7 +20,6 @@ import React, {
   ReactElement,
   createContext,
   useContext,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -38,7 +37,7 @@ import {
 } from "../use_mouse";
 import { ModifiableEvent } from "../week_calendar/types";
 import { FlexCol, FlexRow } from "../wrappers";
-import { CalendarAllDayEvent, MonthCalendarEvent } from "./calendar_events";
+import { MonthCalendarEvent } from "./calendar_events";
 import { filterEventsInMonth } from "./filter_events_in_month";
 import { splitMultiWeekEvents } from "./split_multi_week_events";
 
@@ -201,7 +200,7 @@ export function MonthCalendar(props: {
       );
 
       // how many weeks minus we can drag
-      const minVal = weeksOfMonth - 1 - maxVal;
+      const minVal = -(weeksOfMonth - 1 - maxVal);
 
       // depending on the rawDelta sign we get the max/min added weeks
       const addedWeeks =
@@ -536,7 +535,7 @@ export function MonthCalendar(props: {
                   }),
                 };
                 const props: React.ComponentPropsWithoutRef<
-                  typeof CalendarAllDayEvent | typeof MonthCalendarEvent
+                  typeof MonthCalendarEvent
                 > = {
                   event: event.sourceEvent,
                   sx: {
@@ -577,30 +576,19 @@ export function MonthCalendar(props: {
                 return (
                   <React.Fragment key={index}>
                     {(maxRow <= 5 ? row < 5 : row < 4) ? (
-                      // it is not part of the "more" button
-                      isAllDayEvent(event) ? (
-                        <>
-                          <CalendarAllDayEvent
-                            key={index}
-                            {...props}
-                            triangle={triangle}
-                          />
-                        </>
-                      ) : (
-                        <>
-                          <MonthCalendarEvent
-                            key={index}
-                            {...props}
-                            state={
-                              draggedEvent &&
-                              event.sourceEvent ===
-                                draggedEvent?.source.sourceEvent
-                                ? "selected"
-                                : "normal"
-                            }
-                          />
-                        </>
-                      )
+                      <MonthCalendarEvent
+                        key={index}
+                        {...props}
+                        event={event}
+                        allDayEvent={isAllDayEvent(event)}
+                        triangle={triangle}
+                        state={
+                          draggedEvent &&
+                          event.sourceEvent === draggedEvent?.source.sourceEvent
+                            ? "selected"
+                            : "normal"
+                        }
+                      />
                     ) : null}
                   </React.Fragment>
                 );
@@ -718,11 +706,11 @@ export function MonthCalendar(props: {
                         }),
                       };
                       const props: React.ComponentPropsWithoutRef<
-                        typeof CalendarAllDayEvent | typeof MonthCalendarEvent
+                        typeof MonthCalendarEvent
                       > = {
                         event: event.sourceEvent,
                         sx: {
-                          width: "132px",
+                          width: "100%",
                           top: week * 120 + row * (16 + 1) + 1 + 50,
                           height: "16px",
                           position: "absolute",
@@ -731,13 +719,18 @@ export function MonthCalendar(props: {
                         ...dataProps,
                       };
 
-                      return isAllDayEvent(event.sourceEvent) ? (
-                        <CalendarAllDayEvent key={index} {...props} />
-                      ) : (
+                      return (
                         <MonthCalendarEvent
                           key={index}
-                          state="normal"
                           {...props}
+                          allDayEvent={isAllDayEvent(event)}
+                          state={
+                            draggedEvent &&
+                            event.sourceEvent ===
+                              draggedEvent?.source.sourceEvent
+                              ? "selected"
+                              : "normal"
+                          }
                         />
                       );
                     })}
