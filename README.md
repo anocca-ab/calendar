@@ -1,1 +1,1 @@
-See nextjs/README.md
+# Welcome to the anocca calendar

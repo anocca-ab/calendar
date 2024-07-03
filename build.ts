@@ -110,4 +110,18 @@ await Bun.write(
   Bun.file("nextjs/global.d.ts"),
 );
 
+await Bun.write(
+  path.join(baseDir, ".npmrc"),
+  [
+    "registry=https://verdaccio--kube.anocca.com/",
+    "//verdaccio--kube.anocca.com/:_authToken=fake",
+    "always-auth=false",
+  ].join("\n") + "\n",
+);
+
+await Bun.write(path.join(baseDir, "README.md"), Bun.file("README.md"));
+
 await $`cd ${baseDir} && bunx tsc`;
+
+
+// publish using cd lib-out && npm publish --always-auth=false --registry=https://verdaccio--kube.anocca.com/ --access=public

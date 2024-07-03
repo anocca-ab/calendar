@@ -2,7 +2,7 @@ import { CreateEvent } from "@/components/create_event";
 import { CalendarNavigationBar } from "@/components/navigation_bar/calendar_navigation_bar";
 import { CalendarEvent, TimelineResolution } from "@/components/types";
 import React from "react";
-import { WeekCalendar } from "../components/week_calendar/week_calendar";
+import { WeekCalendar } from "./week_calendar/week_calendar";
 import { MonthCalendar } from "./month_calendar/month_calendar";
 import { Timeline } from "./timeline/timeline";
 
