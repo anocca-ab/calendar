@@ -12,9 +12,8 @@ export function InteractiveDemo(props: {
   startDay?: "sunday" | "monday";
   type: "month" | "week" | "timeline";
 }) {
-  const [events, setEvents] = React.useState<CalendarEvent[]>(
-    props.events ?? []
-  );
+  const { now, startDay, type, events: _events } = props;
+  const [events, setEvents] = React.useState<CalendarEvent[]>(_events ?? []);
 
   const [editModalOpen, setEditModalOpen] = React.useState<
     undefined | { event: CalendarEvent; key: number }
@@ -35,7 +34,7 @@ export function InteractiveDemo(props: {
   const onMoveEvent = (
     event: CalendarEvent,
     newStart: Date,
-    newEnd: Date | undefined
+    newEnd: Date | undefined,
   ) => {
     setEvents((prev) => {
       return prev.map((ev) => {
@@ -53,18 +52,41 @@ export function InteractiveDemo(props: {
 
   const [startTime, setStartTime] = React.useState(new Date());
   const CalendarType =
-    props.type === "month"
+    type === "month"
       ? MonthCalendar
-      : props.type === "week"
-      ? WeekCalendar
-      : Timeline;
+      : type === "week"
+        ? WeekCalendar
+        : Timeline;
 
   const navProps:
     | { type: "month" | "week" }
     | { type: "timeline"; resolution: TimelineResolution } =
-    props.type === "timeline"
+    type === "timeline"
       ? { type: "timeline", resolution: "month" }
       : { type: "month" };
+
+  const calendarProps: React.ComponentPropsWithRef<
+    typeof MonthCalendar | typeof WeekCalendar | typeof Timeline
+  > = {
+    events,
+    startDay,
+    startTime,
+    now,
+    onMoveEvent,
+    onCreateEvent: (start, end) => {
+      onEditEvent({ start, end });
+    },
+    onEditEvent: (ev) => {
+      onEditEvent(ev);
+    },
+    ...(type === "week" || type === "timeline"
+      ? {
+          startOfWeek: startTime,
+        }
+      : {
+          startOfMonth: startTime,
+        }),
+  };
   return (
     <>
       {editModalOpen && (
@@ -74,7 +96,7 @@ export function InteractiveDemo(props: {
           onSave={(event: CalendarEvent, originalEvent: CalendarEvent) => {
             if (events.includes(originalEvent)) {
               setEvents(
-                events.map((ev) => (ev === originalEvent ? event : ev))
+                events.map((ev) => (ev === originalEvent ? event : ev)),
               );
             } else {
               // create
@@ -98,20 +120,7 @@ export function InteractiveDemo(props: {
         setCurrentDate={setStartTime}
         {...navProps}
       />
-      <CalendarType
-        {...props}
-        startOfWeek={startTime}
-        startTime={startTime}
-        events={events}
-        onCreateEvent={(start, end) => {
-          onEditEvent({ start, end });
-        }}
-        onEditEvent={(ev) => {
-          console.log(events.includes(ev));
-          onEditEvent(ev);
-        }}
-        onMoveEvent={onMoveEvent}
-      />
+      <CalendarType {...calendarProps} />
     </>
   );
 }

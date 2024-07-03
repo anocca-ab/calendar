@@ -187,7 +187,6 @@ export function MonthCalendar(props: {
         daysInWeek,
         container,
       );
-
       const addedWeeks = Math.round(
         (state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY) /
           120,
@@ -575,7 +574,13 @@ export function MonthCalendar(props: {
                           <MonthCalendarEvent
                             key={index}
                             {...props}
-                            state="normal"
+                            state={
+                              draggedEvent &&
+                              event.sourceEvent ===
+                                draggedEvent?.source.sourceEvent
+                                ? "selected"
+                                : "normal"
+                            }
                           />
                         </>
                       )
