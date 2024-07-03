@@ -230,19 +230,28 @@ export function useMouse(
           dragged,
           container
         );
+
         /**
          * Update the "live" dragged event
          * Only add dragged if the event has moved
          */
-        draggedEvent = {
-          source: dragged.event,
-          dragged: newEventTime
-            ? {
-                start: newEventTime.start,
-                end: newEventTime.end,
-              }
-            : undefined,
-        };
+        if (!dragged.event.sourceEvent.canEdit) {
+          // only allow clicks when canEdit is false
+          draggedEvent = {
+            source: dragged.event,
+            dragged: undefined,
+          };
+        } else {
+          draggedEvent = {
+            source: dragged.event,
+            dragged: newEventTime
+              ? {
+                  start: newEventTime.start,
+                  end: newEventTime.end,
+                }
+              : undefined,
+          };
+        }
         effectRefs.current.setDraggedEvent(draggedEvent);
       }
     }

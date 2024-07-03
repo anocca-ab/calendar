@@ -14,6 +14,7 @@ export type CalendarEvent<T = undefined> = {
    */
   title?: string;
   color?: string;
+  canEdit?: boolean;
   data?: T;
 };
 
