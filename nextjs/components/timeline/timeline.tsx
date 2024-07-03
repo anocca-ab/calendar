@@ -22,12 +22,10 @@ import {
 import React from "react";
 import { eventGrid } from "../event_grid";
 import { DEFAULT_COLOR, getEventEnd, mergeSx } from "../helpers";
-import { CalendarEvent, StartDay } from "../types";
+import { CalendarEvent, StartDay, TimelineResolution } from "../types";
 import { ModifiableEvent } from "../week_calendar/types";
 import { useDragableEvents, useEffectRefs, useMouse } from "../use_mouse";
 import { FlexCol, FlexRow } from "../wrappers";
-
-type Resolution = "year" | "month" | "3-years" | "3-months";
 
 const parseDefaultProps = (
   props: React.ComponentPropsWithRef<typeof Timeline>
@@ -35,34 +33,13 @@ const parseDefaultProps = (
   const events = props.events ?? [];
   let startDay = props.startDay ?? "monday";
   const now = props.now ?? new Date();
-  const startOpts: StartOfWeekOptions = {
-    weekStartsOn: startDay === "monday" ? 1 : 0,
-  };
+
   const resolution = props.resolution ?? "month";
-
-  const rawSt = props.startTime ?? new Date();
-
-  const startTime =
-    resolution === "month"
-      ? startOfWeek(rawSt, startOpts)
-      : resolution === "3-months"
-      ? startOfMonth(rawSt)
-      : resolution === "year"
-      ? startOfYear(rawSt)
-      : resolution === "3-years"
-      ? startOfYear(rawSt)
-      : undefined;
-
-  if (!startTime) {
-    throw new Error(
-      'invalid resolution, must be one of "month", "3-months", "year", "3-years"'
-    );
-  }
 
   return {
     events,
     startDay,
-    startTime,
+    startTime: props.startTime ?? new Date(),
     startOfWeek,
     resolution,
     now,
@@ -87,7 +64,7 @@ export function Timeline(props: {
    * What view do we want to show
    * @default "month"
    */
-  resolution?: Resolution;
+  resolution?: TimelineResolution;
   /**
    * The current time. It is used to render the current time indicator
    * @default new Date()
@@ -139,7 +116,7 @@ export function Timeline(props: {
 }
 
 const getTimelineRange = (
-  resolution: Resolution,
+  resolution: TimelineResolution,
   startTime: Date,
   startDay: StartDay
 ): [Date, Date] => {
@@ -162,7 +139,7 @@ const getTimelineRange = (
 
 function filterEventsInTimeline(
   _events: ModifiableEvent[],
-  resolution: Resolution,
+  resolution: TimelineResolution,
   startTime: Date,
   startDay: StartDay
 ) {
@@ -204,7 +181,7 @@ function Grid({
   startDay: StartDay;
   startTime: Date;
   now: Date;
-  resolution: Resolution;
+  resolution: TimelineResolution;
   events: CalendarEvent[];
   onCreateEvent?: (start: Date, end: Date) => void;
   onEditEvent?: (event: CalendarEvent) => void;
@@ -457,7 +434,7 @@ function Header({
   resolution,
 }: {
   startTime: Date;
-  resolution: Resolution;
+  resolution: TimelineResolution;
   now: Date;
 }) {
   if (resolution === "month") {
@@ -479,7 +456,7 @@ function Header({
             const els = [
               <FlexRow
                 key={index}
-                sx={{ width: "119px" }}
+                sx={{ width: "119px", height: "44px" }}
                 justifyContent={"center"}
               >
                 <Box>

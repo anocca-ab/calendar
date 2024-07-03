@@ -1,6 +1,6 @@
 import { CreateEvent } from "@/components/create_event";
 import { CalendarNavigationBar } from "@/components/navigation_bar/calendar_navigation_bar";
-import { CalendarEvent } from "@/components/types";
+import { CalendarEvent, TimelineResolution } from "@/components/types";
 import React from "react";
 import { WeekCalendar } from "../components/week_calendar/week_calendar";
 import { MonthCalendar } from "./month_calendar/month_calendar";
@@ -51,7 +51,7 @@ export function InteractiveDemo(props: {
     });
   };
 
-  const [currentWeek, setCurrentWeek] = React.useState(new Date());
+  const [startTime, setStartTime] = React.useState(new Date());
   const CalendarType =
     props.type === "month"
       ? MonthCalendar
@@ -59,6 +59,12 @@ export function InteractiveDemo(props: {
       ? WeekCalendar
       : Timeline;
 
+  const navProps:
+    | { type: "month" | "week" }
+    | { type: "timeline"; resolution: TimelineResolution } =
+    props.type === "timeline"
+      ? { type: "timeline", resolution: "month" }
+      : { type: "month" };
   return (
     <>
       {editModalOpen && (
@@ -88,14 +94,14 @@ export function InteractiveDemo(props: {
       )}
       <CalendarNavigationBar
         now={props.now ?? new Date()}
-        startDay={props.startDay ?? "monday"}
-        currentDate={currentWeek}
-        setCurrentDate={setCurrentWeek}
-        type={props.type}
+        currentDate={startTime}
+        setCurrentDate={setStartTime}
+        {...navProps}
       />
       <CalendarType
         {...props}
-        startOfWeek={currentWeek}
+        startOfWeek={startTime}
+        startTime={startTime}
         events={events}
         onCreateEvent={(start, end) => {
           onEditEvent({ start, end });

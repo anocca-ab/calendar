@@ -1,7 +1,8 @@
 import { Meta, StoryObj } from "@storybook/react";
 import { CalendarNavigationBar } from "@/components/navigation_bar/calendar_navigation_bar";
 import React from "react";
-import { startOfMonth, startOfWeek } from "date-fns";
+import { format, startOfMonth, startOfWeek } from "date-fns";
+import { Typography } from "@mui/material";
 
 const meta = {
   title: "Navigation Bar",
@@ -11,18 +12,19 @@ const meta = {
   },
   tags: ["autodocs"],
   argTypes: {
-    startDay: {
-      control: "select",
-    },
     now: {
       control: "date",
     },
     type: {
       control: "select",
+      options: ["week", "month", "timeline"],
     },
+    resolution: {
+      control: "select",
+      options: ["month", "3-months", "year", "3-years"],
+    }
   },
   args: {
-    startDay: "monday",
     now: new Date(),
     type: "week",
   },
@@ -31,9 +33,8 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const WeekCalendar: Story = {
+export const CalendarHeader: Story = {
   args: {
-    startDay: "monday",
     now: new Date(),
     currentDate: startOfWeek(new Date(), { weekStartsOn: 1 }),
     setCurrentDate: () => {},
@@ -42,15 +43,25 @@ export const WeekCalendar: Story = {
   render: (props) => {
     return <InteractiveDemo {...props} />;
   },
-};
+} satisfies Meta<typeof CalendarNavigationBar>;
 
 export const MonthCalendar: Story = {
   args: {
-    startDay: "monday",
     now: new Date(),
     type: "month",
     currentDate: startOfMonth(new Date()),
-    setCurrentDate: () => {},
+  },
+  render: (props) => {
+    return <InteractiveDemo {...props} />;
+  },
+};
+
+export const Timeline: Story = {
+  args: {
+    now: new Date(),
+    type: "timeline",
+    currentDate: startOfMonth(new Date()),
+    resolution: "month",
   },
   render: (props) => {
     return <InteractiveDemo {...props} />;
@@ -58,11 +69,21 @@ export const MonthCalendar: Story = {
 };
 
 function InteractiveDemo(
-  props: React.ComponentPropsWithRef<typeof CalendarNavigationBar>,
+  props: React.ComponentPropsWithRef<typeof CalendarNavigationBar>
 ) {
+  const [currentDate, setCurrentDate] = React.useState(
+    startOfMonth(new Date())
+  );
   return (
     <>
-      <CalendarNavigationBar {...props} />
+      <CalendarNavigationBar
+        {...props}
+        currentDate={currentDate}
+        setCurrentDate={setCurrentDate}
+      />
+      <Typography sx={{ textAlign: "center" }}>
+        {format(currentDate, "do MMMM yyyy")}
+      </Typography>
     </>
   );
 }
