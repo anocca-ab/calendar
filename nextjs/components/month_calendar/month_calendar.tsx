@@ -139,10 +139,7 @@ export function MonthCalendar(props: {
     calendarProps.events,
   );
 
-  const [modalEvents, setModalEvents] = useState<{
-    events: ModifiableEvent[];
-    day: Date;
-  }>({ events: [], day: new Date() });
+  const [moreButtonClicked, setMoreButtonClicked] = useState<Date>(new Date());
   const modalRef = useRef<HTMLDivElement>(null);
 
   const daysInWeek = 7;
@@ -466,88 +463,25 @@ export function MonthCalendar(props: {
                         }),
                       );
 
-                      let endWeekDay = endOfDay(
-                        startOfWeek(startOfMonth, {
-                          weekStartsOn: startDay === "monday" ? 1 : 0,
-                        }),
-                      );
-
                       if (week === 0) {
                         if (day === 0) {
-                          setModalEvents({
-                            events: [
-                              ...events.filter((event) =>
-                                areIntervalsOverlapping(
-                                  { start: startWeekDay, end: endWeekDay },
-                                  { start: event.start, end: event.end },
-                                ),
-                              ),
-                            ],
-                            day: startWeekDay,
-                          });
+                          setMoreButtonClicked(startWeekDay);
                         } else {
-                          setModalEvents({
-                            events: [
-                              ...events.filter((event) =>
-                                areIntervalsOverlapping(
-                                  {
-                                    start: startOfDay(
-                                      addDays(startWeekDay, day),
-                                    ),
-                                    end: endOfDay(addDays(startWeekDay, day)),
-                                  },
-                                  { start: event.start, end: event.end },
-                                ),
-                              ),
-                            ],
-                            day: startOfDay(addDays(startWeekDay, day)),
-                          });
+                          setMoreButtonClicked(
+                            startOfDay(addDays(startWeekDay, day)),
+                          );
                         }
                       } else {
                         if (day === 0) {
-                          setModalEvents({
-                            events: [
-                              ...events.filter((event) =>
-                                areIntervalsOverlapping(
-                                  {
-                                    start: startOfDay(
-                                      addWeeks(startWeekDay, week),
-                                    ),
-                                    end: endOfDay(addWeeks(startWeekDay, week)),
-                                  },
-                                  { start: event.start, end: event.end },
-                                ),
-                              ),
-                            ],
-                            day: startOfDay(addWeeks(startWeekDay, week)),
-                          });
+                          setMoreButtonClicked(
+                            startOfDay(addWeeks(startWeekDay, week)),
+                          );
                         } else {
-                          setModalEvents({
-                            events: [
-                              ...events.filter((event) =>
-                                areIntervalsOverlapping(
-                                  {
-                                    start: startOfDay(
-                                      addDays(
-                                        addWeeks(startWeekDay, week),
-                                        day,
-                                      ),
-                                    ),
-                                    end: endOfDay(
-                                      addDays(
-                                        addWeeks(startWeekDay, week),
-                                        day,
-                                      ),
-                                    ),
-                                  },
-                                  { start: event.start, end: event.end },
-                                ),
-                              ),
-                            ],
-                            day: startOfDay(
+                          setMoreButtonClicked(
+                            startOfDay(
                               addDays(addWeeks(startWeekDay, week), day),
                             ),
-                          });
+                          );
                         }
                       }
                       if (modalRef.current) {
@@ -663,7 +597,7 @@ export function MonthCalendar(props: {
               px: "4px",
               py: "2px",
               height: "fit-content",
-              width: "140px",
+              width: widthToPct(140, daysInWeek),
               position: "absolute",
               inset: 0,
               zIndex: 3,
@@ -672,6 +606,7 @@ export function MonthCalendar(props: {
                   ? theme.palette.background.default
                   : "white",
               boxShadow: (theme) => theme.shadows[1],
+              borderRadius: "4px",
             }}
           >
             <FlexCol width="100%" position="relative">
@@ -685,14 +620,14 @@ export function MonthCalendar(props: {
                   <Typography
                     variant="body2"
                     color={
-                      isSameDay(modalEvents.day, startOfMonth)
+                      isSameDay(moreButtonClicked, startOfMonth)
                         ? (theme) => theme.palette.primary.contrastText
-                        : isSameMonth(modalEvents.day, startOfMonth)
+                        : isSameMonth(moreButtonClicked, startOfMonth)
                           ? (theme) => theme.palette.text.primary
                           : (theme) => theme.palette.text.secondary
                     }
                   >
-                    {format(modalEvents.day, "EEE")}
+                    {format(moreButtonClicked, "EEE")}
                   </Typography>
                 </FlexRow>
                 <FlexRow
@@ -704,61 +639,89 @@ export function MonthCalendar(props: {
                   <Typography
                     variant="body2"
                     color={
-                      isSameDay(modalEvents.day, startOfMonth)
+                      isSameDay(moreButtonClicked, startOfMonth)
                         ? (theme) => theme.palette.primary.contrastText
-                        : isSameMonth(modalEvents.day, startOfMonth)
+                        : isSameMonth(moreButtonClicked, startOfMonth)
                           ? (theme) => theme.palette.text.primary
                           : (theme) => theme.palette.text.secondary
                     }
                   >
-                    {format(modalEvents.day, "d")}
+                    {format(moreButtonClicked, "d")}
                   </Typography>
                 </FlexRow>
               </FlexCol>
-              <FlexCol gap="1px">
-                {modalEvents.events.map((event, index) => {
-                  // const dataProps: any = {
-                  //   "data-type": "month-calendar-event",
-                  //   "data-calendar-event": JSON.stringify({
-                  //     x: eventProperties[`${index}`].day,
-                  //     colX: 0,
-                  //     eventIndex: index,
-                  //     w: Math.max(
-                  //       differenceInCalendarDays(event.end, event.start),
-                  //       1,
-                  //     ),
-                  //   }),
-                  // };
+              <FlexCol
+                gap="1px"
+                sx={{
+                  height: `${
+                    eventsInMonth.filter((ev) =>
+                      areIntervalsOverlapping(
+                        {
+                          start: moreButtonClicked,
+                          end: endOfDay(moreButtonClicked),
+                        },
+                        { start: ev.start, end: ev.end },
+                      ),
+                    ).length * 18
+                  }px`,
+                }}
+              >
+                {moreButtonClicked &&
+                  eventsInMonth
+                    .filter((ev) =>
+                      areIntervalsOverlapping(
+                        {
+                          start: moreButtonClicked,
+                          end: endOfDay(moreButtonClicked),
+                        },
+                        { start: ev.start, end: ev.end },
+                      ),
+                    )
+                    .map((event, index) => {
+                      const { week, day, row } = eventProperties[`${index}`];
+                      let width = differenceInCalendarDays(
+                        event.end,
+                        event.start,
+                      );
+                      if (
+                        event.end.getTime() === endOfDay(event.end).getTime()
+                      ) {
+                        width += 1;
+                      }
+                      width = Math.max(width, 1);
+                      const dataProps: any = {
+                        "data-type": "month-calendar-event",
+                        "data-calendar-event": JSON.stringify({
+                          x: day,
+                          colX: 0,
+                          index,
+                          w: Math.max(width, 1),
+                        }),
+                      };
+                      const props: React.ComponentPropsWithoutRef<
+                        typeof CalendarAllDayEvent | typeof MonthCalendarEvent
+                      > = {
+                        event: event.sourceEvent,
+                        sx: {
+                          width: "132px",
+                          top: week * 120 + row * (16 + 1) + 1 + 50,
+                          height: "16px",
+                          position: "absolute",
+                          zIndex: 3,
+                        },
+                        ...dataProps,
+                      };
 
-                  return event && isAllDayEvent(event.sourceEvent) ? (
-                    <CalendarAllDayEvent
-                      key={index}
-                      event={event.sourceEvent}
-                      sx={{
-                        width: "119px",
-                        position: "unset",
-                        "*": {
-                          pointerEvents: "none",
-                        },
-                      }}
-                      // {...dataProps}
-                    />
-                  ) : (
-                    <MonthCalendarEvent
-                      key={index}
-                      event={event.sourceEvent}
-                      style={{ width: "119px" }}
-                      sx={{
-                        position: "unset",
-                        "*": {
-                          pointerEvents: "none",
-                        },
-                      }}
-                      state="normal"
-                      // {...dataProps}
-                    />
-                  );
-                })}
+                      return isAllDayEvent(event.sourceEvent) ? (
+                        <CalendarAllDayEvent key={index} {...props} />
+                      ) : (
+                        <MonthCalendarEvent
+                          key={index}
+                          state="normal"
+                          {...props}
+                        />
+                      );
+                    })}
               </FlexCol>
               <Button
                 variant="text"
