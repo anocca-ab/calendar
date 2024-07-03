@@ -367,8 +367,8 @@ export function MonthCalendar(props: {
                       : undefined
                   }
                   sx={{
-                    height: "119px",
-                    width: widthToPct(119, daysInWeek),
+                    height: "120px",
+                    width: widthToPct(120, daysInWeek),
                     minWidth: "auto",
                     overflow: "hidden",
                     p: 0,
@@ -379,6 +379,7 @@ export function MonthCalendar(props: {
                     top: `${top}px`,
                     justifyContent: "flex-start",
                     zIndex: 1,
+                    borderRadius: 0,
                   }}
                 >
                   <FlexRow
@@ -464,25 +465,21 @@ export function MonthCalendar(props: {
                       );
 
                       if (week === 0) {
-                        if (day === 0) {
-                          setMoreButtonClicked(startWeekDay);
-                        } else {
-                          setMoreButtonClicked(
-                            startOfDay(addDays(startWeekDay, day)),
-                          );
-                        }
+                        day === 0
+                          ? setMoreButtonClicked(startWeekDay)
+                          : setMoreButtonClicked(
+                              startOfDay(addDays(startWeekDay, day)),
+                            );
                       } else {
-                        if (day === 0) {
-                          setMoreButtonClicked(
-                            startOfDay(addWeeks(startWeekDay, week)),
-                          );
-                        } else {
-                          setMoreButtonClicked(
-                            startOfDay(
-                              addDays(addWeeks(startWeekDay, week), day),
-                            ),
-                          );
-                        }
+                        day === 0
+                          ? setMoreButtonClicked(
+                              startOfDay(addWeeks(startWeekDay, week)),
+                            )
+                          : setMoreButtonClicked(
+                              startOfDay(
+                                addDays(addWeeks(startWeekDay, week), day),
+                              ),
+                            );
                       }
                       if (modalRef.current) {
                         modalRef.current.style.visibility = "visible";
