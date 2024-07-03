@@ -2,7 +2,7 @@ import { Meta, StoryObj } from "@storybook/react";
 import { CalendarNavigationBar } from "@/components/navigation_bar/calendar_navigation_bar";
 import React from "react";
 import { format, startOfMonth, startOfWeek } from "date-fns";
-import { Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
 const meta = {
   title: "Navigation Bar",
@@ -22,7 +22,7 @@ const meta = {
     resolution: {
       control: "select",
       options: ["month", "3-months", "year", "3-years"],
-    }
+    },
   },
   args: {
     now: new Date(),
@@ -75,15 +75,18 @@ function InteractiveDemo(
     startOfMonth(new Date())
   );
   return (
-    <>
+    <Box sx={{ p: 2 }}>
       <CalendarNavigationBar
         {...props}
         currentDate={currentDate}
         setCurrentDate={setCurrentDate}
       />
-      <Typography sx={{ textAlign: "center" }}>
+      <Typography
+        sx={{ textAlign: "center", p: 2 }}
+        color={(theme) => theme.palette.text.primary}
+      >
         {format(currentDate, "do MMMM yyyy")}
       </Typography>
-    </>
+    </Box>
   );
 }

@@ -62,9 +62,16 @@ const parseProps = ({
 
 function TodayButton({ onPress }: { onPress?: () => void }) {
   return (
-    <Button variant="outlined" onClick={onPress}>
-      Today
-    </Button>
+    <Box
+      sx={{
+        background: (theme) => theme.palette.background.default,
+        borderRadius: 1,
+      }}
+    >
+      <Button variant="outlined" onClick={onPress}>
+        Today
+      </Button>
+    </Box>
   );
 }
 
@@ -172,7 +179,8 @@ function TimelineNav({
       zIndex={1}
       sx={{
         height: "48px",
-        background: "#e1e1e1",
+        background: (theme) =>
+          theme.palette.mode === "light" ? "#e1e1e1" : "#242424",
         px: 1.5,
         borderTopLeftRadius: 4,
         borderTopRightRadius: 4,
@@ -183,12 +191,20 @@ function TimelineNav({
         <IconButton onClick={onPressLeft}>
           <ChevronLeft />
         </IconButton>
-        <Box sx={{ minWidth: 120 }}>
+        <Box
+          sx={{
+            background: (theme) => theme.palette.background.default,
+            borderRadius: 1,
+            display: "flex",
+          }}
+        >
           <Select
             value={speed}
             onChange={handleChange}
             size="small"
-            sx={{ background: "white", width: 144 }}
+            sx={{
+              width: 144,
+            }}
           >
             {speeds[resolution].map((value) => (
               <MenuItem key={value} value={value}>
@@ -209,10 +225,16 @@ function TimelineNav({
           alignItems: "flex-end",
         }}
       >
-        <Typography variant="caption">
+        <Typography
+          variant="caption"
+          sx={{ color: (theme) => theme.palette.text.secondary }}
+        >
           {format(currentDate, "LLLL do yyyy")}
         </Typography>
-        <Typography variant="caption">
+        <Typography
+          variant="caption"
+          sx={{ color: (theme) => theme.palette.text.secondary }}
+        >
           W{format(currentDate, "I")}, {format(currentDate, "qqq")}
         </Typography>
       </FlexCol>

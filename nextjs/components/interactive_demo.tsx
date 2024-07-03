@@ -5,6 +5,7 @@ import React from "react";
 import { WeekCalendar } from "./week_calendar/week_calendar";
 import { MonthCalendar } from "./month_calendar/month_calendar";
 import { Timeline } from "./timeline/timeline";
+import { Box } from "@mui/material";
 
 export function InteractiveDemo(props: {
   events?: CalendarEvent[];
@@ -88,7 +89,7 @@ export function InteractiveDemo(props: {
         }),
   };
   return (
-    <>
+    <Box p={2}>
       {editModalOpen && (
         <CreateEvent
           event={editModalOpen.event}
@@ -120,7 +121,19 @@ export function InteractiveDemo(props: {
         setCurrentDate={setStartTime}
         {...navProps}
       />
-      <CalendarType {...calendarProps} />
-    </>
+      <CalendarType
+        {...props}
+        startOfWeek={startTime}
+        startTime={startTime}
+        events={events}
+        onCreateEvent={(start, end) => {
+          onEditEvent({ start, end });
+        }}
+        onEditEvent={(ev) => {
+          onEditEvent(ev);
+        }}
+        onMoveEvent={onMoveEvent}
+      />
+    </Box>
   );
 }
