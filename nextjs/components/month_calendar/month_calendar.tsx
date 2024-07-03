@@ -37,9 +37,10 @@ import {
 } from "../use_mouse";
 import { ModifiableEvent } from "../week_calendar/types";
 import { FlexCol, FlexRow } from "../wrappers";
-import { MonthCalendarEvent } from "./calendar_events";
+
 import { filterEventsInMonth } from "./filter_events_in_month";
 import { splitMultiWeekEvents } from "./split_multi_week_events";
+import { MonthCalendarEvent } from "./month_calendar_event";
 
 export const MonthCalendarConfigContext = createContext<
   | undefined
@@ -534,20 +535,6 @@ export function MonthCalendar(props: {
                     w: Math.max(width, 1),
                   }),
                 };
-                const props: React.ComponentPropsWithoutRef<
-                  typeof MonthCalendarEvent
-                > = {
-                  event: event.sourceEvent,
-                  sx: {
-                    width: widthToPct(width * 119 - 1, daysInWeek),
-                    left: `${widthToPct(day * 120 + 2, daysInWeek)}`,
-                    top: week * 120 + row * (16 + 1) + 1 + 32,
-                    height: "16px",
-                    position: "absolute",
-                    zIndex: 2,
-                  },
-                  ...dataProps,
-                };
 
                 const startOfWeekOfEventEnd = startOfWeek(
                   getEventEnd(event.sourceEvent),
@@ -567,28 +554,41 @@ export function MonthCalendar(props: {
                   weeksOfMonth === week + 1 &&
                   width === 7 &&
                   !isSameWeek(event.end, startOfWeekOfEventEnd);
-                const triangle = triangleRight
-                  ? "right"
-                  : triangleLeft
-                    ? "left"
-                    : undefined;
+                const triangle =
+                  triangleLeft && triangleRight
+                    ? "both"
+                    : triangleRight
+                      ? "right"
+                      : triangleLeft
+                        ? "left"
+                        : undefined;
+
+                const props: React.ComponentPropsWithoutRef<
+                  typeof MonthCalendarEvent
+                > = {
+                  event: event.sourceEvent,
+                  sx: {
+                    width: widthToPct(width * 119 - 1, daysInWeek),
+                    left: `${widthToPct(day * 120 + 2, daysInWeek)}`,
+                    top: week * 120 + row * (16 + 1) + 1 + 32,
+                    height: "16px",
+                    position: "absolute",
+                    zIndex: 2,
+                  },
+                  allDayEvent: isAllDayEvent(event.sourceEvent),
+                  state:
+                    draggedEvent &&
+                    event.sourceEvent === draggedEvent?.source.sourceEvent
+                      ? "selected"
+                      : "normal",
+                  triangle,
+                  ...dataProps,
+                };
 
                 return (
                   <React.Fragment key={index}>
                     {(maxRow <= 5 ? row < 5 : row < 4) ? (
-                      <MonthCalendarEvent
-                        key={index}
-                        {...props}
-                        event={event.sourceEvent}
-                        allDayEvent={isAllDayEvent(event)}
-                        triangle={triangle}
-                        state={
-                          draggedEvent &&
-                          event.sourceEvent === draggedEvent?.source.sourceEvent
-                            ? "selected"
-                            : "normal"
-                        }
-                      />
+                      <MonthCalendarEvent key={index} {...props} />
                     ) : null}
                   </React.Fragment>
                 );
@@ -716,23 +716,16 @@ export function MonthCalendar(props: {
                           position: "absolute",
                           zIndex: 3,
                         },
+                        allDayEvent: isAllDayEvent(event.sourceEvent),
+                        state:
+                          draggedEvent &&
+                          event.sourceEvent === draggedEvent?.source.sourceEvent
+                            ? "selected"
+                            : "normal",
                         ...dataProps,
                       };
 
-                      return (
-                        <MonthCalendarEvent
-                          key={index}
-                          {...props}
-                          allDayEvent={isAllDayEvent(event)}
-                          state={
-                            draggedEvent &&
-                            event.sourceEvent ===
-                              draggedEvent?.source.sourceEvent
-                              ? "selected"
-                              : "normal"
-                          }
-                        />
-                      );
+                      return <MonthCalendarEvent key={index} {...props} />;
                     })}
               </FlexCol>
               <Button

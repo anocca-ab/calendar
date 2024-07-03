@@ -15,11 +15,11 @@ export function MonthCalendarEvent({
   event: CalendarEvent;
   allDayEvent?: boolean;
   state?: "normal" | "selected";
-  triangle?: "right" | "left";
+  triangle?: "right" | "left" | "both";
 } & React.ComponentPropsWithRef<typeof Button>) {
   const daysInWeek = 7;
   const { start, title, color } = event;
-  console.log(event);
+
   return (
     <Box
       component={Button}
@@ -47,7 +47,7 @@ export function MonthCalendarEvent({
         buttonProps.sx,
       )}
     >
-      {allDayEvent && triangle === "left" && (
+      {allDayEvent && (triangle === "left" || triangle === "both") && (
         <Triangle
           direction={"left"}
           height={16}
@@ -119,7 +119,7 @@ export function MonthCalendarEvent({
           </FlexRow>
         </FlexRow>
       )}
-      {allDayEvent && triangle === "right" && (
+      {allDayEvent && (triangle === "right" || triangle === "both") && (
         <Triangle
           direction={"right"}
           height={16}
