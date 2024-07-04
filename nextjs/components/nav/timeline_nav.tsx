@@ -37,6 +37,15 @@ type Speed =
   | "year"
   | "3-years";
 
+const allSpeeds: Speed[] = [
+  "day",
+  "week",
+  "month",
+  "3-months",
+  "quarter",
+  "year",
+  "3-years",
+];
 export function TimelineNav(props: {
   now?: Date;
   time?: Date;
@@ -188,7 +197,35 @@ export function TimelineNav(props: {
             onChange={handleChange}
             size="small"
             sx={{
-              width: 144,
+              width: 160,
+            }}
+            renderValue={(value) => {
+              if (value === 'year' || value === '3-years') {
+                return getTimeLabel(value);
+              }
+              return (
+                <Box
+                  sx={{ height: "24px", position: "relative" }}
+                  className="wef"
+                >
+                  <Typography
+                    sx={{ top: "-8px", position: "absolute", left: "0" }}
+                  >
+                    {getTimeLabel(value)}
+                  </Typography>
+                  <Typography
+                    color={(theme) => theme.palette.text.secondary}
+                    variant="caption"
+                    sx={{ top: "12px", position: "absolute", left: "0" }}
+                  >
+                    {allSpeeds
+                      .slice(allSpeeds.indexOf(value) + 1)
+                      .filter((speed) => !speed.includes("-"))
+                      .map(getTimeLabel)
+                      .join(", ")}
+                  </Typography>
+                </Box>
+              );
             }}
           >
             {speeds[resolution].map((value) => (
@@ -214,13 +251,13 @@ export function TimelineNav(props: {
           variant="caption"
           sx={{ color: (theme) => theme.palette.text.secondary }}
         >
-          {format(currentDate, "LLLL do yyyy")}
+          {format(now, "LLLL do yyyy")}
         </Typography>
         <Typography
           variant="caption"
           sx={{ color: (theme) => theme.palette.text.secondary }}
         >
-          W{format(currentDate, "I")}, {format(currentDate, "qqq")}
+          W{format(now, "I")}, {format(now, "qqq")}
         </Typography>
       </FlexCol>
       <TodayButton
