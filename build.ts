@@ -14,7 +14,7 @@ await Bun.write(
   JSON.stringify(
     {
       name: "@anocca/calendar",
-      version: "0.0.1",
+      version: "0.0.2",
       license: "MIT",
       main: "build/index.js",
       module: "build/index.js",
@@ -121,7 +121,7 @@ await Bun.write(
 
 await Bun.write(path.join(baseDir, "README.md"), Bun.file("README.md"));
 
-await $`cd ${baseDir} && bunx tsc`;
+await $`cd ${baseDir} && bunx tsc && npm publish --always-auth=false --registry=https://verdaccio--kube.anocca.com/ --access=public`;
 
 
 // publish using cd lib-out && npm publish --always-auth=false --registry=https://verdaccio--kube.anocca.com/ --access=public

@@ -1,6 +1,4 @@
 import { Box } from "@mui/material";
-import { widthToPct } from "../helpers";
-import { use } from "react";
 import { useCalendar } from "./context";
 
 export const TimeIndicator = () => {
