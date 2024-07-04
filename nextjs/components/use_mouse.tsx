@@ -64,6 +64,12 @@ export type EventContainer = {
  * The position of the event being dragged
  */
 export type DragPosition<T extends { start: Date; end?: Date | undefined }> = {
+  /**
+   * When creating a new event, the type is "new"
+   * When dragging an existing event, the type is "existing"
+   */
+  type: "new" | "existing";
+
   event: T;
   /**
    * x position of event (in days)
@@ -108,6 +114,10 @@ export function useMouse(
       dragged: DragPosition<ModifiableEvent>,
       container: EventContainer
     ) => { start: Date; end: Date } | undefined;
+    createNewEvent?: (
+      pos0: MouseStatePos,
+      container: DOMRect
+    ) => DragPosition<ModifiableEvent> | undefined;
     eventContainerRef: React.MutableRefObject<HTMLDivElement | null>;
   }>,
   workWeek: boolean
@@ -137,20 +147,24 @@ export function useMouse(
     let draggedEvent: DraggedEvent<ModifiableEvent> | undefined = undefined;
     const mouseDown = (ev: MouseEvent) => {
       if (ev.target instanceof HTMLElement) {
-        if (ev.target.dataset.type === target) {
+        const clickedEvent = ev.target.dataset.type === target;
+        const container = effectRefs.current.eventContainerRef.current;
+        const clickedContainer = ev.target === container;
+
+        const pos0: MouseStatePos = {
+          x: ev.clientX,
+          y: ev.clientY,
+          scrollX: window.scrollX,
+          scrollY: window.scrollY,
+        };
+
+        const activateDrag = () => {
           state.down = true;
-          state.pos0 = {
-            x: ev.clientX,
-            y: ev.clientY,
-            scrollX: window.scrollX,
-            scrollY: window.scrollY,
-          };
-          state.pos = {
-            x: ev.clientX,
-            y: ev.clientY,
-            scrollX: window.scrollX,
-            scrollY: window.scrollY,
-          };
+          state.pos0 = pos0;
+          state.pos = pos0;
+        };
+
+        if (clickedEvent) {
           const data: {
             index: number;
             x: number;
@@ -160,6 +174,7 @@ export function useMouse(
           const event = effectRefs.current.events[data.index];
           const rect = ev.target.getBoundingClientRect();
           dragged = {
+            type: "existing",
             event,
             x: data.x,
             w: data.w,
@@ -167,6 +182,18 @@ export function useMouse(
             elY: rect.y,
             colX: data.colX,
           };
+          activateDrag();
+        } else if (clickedContainer) {
+          if (effectRefs.current.createNewEvent && container) {
+            const createNewEvent = effectRefs.current.createNewEvent(
+              pos0,
+              container.getBoundingClientRect()
+            );
+            if (createNewEvent) {
+              dragged = createNewEvent;
+              activateDrag();
+            }
+          }
         }
       }
       update();
@@ -349,13 +376,16 @@ export const useDragableEvents = (events: CalendarEvent[]) => {
       ...draggedEvent.dragged,
     };
     newDragged.end = getEventEnd(newDragged);
-    allEvents.splice(
-      allEvents.findIndex(
-        (ev) => ev.sourceEvent === draggedEvent.source.sourceEvent
-      ),
-      1,
-      newDragged
+    const index = allEvents.findIndex(
+      (ev) => ev.sourceEvent === draggedEvent.source.sourceEvent
     );
+    if (index !== -1) {
+      // it is a new event
+      allEvents.splice(index, 1, newDragged);
+    } else {
+      // we are moving an existing event
+      allEvents.push(newDragged);
+    }
   }
   return [allEvents, draggedEvent, setDraggedEvent] as const;
 };
@@ -420,7 +450,11 @@ export const useEffectRefs = (
     ) => void;
     onEditEvent?: (event: CalendarEvent) => void;
     onCreateEvent?: (start: Date, end: Date) => void;
-  }
+  },
+  createNewEvent?: (
+    pos0: MouseStatePos,
+    container: DOMRect
+  ) => DragPosition<ModifiableEvent> | undefined
 ) => {
   const ome = calendarProps.onMoveEvent;
   const onMoveEvent = ome
@@ -446,6 +480,7 @@ export const useEffectRefs = (
     setDraggedEvent,
     calculateNewTime,
     eventContainerRef,
+    createNewEvent,
   });
 
   effectRefs.current = {
@@ -456,6 +491,7 @@ export const useEffectRefs = (
     setDraggedEvent,
     calculateNewTime,
     eventContainerRef,
+    createNewEvent,
   };
 
   return [effectRefs, eventContainerRef] as const;

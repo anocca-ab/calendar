@@ -40,6 +40,12 @@ export function InteractiveDemo(props: {
     newEnd: Date | undefined
   ) => {
     setEvents((prev) => {
+      if (!prev.includes(event)) {
+        return [
+          ...prev,
+          { ...event, start: newStart, end: newEnd, canEdit: true },
+        ];
+      }
       return prev.map((ev) => {
         if (ev === event) {
           return {
@@ -95,7 +101,7 @@ export function InteractiveDemo(props: {
           time={startTime}
           setTime={setStartTime}
           resolution={props.timelineResolution ?? "month"}
-          startDay={startDay ?? 'monday'}
+          startDay={startDay ?? "monday"}
         />
       ) : (
         <CalendarNav

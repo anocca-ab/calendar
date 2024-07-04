@@ -83,7 +83,9 @@ export function CreateEvent({
 
   const [title, setTitle] = React.useState(event.title ?? "");
 
-  const [eventColor, setEventColor] = React.useState(event.color ?? DEFAULT_COLOR);
+  const [eventColor, setEventColor] = React.useState(
+    event.color ?? DEFAULT_COLOR
+  );
 
   const onChangeEventColor = (event: SelectChangeEvent) => {
     setEventColor(event.target.value);
@@ -421,6 +423,7 @@ export function CreateEvent({
                     end,
                     title,
                     color: eventColor,
+                    canEdit: true,
                   },
                   event
                 );
