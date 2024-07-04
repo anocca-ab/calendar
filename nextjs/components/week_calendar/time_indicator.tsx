@@ -1,17 +1,21 @@
 import { Box } from "@mui/material";
+import { widthToPct } from "../helpers";
+import { use } from "react";
+import { useCalendar } from "./context";
 
 export const TimeIndicator = () => {
+  const { workWeek } = useCalendar();
+  const daysInWeek = workWeek ? 5 : 7;
   return (
     <Box
       sx={{
-        width: 126,
+        width: "100%",
         height: 13,
-        marginTop: "-6px",
-        marginLeft: "-6px",
         display: "flex",
         alignItems: "center",
         position: "relative",
       }}
+      className="time-indicator"
     >
       <Box
         sx={{

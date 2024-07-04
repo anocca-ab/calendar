@@ -1,11 +1,12 @@
 import { CreateEvent } from "@/components/create_event";
-import { CalendarNavigationBar } from "@/components/navigation_bar/calendar_navigation_bar";
+import { CalendarNav } from "@/components/nav/calendar_nav";
 import { CalendarEvent, TimelineResolution } from "@/components/types";
 import React from "react";
 import { WeekCalendar } from "./week_calendar/week_calendar";
 import { MonthCalendar } from "./month_calendar/month_calendar";
 import { Timeline } from "./timeline/timeline";
 import { Box } from "@mui/material";
+import { TimelineNav } from "./nav/timeline_nav";
 
 export function InteractiveDemo(props: {
   events?: CalendarEvent[];
@@ -35,7 +36,7 @@ export function InteractiveDemo(props: {
   const onMoveEvent = (
     event: CalendarEvent,
     newStart: Date,
-    newEnd: Date | undefined,
+    newEnd: Date | undefined
   ) => {
     setEvents((prev) => {
       return prev.map((ev) => {
@@ -56,38 +57,9 @@ export function InteractiveDemo(props: {
     type === "month"
       ? MonthCalendar
       : type === "week"
-        ? WeekCalendar
-        : Timeline;
+      ? WeekCalendar
+      : Timeline;
 
-  const navProps:
-    | { type: "month" | "week" }
-    | { type: "timeline"; resolution: TimelineResolution } =
-    type === "timeline"
-      ? { type: "timeline", resolution: "month" }
-      : { type: "month" };
-
-  const calendarProps: React.ComponentPropsWithRef<
-    typeof MonthCalendar | typeof WeekCalendar | typeof Timeline
-  > = {
-    events,
-    startDay,
-    startTime,
-    now,
-    onMoveEvent,
-    onCreateEvent: (start, end) => {
-      onEditEvent({ start, end });
-    },
-    onEditEvent: (ev) => {
-      onEditEvent(ev);
-    },
-    ...(type === "week" || type === "timeline"
-      ? {
-          startOfWeek: startTime,
-        }
-      : {
-          startOfMonth: startTime,
-        }),
-  };
   return (
     <Box p={2}>
       {editModalOpen && (
@@ -97,7 +69,7 @@ export function InteractiveDemo(props: {
           onSave={(event: CalendarEvent, originalEvent: CalendarEvent) => {
             if (events.includes(originalEvent)) {
               setEvents(
-                events.map((ev) => (ev === originalEvent ? event : ev)),
+                events.map((ev) => (ev === originalEvent ? event : ev))
               );
             } else {
               // create
@@ -115,16 +87,26 @@ export function InteractiveDemo(props: {
           key={editModalOpen.key}
         />
       )}
-      <CalendarNavigationBar
-        now={props.now ?? new Date()}
-        currentDate={startTime}
-        setCurrentDate={setStartTime}
-        {...navProps}
-      />
+      {type === "timeline" ? (
+        <TimelineNav
+          now={props.now ?? new Date()}
+          time={startTime}
+          setTime={setStartTime}
+          resolution="month"
+        />
+      ) : (
+        <CalendarNav
+          type={type}
+          now={props.now ?? new Date()}
+          time={startTime}
+          setTime={setStartTime}
+        />
+      )}
       <CalendarType
         {...props}
-        startOfWeek={startTime}
-        startTime={startTime}
+        startTime={startTime} // timeline
+        startOfWeek={startTime} // week calendar
+        startOfMonth={startTime} // month calendar
         events={events}
         onCreateEvent={(start, end) => {
           onEditEvent({ start, end });

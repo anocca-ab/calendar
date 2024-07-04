@@ -1056,9 +1056,13 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
             position: "absolute",
             top: differenceInMinutes(now, startOfDay(now)),
             left: widthToPct(
-              differenceInCalendarDays(now, startOfWeek) * 120,
+              differenceInCalendarDays(now, startOfWeek) * 120 + 1,
               daysInWeek
             ),
+            width: `calc(${widthToPct(120, daysInWeek)} + 6.5px)`,
+            height: "13px",
+            marginTop: "-6px",
+            marginLeft: `calc(-${widthToPct(1, daysInWeek)} - 6.5px)`,
           }}
         >
           <TimeIndicator />
@@ -1126,10 +1130,4 @@ function AllDayCalendarOverflow({
       </Box>
     </Box>
   );
-}
-
-function isNumber(val: number | null): asserts val is number {
-  if (val === null) {
-    throw new Error("Expected a number");
-  }
 }
