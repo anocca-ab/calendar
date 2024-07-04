@@ -13,6 +13,7 @@ export function InteractiveDemo(props: {
   now?: Date;
   startDay?: "sunday" | "monday";
   type: "month" | "week" | "timeline";
+  timelineResolution?: TimelineResolution;
 }) {
   const { now, startDay, type, events: _events } = props;
   const [events, setEvents] = React.useState<CalendarEvent[]>(_events ?? []);
@@ -89,10 +90,11 @@ export function InteractiveDemo(props: {
       )}
       {type === "timeline" ? (
         <TimelineNav
+          key={props.timelineResolution ?? "month"}
           now={props.now ?? new Date()}
           time={startTime}
           setTime={setStartTime}
-          resolution="month"
+          resolution={props.timelineResolution ?? "month"}
         />
       ) : (
         <CalendarNav

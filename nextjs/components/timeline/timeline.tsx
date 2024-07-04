@@ -4,6 +4,7 @@ import {
   addDays,
   addMinutes,
   addMonths,
+  addQuarters,
   addWeeks,
   addYears,
   areIntervalsOverlapping,
@@ -12,7 +13,10 @@ import {
   endOfYear,
   format,
   isSameDay,
+  isSameMonth,
+  isSameQuarter,
   isSameWeek,
+  isSameYear,
   max,
   min,
   startOfMonth,
@@ -117,22 +121,19 @@ export function Timeline(props: {
 
 const getTimelineRange = (
   resolution: TimelineResolution,
-  startTime: Date,
-  startDay: StartDay
+  startTime: Date
 ): [Date, Date] => {
-  const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
-    startDay === "monday" ? 1 : 0;
   if (resolution === "month") {
-    return [startOfWeek(startTime, { weekStartsOn }), addWeeks(startTime, 6)];
+    return [startTime, addWeeks(startTime, 6)];
   }
   if (resolution === "year") {
-    return [startOfYear(startTime), endOfYear(startTime)];
+    return [startTime, endOfYear(startTime)];
   }
   if (resolution === "3-months") {
-    return [startOfMonth(startTime), addMonths(startTime, 3)];
+    return [startTime, addMonths(startTime, 3)];
   }
   if (resolution === "3-years") {
-    return [startOfYear(startTime), addYears(startTime, 3)];
+    return [startTime, addYears(startTime, 3)];
   }
   throw new Error("Invalid resolution");
 };
@@ -143,11 +144,7 @@ function filterEventsInTimeline(
   startTime: Date,
   startDay: StartDay
 ) {
-  const [timelineStart, timelineEnd] = getTimelineRange(
-    resolution,
-    startTime,
-    startDay
-  );
+  const [timelineStart, timelineEnd] = getTimelineRange(resolution, startTime);
 
   const eventsInTimeline: ModifiableEvent[] = _events
     .filter((event) => {
@@ -207,11 +204,7 @@ function Grid({
     startTime
   );
 
-  const [timelineStart, timelineEnd] = getTimelineRange(
-    resolution,
-    startTime,
-    startDay
-  );
+  const [timelineStart, timelineEnd] = getTimelineRange(resolution, startTime);
 
   const [effectRefs, eventContainerRef] = useEffectRefs(
     events,
@@ -260,6 +253,7 @@ function Grid({
       sx={{
         position: "relative",
         height: "120px",
+        overflow: "hidden",
       }}
     >
       <Box
@@ -451,62 +445,15 @@ function Header({
     }
     return (
       <Box>
-        <FlexRow>
-          {weeks.flatMap((week, index) => {
-            const els = [
-              <FlexRow
-                key={index}
-                sx={{ width: "119px", height: "44px" }}
-                justifyContent={"center"}
-              >
-                <Box>
-                  <Typography
-                    variant="h4"
-                    color={(theme) =>
-                      theme.palette.text[
-                        isSameWeek(week, now) ? "primary" : "secondary"
-                        // or maybe use isSameISOWeek
-                      ]
-                    }
-                  >
-                    W{format(week, "I")}
-                  </Typography>
-                  {isSameWeek(week, now) && (
-                    <Box
-                      sx={{
-                        background: (theme) => theme.palette.primary.main,
-                        height: "2px",
-                        width: "100%",
-                        borderRadius: "2px",
-                      }}
-                    ></Box>
-                  )}
-                </Box>
-              </FlexRow>,
-            ];
-            if (index < weeks.length - 1) {
-              els.push(
-                <Box
-                  key={index + "divider"}
-                  sx={{
-                    width: "1px",
-                    height: "16px",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: "1px",
-                      height: "200px",
-                      background: (theme) => theme.palette.divider,
-                      borderRadius: "1px",
-                    }}
-                  ></Box>
-                </Box>
-              );
-            }
-            return els;
-          })}
-        </FlexRow>
+        <BigTime
+          now={now}
+          times={weeks}
+          isActive={isSameWeek}
+          formatDate={(date) => {
+            return `W${format(date, "I")}`;
+          }}
+          width={119}
+        />
         <Box sx={{ height: "16px" }} />
 
         <FlexRow>
@@ -533,7 +480,10 @@ function Header({
                       width: "1px",
                       borderRadius: "1px",
                       height: "18px",
-                      backgroundColor: (theme) => theme.palette.divider,
+                      backgroundColor:
+                        index % 7 === 0
+                          ? "none"
+                          : (theme) => theme.palette.divider,
                       marginTop: "-1px",
                     }}
                   ></Box>
@@ -576,6 +526,230 @@ function Header({
       </Box>
     );
   }
+  if (resolution === "3-months") {
+    const months: Date[] = [];
+    const weeks: Date[] = [];
+    // 3 months
+    for (let i = 0; i < 3; i += 1) {
+      // 4 weeks
+      for (let j = 0; j < 4; j += 1) {
+        if (j === 0) {
+          months.push(addMonths(startTime, i));
+        }
+        weeks.push(addWeeks(addMonths(startTime, i), j));
+      }
+    }
+    return (
+      <Box>
+        <BigTime
+          now={now}
+          times={months}
+          isActive={isSameMonth}
+          formatDate={(date) => {
+            return format(date, "MMM");
+          }}
+          width={239}
+        />
+        <Box sx={{ height: "16px" }} />
+        <SmallTime
+          formatDate={(date) => format(date, "I")}
+          times={weeks}
+          noBorderMod={4}
+        />
+      </Box>
+    );
+  }
+  if (resolution === "year") {
+    const quarters: Date[] = [];
+    const months: Date[] = [];
+    // 4 quarters
+    for (let i = 0; i < 4; i += 1) {
+      // 3 months
+      for (let j = 0; j < 3; j += 1) {
+        if (j === 0) {
+          quarters.push(addMonths(startTime, i * 3));
+        }
+        const k = i * 3 + j;
+        months.push(addMonths(startTime, k));
+      }
+    }
+    return (
+      <Box>
+        <BigTime
+          now={now}
+          times={quarters}
+          isActive={isSameQuarter}
+          formatDate={(date) => {
+            return format(date, "qqq");
+          }}
+          width={179}
+        />
+        <Box sx={{ height: "16px" }} />
+        <SmallTime
+          formatDate={(date) => format(date, "MMM")}
+          times={months}
+          noBorderMod={3}
+        />
+      </Box>
+    );
+  }
+  if (resolution === "3-years") {
+    const years: Date[] = [];
+    const quarters: Date[] = [];
+    // 3 years
+    for (let i = 0; i < 3; i += 1) {
+      // 4 quarters per year
+      for (let j = 0; j < 4; j += 1) {
+        if (j === 0) {
+          years.push(addYears(startTime, i));
+        }
+        quarters.push(addQuarters(addYears(startTime, i), j));
+      }
+    }
+    return (
+      <Box>
+        <BigTime
+          now={now}
+          times={years}
+          isActive={isSameYear}
+          formatDate={(date) => {
+            return format(date, "yyyy");
+          }}
+          width={239}
+        />
+        <Box sx={{ height: "16px" }} />
+        <SmallTime
+          formatDate={(date) => format(date, "qqq")}
+          times={quarters}
+          noBorderMod={4}
+        />
+      </Box>
+    );
+  }
   return <Box></Box>;
   return null;
+}
+
+function BigTime({
+  now,
+  times,
+  isActive,
+  formatDate,
+  width,
+}: {
+  now: Date;
+  times: Date[];
+  isActive: (a: Date, now: Date) => boolean;
+  formatDate: (date: Date) => string;
+  width: number;
+}) {
+  return (
+    <FlexRow>
+      {times.flatMap((month, index) => {
+        const els = [
+          <FlexRow
+            key={index}
+            sx={{ width: `${width}px`, height: "44px" }}
+            justifyContent={"center"}
+          >
+            <Box>
+              <Typography
+                variant="h4"
+                color={(theme) =>
+                  theme.palette.text[
+                    isActive(month, now) ? "primary" : "secondary"
+                  ]
+                }
+              >
+                {formatDate(month)}
+              </Typography>
+              {isActive(month, now) && (
+                <Box
+                  sx={{
+                    background: (theme) => theme.palette.primary.main,
+                    height: "2px",
+                    width: "100%",
+                    borderRadius: "2px",
+                  }}
+                ></Box>
+              )}
+            </Box>
+          </FlexRow>,
+        ];
+        if (index < times.length - 1) {
+          els.push(
+            <Box
+              key={index + "divider"}
+              sx={{
+                width: "1px",
+                height: "16px",
+              }}
+            >
+              <Box
+                sx={{
+                  width: "1px",
+                  height: "200px",
+                  background: (theme) => theme.palette.divider,
+                  borderRadius: "1px",
+                }}
+              ></Box>
+            </Box>
+          );
+        }
+        return els;
+      })}
+    </FlexRow>
+  );
+}
+
+function SmallTime({
+  times,
+  formatDate,
+  noBorderMod,
+}: {
+  times: Date[];
+  formatDate: (date: Date) => string;
+  noBorderMod: number;
+}) {
+  return (
+    <FlexRow justifyContent="space-between">
+      {times.flatMap((week, index) => {
+        const els = [
+          <FlexRow key={index} justifyContent="center" flex="1">
+            <Typography
+              variant="body2"
+              color={(theme) => theme.palette.text.secondary}
+            >
+              {formatDate(week)}
+            </Typography>
+          </FlexRow>,
+        ];
+        if (index !== 0) {
+          els.unshift(
+            <Box
+              key={index + "divider"}
+              sx={{
+                width: "1px",
+                height: "16px",
+              }}
+            >
+              <Box
+                sx={{
+                  width: "1px",
+                  height: 140,
+                  background:
+                    index % noBorderMod === 0
+                      ? "none"
+                      : (theme) => theme.palette.divider,
+                  borderTopLeftRadius: "1px",
+                  borderTopRightRadius: "1px",
+                }}
+              ></Box>
+            </Box>
+          );
+        }
+        return els;
+      })}
+    </FlexRow>
+  );
 }

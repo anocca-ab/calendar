@@ -42,10 +42,10 @@ export function TimelineNav(props: {
   const { resolution } = props;
 
   const speeds: Record<TimelineResolution, Speed[]> = {
-    month: ["day", "week", "month"],
-    "3-months": ["week", "month", "3-months"],
-    year: ["month", "quarter", "year"],
-    "3-years": ["quarter", "year", "3-years"],
+    month: ["week", "month"],
+    "3-months": ["month", "3-months"],
+    year: ["quarter", "year"],
+    "3-years": ["year", "3-years"],
   };
 
   const [speed, setSpeed] = React.useState<Speed>(speeds[resolution][0]);

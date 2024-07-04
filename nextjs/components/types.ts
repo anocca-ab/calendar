@@ -20,4 +20,4 @@ export type CalendarEvent<T = undefined> = {
 
 export type StartDay = "monday" | "sunday";
 
-export type TimelineResolution = "year" | "month" | "3-years" | "3-months";
+export type TimelineResolution = "month" | "3-months" | "year" | "3-years";

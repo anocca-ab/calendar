@@ -77,7 +77,13 @@ export const WithInteractivity: Story = {
     ],
   },
   render: (props) => {
-    return <InteractiveDemo type="timeline" {...props} />;
+    return (
+      <InteractiveDemo
+        type="timeline"
+        {...props}
+        timelineResolution={props.resolution}
+      />
+    );
   },
 };
 
@@ -129,5 +135,63 @@ export const WithEvents: Story = {
         title: "2 hours",
       },
     ],
+  },
+};
+
+export const Month: Story = {
+  args: {
+    events: [
+      {
+        start: startOfDay(new Date()),
+        end: endOfDay(
+          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
+        ),
+        title: "A loong day event",
+      },
+    ],
+    resolution: "month",
+  },
+};
+
+export const ThreeMonths: Story = {
+  args: {
+    events: [
+      {
+        start: startOfDay(new Date()),
+        end: endOfDay(
+          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
+        ),
+        title: "A loong day event",
+      },
+    ],
+    resolution: "3-months",
+  },
+};
+export const Year: Story = {
+  args: {
+    events: [
+      {
+        start: startOfDay(new Date()),
+        end: endOfDay(
+          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
+        ),
+        title: "A loong day event",
+      },
+    ],
+    resolution: "year",
+  },
+};
+export const ThreeYears: Story = {
+  args: {
+    events: [
+      {
+        start: startOfDay(new Date()),
+        end: endOfDay(
+          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
+        ),
+        title: "A loong day event",
+      },
+    ],
+    resolution: "3-years",
   },
 };
