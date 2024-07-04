@@ -11,8 +11,6 @@ import {
 } from "date-fns";
 import { StartDay } from "./types";
 import { ModifiableEvent } from "./week_calendar/types";
-import { splitMultiWeekEvents } from "./month_calendar/split_multi_week_events";
-import { filterEventsInMonth } from "./month_calendar/filter_events_in_month";
 
 export function monthCalendarRange(startDay: StartDay, startOfMonth: Date) {
   const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
@@ -30,7 +28,7 @@ export function monthCalendarRange(startDay: StartDay, startOfMonth: Date) {
 export function eventGrid(
   events: ModifiableEvent[],
   startDay: StartDay,
-  startTime: Date,
+  startTime: Date
 ) {
   const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
     startDay === "monday" ? 1 : 0;
@@ -46,8 +44,6 @@ export function eventGrid(
       index: string
     ]: { row: number; day: number; week: number; maxRow: number };
   } = {};
-
-
 
   // step 2.
   // sort the events by 1. start date and 2. duration

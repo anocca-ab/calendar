@@ -11,6 +11,11 @@ import {
 
 export const manyEvents: CalendarEvent[] = [
   {
+    start: startOfDay(new Date()),
+    end: startOfDay(new Date()),
+    title: "A task",
+  },
+  {
     start: addHours(
       startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
       2

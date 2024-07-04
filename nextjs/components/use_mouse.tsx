@@ -16,9 +16,21 @@ export type DraggedEvent<T extends { start: Date; end?: Date | undefined }> = {
 };
 
 export type MouseStatePos = {
+  /**
+   * absolute mouse x
+   */
   x: number;
+  /**
+   * absolute mouse y
+   */
   y: number;
+  /**
+   * window scroll x
+   */
   scrollX: number;
+  /**
+   * window scroll y
+   */
   scrollY: number;
 };
 
@@ -26,8 +38,17 @@ export type MouseStatePos = {
  * Mouse state
  */
 export type MouseState = {
+  /**
+   * is mouse left click down or not?
+   */
   down: boolean;
+  /**
+   * current mouse position
+   */
   pos: MouseStatePos | undefined;
+  /**
+   * initial position of the mouse at mouse down
+   */
   pos0: MouseStatePos | undefined;
 };
 
@@ -316,7 +337,7 @@ export const useDragableEvents = (events: CalendarEvent[]) => {
     sourceEvent,
     start: sourceEvent.start,
     // an event "collision box" should be at least 15 minutes in height (=15px)
-    end: max([getEventEnd(sourceEvent), addMinutes(sourceEvent.start, 15)]),
+    end: getEventEnd(sourceEvent),
   }));
 
   /**
@@ -327,11 +348,7 @@ export const useDragableEvents = (events: CalendarEvent[]) => {
       ...draggedEvent.source,
       ...draggedEvent.dragged,
     };
-    newDragged.end = max([
-      getEventEnd(newDragged),
-      // an event "collision box" should be at least 15 minutes in height (=15px)
-      addMinutes(newDragged.start, 15),
-    ]);
+    newDragged.end = getEventEnd(newDragged);
     allEvents.splice(
       allEvents.findIndex(
         (ev) => ev.sourceEvent === draggedEvent.source.sourceEvent

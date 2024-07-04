@@ -7,15 +7,23 @@ import {
   differenceInCalendarDays,
   differenceInMinutes,
   endOfDay,
+  endOfWeek,
   startOfWeek as fnsStartOfWeek,
   format,
   isSameDay,
   max,
   min,
   startOfDay,
+  subMinutes,
 } from "date-fns";
 import React from "react";
-import { getEventColor, getEventEnd, isAllDayEvent, mergeSx, widthToPct } from "../helpers";
+import {
+  getEventColor,
+  getEventEnd,
+  isAllDayEvent,
+  mergeSx,
+  widthToPct,
+} from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarConfigContext, useCalendar } from "./context";
@@ -38,6 +46,7 @@ import {
   useEffectRefs,
   useMouse,
 } from "../use_mouse";
+import { getPositions } from "./clique_grid";
 
 const parseDefaultProps = (
   props: React.ComponentPropsWithRef<typeof WeekCalendar>
@@ -609,175 +618,67 @@ function TimeSidebar() {
 }
 
 function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
-  const { workWeek, now, startOfWeek, ...calendarProps } = useCalendar();
+  const { workWeek, now, startOfWeek, startDay, ...calendarProps } =
+    useCalendar();
   const daysInWeek = workWeek ? 5 : 7;
 
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
     props.events
   );
 
+  const options: StartOfWeekOptions = {
+    weekStartsOn: startDay === "monday" ? 1 : 0,
+  };
+
   /**
    * Events that cross 12am are split into two events
    */
-  const events: ModifiableEvent[] = allEvents.flatMap((defaultEvent) => {
-    let parts: { start: Date; end: Date }[] = [];
-    if (differenceInCalendarDays(defaultEvent.end, defaultEvent.start) > 0) {
-      // split event up into multiple events to not overflow a single day
-      // an event can't be longer than a day
-
-      const part0 = {
-        start: defaultEvent.start,
-        end: endOfDay(defaultEvent.start),
+  const events: ModifiableEvent[] = allEvents
+    .map((ev) => {
+      return {
+        ...ev,
+        start: min([
+          max([ev.start, startOfWeek]),
+          // it must be within the week
+          subMinutes(endOfWeek(startOfWeek, options), 15),
+        ]),
+        // an event "collision box" should be at least 15 minutes in height (=15px)
+        end: max([getEventEnd(ev), addMinutes(ev.start, 15)]),
       };
-      parts.push(part0);
-      while (true) {
-        const startOfPrevious = parts[parts.length - 1].start;
-        const nextDay = startOfDay(addDays(startOfPrevious, 1));
-        const nextDayEnd = min([endOfDay(nextDay), defaultEvent.end]);
-        parts.push({
-          start: nextDay,
-          end: nextDayEnd,
-        });
-        if (nextDayEnd.getTime() >= defaultEvent.end.getTime()) {
-          break;
+    })
+    .flatMap((defaultEvent) => {
+      let parts: { start: Date; end: Date }[] = [];
+      if (differenceInCalendarDays(defaultEvent.end, defaultEvent.start) > 0) {
+        // split event up into multiple events to not overflow a single day
+        // an event can't be longer than a day
+
+        const part0 = {
+          start: defaultEvent.start,
+          end: endOfDay(defaultEvent.start),
+        };
+        parts.push(part0);
+        while (true) {
+          const startOfPrevious = parts[parts.length - 1].start;
+          const nextDay = startOfDay(addDays(startOfPrevious, 1));
+          const nextDayEnd = min([endOfDay(nextDay), defaultEvent.end]);
+          parts.push({
+            start: nextDay,
+            end: nextDayEnd,
+          });
+          if (nextDayEnd.getTime() >= defaultEvent.end.getTime()) {
+            break;
+          }
         }
+        return parts.map((part) => ({
+          sourceEvent: defaultEvent.sourceEvent,
+          start: part.start,
+          end: part.end,
+        }));
       }
-      return parts.map((part) => ({
-        sourceEvent: defaultEvent.sourceEvent,
-        start: part.start,
-        end: part.end,
-      }));
-    }
-    return defaultEvent;
-  });
-
-  /**
-   * Overlaps is a graph where each event is a node and each edge is an overlap between two events
-   * For each event, which other events is it overlapping with?
-   */
-  const overlaps = findEventOverlaps(events);
-
-  /**
-   * Each component is an array of event indexes that are connected (like an island in a graph)
-   */
-  const components = findConnectedComponents(overlaps);
-
-  /**
-   * The clique of a graph is a subset of nodes where each node is connected to every other node, i.e. where each event overlaps with every other event
-   * Each event can be part of many cliques, but this represents the largest clique for an event, so the max over
-   */
-  let maxCliques: Clique[] = [];
-
-  /**
-   * An improved lookup table for the number of columns for a given event
-   */
-  let numCols: Record<
-    /**
-     * Event index
-     */
-    number,
-    /**
-     * Number of columns
-     */
-    number
-  > = {};
-
-  // create the numCols and find the maxCliques
-  components.forEach((component, index) => {
-    const cliques = findAllCliques(overlaps, component);
-
-    const maxCliqueSizeForComponent = cliques.reduce((max, clique) => {
-      return clique.length > max ? clique.length : max;
-    }, 0);
-
-    component.forEach((index) => {
-      numCols[index] = maxCliqueSizeForComponent;
-
-      const cliquesForEvent = cliques.filter((clique) =>
-        clique.includes(index)
-      );
-      const maxCliqueForEvent = cliquesForEvent.reduce((max, clique) => {
-        return clique.length > max.length ? clique : max;
-      }, []);
-      // console.log("Max Clique for Event", index, maxClique);
-
-      maxCliqueForEvent.sort(sortEvent);
-      if (
-        !maxCliques
-          .map((clique) => clique.join(""))
-          .includes(maxCliqueForEvent.join(""))
-      ) {
-        maxCliques.push(maxCliqueForEvent);
-      }
-    });
-  });
-
-  /**
-   * Our sorting algo for the events
-   * sort by start time and the by end time
-   */
-  function sortEvent(a: number, b: number) {
-    const startTimeSort = events[a].start.getTime() - events[b].start.getTime();
-    if (startTimeSort === 0) {
-      return events[a].end.getTime() - events[b].end.getTime();
-    }
-    return startTimeSort;
-  }
-
-  maxCliques.sort((a, b) => {
-    if (a.length === 0 || b.length === 0) {
-      return 0;
-    }
-    return sortEvent(a[0], b[0]);
-  });
-
-  /**
-   * Which column should the event be placed in?
-   * This is a lookup table for the horizontal position of an event
-   */
-  const horizontalPositions: Record<
-    /**
-     * event index
-     */
-    number,
-    /**
-     * horizontal position
-     */
-    number
-  > = {};
-
-  // construct the horizontal positions
-  maxCliques.forEach((clique) => {
-    const novelPositions = clique.filter(
-      (evIndex) => typeof horizontalPositions[evIndex] === "undefined"
-    );
-    const fixedPositions = clique.filter(
-      (evIndex) => typeof horizontalPositions[evIndex] !== "undefined"
-    );
-
-    const horPos: (null | number)[] = [...clique].map(() => null);
-
-    // pin fixed positions
-    fixedPositions.forEach((evIndex) => {
-      horPos[horizontalPositions[evIndex]] = evIndex;
+      return defaultEvent;
     });
 
-    // add novel positions
-    novelPositions.forEach((evIndex) => {
-      const nextPos = horPos.findIndex((pos) => pos === null);
-      horPos[nextPos] = evIndex;
-    });
-
-    horPos.forEach((evIndex, horizontalPos) => {
-      if (evIndex === null) {
-        return;
-      }
-      if (typeof horizontalPositions[evIndex] === "undefined") {
-        // is novel
-        horizontalPositions[evIndex] = horizontalPos;
-      }
-    });
-  });
+  const [horizontalPositions, numCols] = getPositions(events);
 
   // handle drag and drop
   /**
@@ -789,8 +690,6 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
     container: EventContainer
   ) {
     if (state.pos && state.pos0) {
-      const addedMin =
-        state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY;
       const addedDays = dayDiff(
         state.pos,
         state.pos0,
@@ -802,14 +701,32 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
       let start = dragged.event.sourceEvent.start;
       let end = getEventEnd(dragged.event.sourceEvent);
 
-      if (addedMin !== 0) {
-        start = addMinutes(start, addedMin);
-        end = addMinutes(end, addedMin);
-      }
-
       if (addedDays !== 0) {
         start = addDays(start, addedDays);
         end = addDays(end, addedDays);
+      }
+
+      // calculate based on the split event, so that the "slit event" can't go out of bound on a single day
+      const minAddedMinutes =
+        differenceInMinutes(startOfDay(dragged.event.end), dragged.event.end) +
+        15;
+      const maxAddedMinutes =
+        differenceInMinutes(
+          endOfDay(dragged.event.start),
+          dragged.event.start
+        ) - 15;
+
+      const addedMin = Math.min(
+        Math.max(
+          state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY,
+          minAddedMinutes
+        ),
+        maxAddedMinutes
+      );
+
+      if (addedMin !== 0) {
+        start = addMinutes(start, addedMin);
+        end = addMinutes(end, addedMin);
       }
 
       if (addedMin !== 0 || addedDays !== 0) {

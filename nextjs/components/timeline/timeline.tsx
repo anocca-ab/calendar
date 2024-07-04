@@ -24,6 +24,7 @@ import {
   startOfQuarter,
   startOfWeek,
   startOfYear,
+  subMilliseconds,
 } from "date-fns";
 import React from "react";
 import { eventGrid } from "../event_grid";
@@ -37,6 +38,13 @@ import {
   useMouse,
 } from "../use_mouse";
 import { FlexCol, FlexRow } from "../wrappers";
+import {
+  Clique,
+  findAllCliques,
+  findConnectedComponents,
+  findEventOverlaps,
+} from "../week_calendar/event_overlap_functions";
+import { getPositions } from "../week_calendar/clique_grid";
 
 function getStartTime(
   startTime: Date,
@@ -172,15 +180,45 @@ const getTimelineRange = (
   throw new Error("Invalid resolution");
 };
 
-function filterEventsInTimeline(
-  _events: ModifiableEvent[],
+const constrainEvent = (
   resolution: TimelineResolution,
   startTime: Date,
-  startDay: StartDay
+  _start: Date,
+  _end: Date
+) => {
+  const [timelineStart, timelineEnd] = getTimelineRange(resolution, startTime);
+
+  const minDuration =
+    (4 * (timelineEnd.getTime() - timelineStart.getTime())) / 720; // 4px width
+
+  // start will be within timeline
+  // more than left bound
+  let start = max([_start, timelineStart]);
+  // less than right - 4px
+  start = min([start, subMilliseconds(timelineEnd, minDuration)]);
+
+  // less than right bound
+  let end = min([_end, timelineEnd]);
+  // more than left + 4px
+  end = max([end, addMilliseconds(timelineStart, minDuration)]);
+
+  // event width must be at least 4px
+  end = max([addMilliseconds(start, minDuration), end]);
+
+  return {
+    start: start,
+    end: end,
+  };
+};
+
+function parseEventsInTimeline(
+  events: ModifiableEvent[],
+  resolution: TimelineResolution,
+  startTime: Date
 ) {
   const [timelineStart, timelineEnd] = getTimelineRange(resolution, startTime);
 
-  const eventsInTimeline: ModifiableEvent[] = _events
+  const eventsInTimeline: ModifiableEvent[] = events
     .filter((event) => {
       return areIntervalsOverlapping(
         {
@@ -191,13 +229,13 @@ function filterEventsInTimeline(
       );
     })
     .map((event) => {
-      let start = max([event.start, timelineStart]);
-      let end = min([getEventEnd(event), timelineEnd]);
-      return {
-        sourceEvent: event.sourceEvent,
-        start: start,
-        end: end,
-      };
+      const { start, end } = constrainEvent(
+        resolution,
+        startTime,
+        event.start,
+        getEventEnd(event)
+      );
+      return { sourceEvent: event.sourceEvent, start, end };
     });
   return eventsInTimeline;
 }
@@ -225,18 +263,13 @@ function Grid({
   const [allEvents, draggedEvent, setDraggedEvent] =
     useDragableEvents(sourceEvents);
 
-  const eventsInTimeline: ModifiableEvent[] = filterEventsInTimeline(
+  const events: ModifiableEvent[] = parseEventsInTimeline(
     allEvents,
     resolution,
-    startTime,
-    startDay
-  );
-
-  const { eventProperties, events, moreButtons, grid } = eventGrid(
-    eventsInTimeline,
-    startDay,
     startTime
   );
+
+  const [verticalPositions] = getPositions(events);
 
   const [timelineStart, timelineEnd] = getTimelineRange(resolution, startTime);
 
@@ -248,16 +281,27 @@ function Grid({
         const { pos, pos0 } = state;
         let rawDelta = pos.x + -pos0.x + pos.scrollX - pos0.scrollX;
 
-        const diffInMs =
+        let addedMs =
           (timelineEnd.getTime() - timelineStart.getTime()) * (rawDelta / 720);
 
-        let start = addMilliseconds(dragged.event.sourceEvent.start, diffInMs);
+        const minDuration =
+          (4 * (timelineEnd.getTime() - timelineStart.getTime())) / 720; // 4px width
+
+        const minAddedMs =
+          timelineStart.getTime() - dragged.event.end.getTime() + minDuration;
+
+        const maxAddedMs =
+          timelineEnd.getTime() - dragged.event.start.getTime() - minDuration;
+
+        addedMs = Math.min(Math.max(addedMs, minAddedMs), maxAddedMs);
+
+        let start = addMilliseconds(dragged.event.sourceEvent.start, addedMs);
         let end = addMilliseconds(
           getEventEnd(dragged.event.sourceEvent),
-          diffInMs
+          addedMs
         );
 
-        if (diffInMs !== 0) {
+        if (addedMs !== 0) {
           return {
             start,
             end,
@@ -292,8 +336,6 @@ function Grid({
         ref={eventContainerRef}
       >
         {events.map((event, index) => {
-          const { day, row, maxRow } = eventProperties[`${index}`];
-
           const x =
             (720 * (event.start.getTime() - start)) / totalSecondsOfMonth;
           const w =
@@ -312,7 +354,7 @@ function Grid({
                 component={Button}
                 data-type={"timeline-event"}
                 data-calendar-event={JSON.stringify({
-                  x: day,
+                  x: 0,
                   colX: 0,
                   index,
                   w: Math.max(width, 1),
@@ -321,7 +363,7 @@ function Grid({
                   minWidth: "auto",
                   width: `${w}px`,
                   left: `${x}px`,
-                  top: row * (16 + 1) + 1 + 32,
+                  top: verticalPositions[index] * (16 + 1) + 1 + 32,
                   height: "16px",
                   position: "absolute",
                   overflow: "hidden",

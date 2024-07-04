@@ -20,7 +20,7 @@ const meta = {
   parameters: {
     layout: "centered",
   },
-  tags: ["autodocs"],
+  // tags: ["autodocs"],
   argTypes: {
     onCreateEvent: {
       table: {
@@ -90,8 +90,8 @@ export const WithInteractivity: Story = {
 
 export const WithEvents: Story = {
   args: {
-    resolution: 'month',
-    startDay: 'monday',
+    resolution: "month",
+    startDay: "monday",
     startTime: new Date(),
     events: [
       {
@@ -125,8 +125,13 @@ export const WithEvents: Story = {
       },
       {
         start: addHours(startOfDay(addDays(new Date(), 2)), 5),
-        end: addMinutes(addHours(startOfDay(addDays(new Date(), 3)), 5), 35),
-        title: "35 min ",
+        end: addMinutes(addHours(startOfDay(addDays(new Date(), 2)), 5), 35),
+        title: "35 min",
+      },
+      {
+        start: addDays(startOfDay(new Date()), 1),
+        end: addDays(startOfDay(new Date()), 1),
+        title: "task",
       },
       {
         start: addHours(startOfDay(addDays(new Date(), 3)), 5),

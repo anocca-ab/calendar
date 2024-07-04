@@ -15,10 +15,7 @@ import {
 const meta = {
   title: "Month Calendar",
   component: MonthCalendar,
-  parameters: {
-    // layout: "centered",
-  },
-  tags: ["autodocs"],
+  // tags: ["autodocs"],
   argTypes: {
     onCreateEvent: {
       table: {
