@@ -63,6 +63,7 @@ export const Year: Story = {
 export const ThreeYears: Story = {
   args: {
     resolution: "3-years",
+    startDay: "monday",
   },
   render: (props) => {
     return <InteractiveDemo {...props} />;

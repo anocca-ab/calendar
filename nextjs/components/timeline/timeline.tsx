@@ -2,6 +2,7 @@ import { Box, BoxProps, Button, Typography } from "@mui/material";
 import {
   StartOfWeekOptions,
   addDays,
+  addMilliseconds,
   addMinutes,
   addMonths,
   addQuarters,
@@ -20,6 +21,7 @@ import {
   max,
   min,
   startOfMonth,
+  startOfQuarter,
   startOfWeek,
   startOfYear,
 } from "date-fns";
@@ -28,8 +30,35 @@ import { eventGrid } from "../event_grid";
 import { DEFAULT_COLOR, getEventEnd, mergeSx } from "../helpers";
 import { CalendarEvent, StartDay, TimelineResolution } from "../types";
 import { ModifiableEvent } from "../week_calendar/types";
-import { useDragableEvents, useEffectRefs, useMouse } from "../use_mouse";
+import {
+  dayDiff,
+  useDragableEvents,
+  useEffectRefs,
+  useMouse,
+} from "../use_mouse";
 import { FlexCol, FlexRow } from "../wrappers";
+
+function getStartTime(
+  startTime: Date,
+  resolution: TimelineResolution,
+  startDay: StartDay
+) {
+  const options: StartOfWeekOptions = {
+    weekStartsOn: startDay === "monday" ? 1 : 0,
+  };
+  if (resolution === "month") {
+    return startOfWeek(startTime, options);
+  }
+  if (resolution === "3-months") {
+    return startOfMonth(startTime);
+  }
+  if (resolution === "year") {
+    return startOfQuarter(startTime);
+  }
+  if (resolution === "3-years") {
+    return startOfYear(startTime);
+  }
+}
 
 const parseDefaultProps = (
   props: React.ComponentPropsWithRef<typeof Timeline>
@@ -43,7 +72,11 @@ const parseDefaultProps = (
   return {
     events,
     startDay,
-    startTime: props.startTime ?? new Date(),
+    startTime: getStartTime(
+      props.startTime ?? new Date(),
+      resolution,
+      startDay
+    ),
     startOfWeek,
     resolution,
     now,
@@ -211,26 +244,19 @@ function Grid({
     setDraggedEvent,
     (state, dragged, container) => {
       if (state.pos && state.pos0) {
-        // const addedDays = dayDiff(
-        //   state.pos,
-        //   state.pos0,
-        //   dragged,
-        //   daysInWeek,
-        //   container
-        // );
-        const addedDays = 0;
+        const { pos, pos0 } = state;
+        let rawDelta = pos.x + -pos0.x + pos.scrollX - pos0.scrollX;
 
-        let start = dragged.event.sourceEvent.start;
-        let end =
-          dragged.event.sourceEvent.end ??
-          addMinutes(dragged.event.sourceEvent.start, 15);
+        const diffInMs =
+          (timelineEnd.getTime() - timelineStart.getTime()) * (rawDelta / 720);
 
-        if (addedDays !== 0) {
-          start = addDays(start, addedDays);
-          end = addDays(end, addedDays);
-        }
+        let start = addMilliseconds(dragged.event.sourceEvent.start, diffInMs);
+        let end = addMilliseconds(
+          getEventEnd(dragged.event.sourceEvent),
+          diffInMs
+        );
 
-        if (addedDays !== 0) {
+        if (diffInMs !== 0) {
           return {
             start,
             end,

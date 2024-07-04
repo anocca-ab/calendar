@@ -315,6 +315,7 @@ export const useDragableEvents = (events: CalendarEvent[]) => {
   const allEvents: ModifiableEvent[] = events.map((sourceEvent) => ({
     sourceEvent,
     start: sourceEvent.start,
+    // an event "collision box" should be at least 15 minutes in height (=15px)
     end: max([getEventEnd(sourceEvent), addMinutes(sourceEvent.start, 15)]),
   }));
 
@@ -328,6 +329,7 @@ export const useDragableEvents = (events: CalendarEvent[]) => {
     };
     newDragged.end = max([
       getEventEnd(newDragged),
+      // an event "collision box" should be at least 15 minutes in height (=15px)
       addMinutes(newDragged.start, 15),
     ]);
     allEvents.splice(

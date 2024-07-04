@@ -52,7 +52,7 @@ export const MonthCalendarConfigContext = createContext<
       onMoveEvent?: (
         event: CalendarEvent,
         newStart: Date,
-        newEnd: Date | undefined,
+        newEnd: Date | undefined
       ) => void;
     }
 >(undefined);
@@ -66,7 +66,7 @@ export const useMonthCalendar = () => {
 };
 
 const parseDefaultProps = (
-  props: React.ComponentPropsWithRef<typeof MonthCalendar>,
+  props: React.ComponentPropsWithRef<typeof MonthCalendar>
 ) => {
   const events = props.events ?? [];
   let startDay = props.startDay ?? "monday";
@@ -123,7 +123,7 @@ export function MonthCalendar(props: {
   onMoveEvent?: (
     event: CalendarEvent,
     newStart: Date,
-    newEnd: Date | undefined,
+    newEnd: Date | undefined
   ) => void;
 
   /**
@@ -137,7 +137,7 @@ export function MonthCalendar(props: {
     parseDefaultProps(props);
 
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
-    calendarProps.events,
+    calendarProps.events
   );
 
   const [moreButtonClicked, setMoreButtonClicked] = useState<Date>(new Date());
@@ -150,7 +150,7 @@ export function MonthCalendar(props: {
   const eventsInMonth: ModifiableEvent[] = filterEventsInMonth(
     allEvents,
     startDay,
-    startOfMonth,
+    startOfMonth
   );
 
   // step 1.
@@ -164,7 +164,7 @@ export function MonthCalendar(props: {
   const { eventProperties, events, moreButtons } = eventGrid(
     splitEvents,
     startDay,
-    monthCalendarRange(startDay, startOfMonth).startOfMonthCalendar,
+    monthCalendarRange(startDay, startOfMonth).startOfMonthCalendar
   );
 
   const weeksOfMonth = getWeeksInMonth(startOfMonth, {
@@ -178,7 +178,7 @@ export function MonthCalendar(props: {
   function calculateNewTime(
     state: MouseState,
     dragged: DragPosition<ModifiableEvent>,
-    container: EventContainer,
+    container: EventContainer
   ) {
     if (state.pos && state.pos0) {
       const addedDays = dayDiff(
@@ -186,18 +186,18 @@ export function MonthCalendar(props: {
         state.pos0,
         dragged,
         daysInWeek,
-        container,
+        container
       );
 
       // for how many weeks minus/plus did we drag the event
       const rawDelta = Math.round(
         (state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY) /
-          120,
+          120
       );
 
       // how many weeks plus we can drag
       const maxVal = Math.abs(
-        Math.floor((container.height - state.pos0.y) / 120) + 1,
+        Math.floor((container.height - state.pos0.y) / 120) + 1
       );
 
       // how many weeks minus we can drag
@@ -210,9 +210,7 @@ export function MonthCalendar(props: {
           : Math.max(rawDelta, minVal);
 
       let start = dragged.event.sourceEvent.start;
-      let end =
-        dragged.event.sourceEvent.end ??
-        addMinutes(dragged.event.sourceEvent.start, 15);
+      let end = getEventEnd(dragged.event.sourceEvent);
 
       if (addedWeeks !== 0) {
         start = addWeeks(start, addedWeeks);
@@ -238,7 +236,7 @@ export function MonthCalendar(props: {
     events,
     setDraggedEvent,
     calculateNewTime,
-    calendarProps,
+    calendarProps
   );
 
   useMouse("month-calendar-event", effectRefs, false);
@@ -360,7 +358,7 @@ export function MonthCalendar(props: {
                 startOfWeek(startOfMonth, {
                   weekStartsOn: startDay === "monday" ? 1 : 0,
                 }),
-                Math.floor(i / 7),
+                Math.floor(i / 7)
               );
 
               const currentDate = addDays(beginningOfCurrentWeek, i % 7);
@@ -444,8 +442,8 @@ export function MonthCalendar(props: {
                             active
                               ? (theme) => theme.palette.primary.contrastText
                               : isInCurrentMonth
-                                ? (theme) => theme.palette.text.primary
-                                : (theme) => theme.palette.text.secondary
+                              ? (theme) => theme.palette.text.primary
+                              : (theme) => theme.palette.text.secondary
                           }
                         >
                           {dayNumber}
@@ -477,30 +475,35 @@ export function MonthCalendar(props: {
                       let startWeekDay = startOfDay(
                         startOfWeek(startOfMonth, {
                           weekStartsOn: startDay === "monday" ? 1 : 0,
-                        }),
+                        })
                       );
 
                       if (week === 0) {
                         day === 0
                           ? setMoreButtonClicked(startWeekDay)
                           : setMoreButtonClicked(
-                              startOfDay(addDays(startWeekDay, day)),
+                              startOfDay(addDays(startWeekDay, day))
                             );
                       } else {
                         day === 0
                           ? setMoreButtonClicked(
-                              startOfDay(addWeeks(startWeekDay, week)),
+                              startOfDay(addWeeks(startWeekDay, week))
                             )
                           : setMoreButtonClicked(
                               startOfDay(
-                                addDays(addWeeks(startWeekDay, week), day),
-                              ),
+                                addDays(addWeeks(startWeekDay, week), day)
+                              )
                             );
                       }
                       if (modalRef.current) {
                         modalRef.current.style.visibility = "visible";
-                        modalRef.current.style.left = `${widthToPct(day * 120 - 20, daysInWeek)}`;
-                        modalRef.current.style.top = `${week * 120 + row - 20}px`;
+                        modalRef.current.style.left = `${widthToPct(
+                          day * 120 - 20,
+                          daysInWeek
+                        )}`;
+                        modalRef.current.style.top = `${
+                          week * 120 + row - 20
+                        }px`;
                       }
                     }}
                     className="more-events-button"
@@ -540,7 +543,7 @@ export function MonthCalendar(props: {
                   getEventEnd(event.sourceEvent),
                   {
                     weekStartsOn: startDay === "monday" ? 1 : 0,
-                  },
+                  }
                 );
                 const firstWeekStart = startOfWeek(startOfMonth, {
                   weekStartsOn: startDay === "monday" ? 1 : 0,
@@ -558,10 +561,10 @@ export function MonthCalendar(props: {
                   triangleLeft && triangleRight
                     ? "both"
                     : triangleRight
-                      ? "right"
-                      : triangleLeft
-                        ? "left"
-                        : undefined;
+                    ? "right"
+                    : triangleLeft
+                    ? "left"
+                    : undefined;
 
                 const props: React.ComponentPropsWithoutRef<
                   typeof MonthCalendarEvent
@@ -630,8 +633,8 @@ export function MonthCalendar(props: {
                       isSameDay(moreButtonClicked, startOfMonth)
                         ? (theme) => theme.palette.primary.contrastText
                         : isSameMonth(moreButtonClicked, startOfMonth)
-                          ? (theme) => theme.palette.text.primary
-                          : (theme) => theme.palette.text.secondary
+                        ? (theme) => theme.palette.text.primary
+                        : (theme) => theme.palette.text.secondary
                     }
                   >
                     {format(moreButtonClicked, "EEE")}
@@ -649,8 +652,8 @@ export function MonthCalendar(props: {
                       isSameDay(moreButtonClicked, startOfMonth)
                         ? (theme) => theme.palette.primary.contrastText
                         : isSameMonth(moreButtonClicked, startOfMonth)
-                          ? (theme) => theme.palette.text.primary
-                          : (theme) => theme.palette.text.secondary
+                        ? (theme) => theme.palette.text.primary
+                        : (theme) => theme.palette.text.secondary
                     }
                   >
                     {format(moreButtonClicked, "d")}
@@ -667,8 +670,8 @@ export function MonthCalendar(props: {
                           start: moreButtonClicked,
                           end: endOfDay(moreButtonClicked),
                         },
-                        { start: ev.start, end: ev.end },
-                      ),
+                        { start: ev.start, end: ev.end }
+                      )
                     ).length * 18
                   }px`,
                 }}
@@ -681,14 +684,14 @@ export function MonthCalendar(props: {
                           start: moreButtonClicked,
                           end: endOfDay(moreButtonClicked),
                         },
-                        { start: ev.start, end: ev.end },
-                      ),
+                        { start: ev.start, end: ev.end }
+                      )
                     )
                     .map((event, index) => {
                       const { week, day, row } = eventProperties[`${index}`];
                       let width = differenceInCalendarDays(
                         event.end,
-                        event.start,
+                        event.start
                       );
                       if (
                         event.end.getTime() === endOfDay(event.end).getTime()
@@ -796,7 +799,7 @@ function MoreEventsButton({
           minWidth: "auto",
           whiteSpace: "nowrap",
         },
-        buttonProps.sx,
+        buttonProps.sx
       )}
     >
       <Typography
@@ -825,9 +828,9 @@ function MonthCalendarWeekdayBar() {
         startOfWeek(startOfMonth, {
           weekStartsOn: startDay === "monday" ? 1 : 0,
         }),
-        index,
+        index
       ),
-      "EEE",
+      "EEE"
     );
 
     weekDays.push(
@@ -855,7 +858,7 @@ function MonthCalendarWeekdayBar() {
             sx={{ width: "25px", height: "1px" }}
           />
         )}
-      </FlexCol>,
+      </FlexCol>
     );
   });
 

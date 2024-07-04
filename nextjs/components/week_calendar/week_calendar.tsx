@@ -15,7 +15,7 @@ import {
   startOfDay,
 } from "date-fns";
 import React from "react";
-import { getEventColor, isAllDayEvent, mergeSx, widthToPct } from "../helpers";
+import { getEventColor, getEventEnd, isAllDayEvent, mergeSx, widthToPct } from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarConfigContext, useCalendar } from "./context";
@@ -800,9 +800,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
       );
 
       let start = dragged.event.sourceEvent.start;
-      let end =
-        dragged.event.sourceEvent.end ??
-        addMinutes(dragged.event.sourceEvent.start, 15);
+      let end = getEventEnd(dragged.event.sourceEvent);
 
       if (addedMin !== 0) {
         start = addMinutes(start, addedMin);
@@ -936,7 +934,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
 
           const { bg, color } = getEventColor(
             now,
-            event.sourceEvent.end ?? addMinutes(event.sourceEvent.start, 15),
+            getEventEnd(event.sourceEvent),
             theme,
             event.sourceEvent.color
           );

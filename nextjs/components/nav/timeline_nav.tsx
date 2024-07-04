@@ -7,16 +7,22 @@ import {
   Typography,
 } from "@mui/material";
 import {
+  StartOfWeekOptions,
   addDays,
   addMonths,
+  addWeeks,
   addYears,
+  endOfWeek,
   format,
+  startOfMonth,
+  startOfWeek,
   subDays,
   subMonths,
+  subWeeks,
   subYears,
 } from "date-fns";
 import React from "react";
-import { TimelineResolution } from "../types";
+import { StartDay, TimelineResolution } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { TodayButton } from "./today_button";
 import { parseProps } from "./parse_props";
@@ -35,17 +41,22 @@ export function TimelineNav(props: {
   now?: Date;
   time?: Date;
   setTime?: React.Dispatch<React.SetStateAction<Date>>;
-  resolution: TimelineResolution;
+  resolution?: TimelineResolution;
+  startDay?: StartDay;
 }) {
   const parsedProps = parseProps(props);
-  const { now, time: currentDate, setTime: setCurrentDate } = parsedProps;
-  const { resolution } = props;
+  const { now, time: currentDate, setTime } = parsedProps;
+  const { resolution = "month", startDay = "monday" } = props;
 
   const speeds: Record<TimelineResolution, Speed[]> = {
     month: ["week", "month"],
     "3-months": ["month", "3-months"],
     year: ["quarter", "year"],
     "3-years": ["year", "3-years"],
+  };
+
+  const options: StartOfWeekOptions = {
+    weekStartsOn: startDay === "monday" ? 1 : 0,
   };
 
   const [speed, setSpeed] = React.useState<Speed>(speeds[resolution][0]);
@@ -63,8 +74,24 @@ export function TimelineNav(props: {
       right: (val) => addDays(val, 7),
     },
     month: {
-      left: (val) => subMonths(val, 1),
-      right: (val) => addMonths(val, 1),
+      left: (val) => {
+        if (resolution === "month") {
+          return startOfWeek(
+            startOfMonth(subMonths(endOfWeek(val, options), 1)),
+            options
+          );
+        }
+        return subMonths(val, 1);
+      },
+      right: (val) => {
+        if (resolution === "month") {
+          return startOfWeek(
+            startOfMonth(addMonths(endOfWeek(val, options), 1)),
+            options
+          );
+        }
+        return addMonths(val, 1);
+      },
     },
     "3-months": {
       left: (val) => subMonths(val, 3),
@@ -84,14 +111,14 @@ export function TimelineNav(props: {
     },
   };
 
-  const onPressLeft = setCurrentDate
+  const onPressLeft = setTime
     ? () => {
-        setCurrentDate(functions[speed].left(currentDate));
+        setTime(functions[speed].left(currentDate));
       }
     : undefined;
-  const onPressRight = setCurrentDate
+  const onPressRight = setTime
     ? () => {
-        setCurrentDate(functions[speed].right(currentDate));
+        setTime(functions[speed].right(currentDate));
       }
     : undefined;
 
@@ -102,7 +129,12 @@ export function TimelineNav(props: {
   const timeFormats: Record<Speed, string | (() => string)> = {
     day: "do",
     week: () => "W" + format(currentDate, "I"),
-    month: "MMMM",
+    month: () => {
+      if (resolution === "month") {
+        return format(endOfWeek(currentDate, options), "MMMM");
+      }
+      return format(currentDate, "MMMM");
+    },
     "3-months": () =>
       `${format(currentDate, "MMM")} – ${format(
         addMonths(currentDate, 3),
@@ -193,9 +225,9 @@ export function TimelineNav(props: {
       </FlexCol>
       <TodayButton
         onPress={
-          setCurrentDate
+          setTime
             ? () => {
-                setCurrentDate(now);
+                setTime(now);
               }
             : undefined
         }

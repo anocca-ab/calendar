@@ -91,10 +91,11 @@ export function InteractiveDemo(props: {
       {type === "timeline" ? (
         <TimelineNav
           key={props.timelineResolution ?? "month"}
-          now={props.now ?? new Date()}
+          now={now ?? new Date()}
           time={startTime}
           setTime={setStartTime}
           resolution={props.timelineResolution ?? "month"}
+          startDay={startDay ?? 'monday'}
         />
       ) : (
         <CalendarNav

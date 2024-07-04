@@ -73,6 +73,7 @@ export const WithInteractivity: Story = {
           addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
         ),
         title: "A loong day event",
+        canEdit: true,
       },
     ],
   },
@@ -89,6 +90,9 @@ export const WithInteractivity: Story = {
 
 export const WithEvents: Story = {
   args: {
+    resolution: 'month',
+    startDay: 'monday',
+    startTime: new Date(),
     events: [
       {
         start: addDays(
@@ -134,7 +138,16 @@ export const WithEvents: Story = {
         end: addHours(startOfDay(addDays(new Date(), 3)), 9),
         title: "2 hours",
       },
-    ],
+    ].map((e) => ({ ...e, canEdit: true })),
+  },
+  render: (props) => {
+    return (
+      <InteractiveDemo
+        type="timeline"
+        {...props}
+        timelineResolution={props.resolution}
+      />
+    );
   },
 };
 
