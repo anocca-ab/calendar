@@ -42,7 +42,7 @@ function getStartTime(
   startTime: Date,
   resolution: TimelineResolution,
   startDay: StartDay
-) {
+): Date {
   const options: StartOfWeekOptions = {
     weekStartsOn: startDay === "monday" ? 1 : 0,
   };
@@ -58,6 +58,7 @@ function getStartTime(
   if (resolution === "3-years") {
     return startOfYear(startTime);
   }
+  throw new Error("invalid resolution");
 }
 
 const parseDefaultProps = (
