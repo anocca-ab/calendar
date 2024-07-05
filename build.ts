@@ -9,12 +9,14 @@ const glob = new Glob("**/*.{ts,tsx}");
 await rmdir(baseDir, { recursive: true });
 await mkdir(baseDir, { recursive: true });
 
+const packageJson = await Bun.file("package.json").json();
+
 await Bun.write(
   path.join(baseDir, "package.json"),
   JSON.stringify(
     {
       name: "@anocca/calendar",
-      version: "0.0.6",
+      version: packageJson.version,
       license: "MIT",
       main: "build/index.js",
       module: "build/index.js",
