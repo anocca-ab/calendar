@@ -15,6 +15,7 @@ export function InteractiveDemo(props: {
   startDay?: "sunday" | "monday";
   type: "month" | "week" | "timeline";
   timelineResolution?: TimelineResolution;
+  defaultEventColor?: string;
 }) {
   const { now, startDay, type, events: _events } = props;
   const [events, setEvents] = React.useState<CalendarEvent<undefined>[]>(
@@ -120,7 +121,7 @@ export function InteractiveDemo(props: {
               ...prev,
               {
                 canEdit: true,
-                color: DEFAULT_COLOR,
+                color: props.defaultEventColor ?? DEFAULT_COLOR,
                 end,
                 start,
                 title: "(No title)",

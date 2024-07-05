@@ -184,9 +184,9 @@ export function getEventColor(
   now: Date,
   end: Date,
   theme: Theme,
-  eventColor?: string
+  eventColor: string
 ) {
-  const parsedColor = parseColor(eventColor ?? DEFAULT_COLOR);
+  const parsedColor = parseColor(eventColor);
 
   const bg = parsedColor
     ? end.getTime() - now.getTime() < 0

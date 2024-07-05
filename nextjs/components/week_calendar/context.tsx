@@ -16,6 +16,7 @@ type RawContext<T> =
         newEnd: Date | undefined
       ) => void;
       dragCreateEvent?: (start: Date, end?: Date) => void;
+      defaultEventColor: string;
     };
 export const CalendarConfigContext =
   React.createContext<RawContext<any>>(undefined);

@@ -106,9 +106,19 @@ export type WeekCalendarProps<T> = {
   onEditEvent?: (event: CalendarEvent<T>) => void;
 
   /**
-   * Drag create event builder
+   * If provided the user can drag to create events
+   * When the user finishes the drag this function is called with the start and end date
+   * @param start when the event starts
+   * @param end when the event ends. If start === end then it is a 15 min task. If end is not provided it is an all day task
+   * @returns void
    */
   dragCreateEvent?: (start: Date, end?: Date) => void;
+
+  /**
+   * This is the default event color, when no event.color is provided (and for new events that are created by dragging for example)
+   * @default "#FF7043"
+   */
+  defaultEventColor?: string;
 };
 
 function parseDefaultProps<T>(props: WeekCalendarProps<T>) {
@@ -135,6 +145,7 @@ function parseDefaultProps<T>(props: WeekCalendarProps<T>) {
     onMoveEvent: props.onMoveEvent,
     onEditEvent: props.onEditEvent,
     dragCreateEvent: props.dragCreateEvent,
+    defaultEventColor: props.defaultEventColor ?? DEFAULT_COLOR,
   };
 }
 
@@ -149,6 +160,7 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
     onMoveEvent,
     onEditEvent,
     dragCreateEvent,
+    defaultEventColor,
   } = parseDefaultProps(props);
 
   const allDayEvents: CalendarEvent<T>[] = [];
@@ -185,6 +197,7 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
         onEditEvent,
         onMoveEvent,
         dragCreateEvent,
+        defaultEventColor,
       }}
     >
       <FlexCol>
@@ -413,7 +426,7 @@ function WeekCalendarHeader<T>(props: { events: CalendarEvent<T>[] }) {
               now,
               end,
               theme,
-              event.sourceEvent.color
+              event.sourceEvent.color ?? calendarProps.defaultEventColor
             );
 
             return (
@@ -796,7 +809,7 @@ function WeekCalendarGrid<T>(props: { events: CalendarEvent<T>[] }) {
               end,
               sourceEvent: {
                 canEdit: true,
-                color: DEFAULT_COLOR,
+                color: calendarProps.defaultEventColor,
                 end,
                 start,
                 title: "(No title)",
@@ -917,7 +930,7 @@ function WeekCalendarGrid<T>(props: { events: CalendarEvent<T>[] }) {
             now,
             getEventEnd(event.sourceEvent),
             theme,
-            event.sourceEvent.color
+            event.sourceEvent.color ?? calendarProps.defaultEventColor
           );
 
           return (

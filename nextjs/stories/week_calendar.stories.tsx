@@ -80,6 +80,16 @@ export const WithAllDayEvents: Story = {
   },
 };
 
+export const WithDefaultColor: Story = {
+  args: {
+    events: manyEvents,
+    defaultEventColor: "red",
+  },
+  render: (props) => {
+    return <InteractiveDemo type="week" {...props} />;
+  },
+};
+
 export const WithSubDayEvents: Story = {
   args: {
     events: manyEvents,
