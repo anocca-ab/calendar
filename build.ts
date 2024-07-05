@@ -14,7 +14,7 @@ await Bun.write(
   JSON.stringify(
     {
       name: "@anocca/calendar",
-      version: "0.0.2",
+      version: "0.0.4",
       license: "MIT",
       main: "build/index.js",
       module: "build/index.js",
@@ -80,7 +80,12 @@ for await (const file of glob.scan("nextjs/components")) {
   const outDir = path.join(baseDir, dir);
   await mkdir(outDir, { recursive: true });
   const f = Bun.file(path.join("nextjs/components", file));
-  await Bun.write(path.join(baseDir, file), f);
+  const relPath = path.relative(outDir, baseDir);
+  const content = (await f.text()).replaceAll(
+    /from (["'])(@\/components\/)/gm,
+    `from $1${relPath === "" ? "." : relPath}/`,
+  );
+  await Bun.write(path.join(baseDir, file), content);
 }
 
 await Bun.write(path.join(baseDir, "bun.lockb"), Bun.file("lib-out.lockb"));
@@ -121,7 +126,13 @@ await Bun.write(
 
 await Bun.write(path.join(baseDir, "README.md"), Bun.file("README.md"));
 
-await $`cd ${baseDir} && bunx tsc && npm publish --always-auth=false --registry=https://verdaccio--kube.anocca.com/ --access=public`;
+await $`cd ${baseDir} && bunx tsc`;
 
+await Bun.write(
+  path.join(baseDir, ".npmignore"),
+  [".npmrc", "tsconfig.json"].join("\n") + "\n",
+);
+
+await $`cd ${baseDir} && npm publish --always-auth=false --registry=https://verdaccio--kube.anocca.com/ --access=public`;
 
 // publish using cd lib-out && npm publish --always-auth=false --registry=https://verdaccio--kube.anocca.com/ --access=public
