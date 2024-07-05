@@ -14,7 +14,7 @@ await Bun.write(
   JSON.stringify(
     {
       name: "@anocca/calendar",
-      version: "0.0.4",
+      version: "0.0.6",
       license: "MIT",
       main: "build/index.js",
       module: "build/index.js",

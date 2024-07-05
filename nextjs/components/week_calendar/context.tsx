@@ -15,7 +15,7 @@ type RawContext<T> =
         newStart: Date,
         newEnd: Date | undefined
       ) => void;
-      dragCreateEvent?: (start: Date, end: Date) => CalendarEvent<T>;
+      dragCreateEvent?: (start: Date, end?: Date) => void;
     };
 export const CalendarConfigContext =
   React.createContext<RawContext<any>>(undefined);

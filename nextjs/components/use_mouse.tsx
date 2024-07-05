@@ -118,6 +118,7 @@ export function useMouse<T>(
       pos0: MouseStatePos,
       container: DOMRect
     ) => DragPosition<ModifiableEvent<T>> | undefined;
+    dragCreateEvent?: (start: Date, end?: Date) => void;
     eventContainerRef: React.MutableRefObject<HTMLDivElement | null>;
   }>,
   workWeek: boolean
@@ -221,7 +222,10 @@ export function useMouse<T>(
       state.pos0 = undefined;
       if (draggedEvent) {
         if (draggedEvent.dragged) {
-          if (effectRefs.current.onMoveEvent) {
+          if (
+            effectRefs.current.onMoveEvent ||
+            effectRefs.current.dragCreateEvent
+          ) {
             const sourceEvent = draggedEvent.source.sourceEvent;
             const newStart = draggedEvent.dragged.start;
             let newEnd: Date | undefined = draggedEvent.dragged.end;
@@ -234,12 +238,20 @@ export function useMouse<T>(
               // maintain as sub day task
               newEnd = newStart;
             }
-
-            effectRefs.current.onMoveEvent(
-              draggedEvent.source,
-              newStart,
-              newEnd
-            );
+            console.log("??");
+            if (dragged?.type === "new") {
+              if (effectRefs.current.dragCreateEvent) {
+                effectRefs.current.dragCreateEvent(newStart, newEnd);
+              }
+            } else {
+              if (effectRefs.current.onMoveEvent) {
+                effectRefs.current.onMoveEvent(
+                  draggedEvent.source,
+                  newStart,
+                  newEnd
+                );
+              }
+            }
           }
         }
         if (effectRefs.current.onEditEvent && !mouseMoved) {
@@ -450,6 +462,7 @@ export function useEffectRefs<T>(
     ) => void;
     onEditEvent?: (event: CalendarEvent<T>) => void;
     onCreateEvent?: (start: Date, end: Date) => void;
+    dragCreateEvent?: (start: Date, end?: Date) => void;
   },
   createNewEvent?: (
     pos0: MouseStatePos,
@@ -481,6 +494,7 @@ export function useEffectRefs<T>(
     calculateNewTime,
     eventContainerRef,
     createNewEvent,
+    dragCreateEvent: calendarProps.dragCreateEvent,
   });
 
   effectRefs.current = {
@@ -492,6 +506,7 @@ export function useEffectRefs<T>(
     calculateNewTime,
     eventContainerRef,
     createNewEvent,
+    dragCreateEvent: calendarProps.dragCreateEvent,
   };
 
   return [effectRefs, eventContainerRef] as const;

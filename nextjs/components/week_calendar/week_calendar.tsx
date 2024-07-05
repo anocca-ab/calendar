@@ -108,7 +108,7 @@ export type WeekCalendarProps<T> = {
   /**
    * Drag create event builder
    */
-  dragCreateEvent?: (start: Date, end: Date) => CalendarEvent<T>;
+  dragCreateEvent?: (start: Date, end?: Date) => void;
 };
 
 function parseDefaultProps<T>(props: WeekCalendarProps<T>) {
@@ -134,6 +134,7 @@ function parseDefaultProps<T>(props: WeekCalendarProps<T>) {
     onCreateEvent: props.onCreateEvent,
     onMoveEvent: props.onMoveEvent,
     onEditEvent: props.onEditEvent,
+    dragCreateEvent: props.dragCreateEvent,
   };
 }
 
@@ -147,6 +148,7 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
     onCreateEvent,
     onMoveEvent,
     onEditEvent,
+    dragCreateEvent,
   } = parseDefaultProps(props);
 
   const allDayEvents: CalendarEvent<T>[] = [];
@@ -182,6 +184,7 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
         onCreateEvent,
         onEditEvent,
         onMoveEvent,
+        dragCreateEvent,
       }}
     >
       <FlexCol>
@@ -791,7 +794,13 @@ function WeekCalendarGrid<T>(props: { events: CalendarEvent<T>[] }) {
             event: {
               start,
               end,
-              sourceEvent: dragCreateEvent(start, end),
+              sourceEvent: {
+                canEdit: true,
+                color: DEFAULT_COLOR,
+                end,
+                start,
+                title: "(No title)",
+              } as CalendarEvent<T>,
             },
             w: 1,
             x: day + 1,

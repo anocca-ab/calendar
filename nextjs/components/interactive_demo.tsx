@@ -43,12 +43,6 @@ export function InteractiveDemo(props: {
     newEnd: Date | undefined
   ) => {
     setEvents((prev) => {
-      if (!prev.includes(event)) {
-        return [
-          ...prev,
-          { ...event, start: newStart, end: newEnd, canEdit: true },
-        ];
-      }
       return prev.map((ev) => {
         if (ev === event) {
           return {
@@ -121,13 +115,18 @@ export function InteractiveDemo(props: {
         startOfMonth={startTime} // month calendar
         events={events}
         dragCreateEvent={(start, end) => {
-          return {
-            canEdit: true,
-            color: DEFAULT_COLOR,
-            end,
-            start,
-            title: "(No title)",
-          };
+          setEvents((prev) => {
+            return [
+              ...prev,
+              {
+                canEdit: true,
+                color: DEFAULT_COLOR,
+                end,
+                start,
+                title: "(No title)",
+              },
+            ];
+          });
         }}
         onCreateEvent={(start, end) => {
           onEditEvent({ start, end });
