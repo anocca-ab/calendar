@@ -47,11 +47,16 @@ export function CreateEvent<T>({
   onCloseModalRef,
   onSave,
   onDelete,
+  defaultEventColor,
 }: {
   event: CalendarEvent<T>;
   onCloseModalRef: { current?: (cb: () => void) => void };
-  onSave: (event: CalendarEvent<undefined>, originalEvent: CalendarEvent<T>) => void;
+  onSave: (
+    event: CalendarEvent<undefined>,
+    originalEvent: CalendarEvent<T>
+  ) => void;
   onDelete: (event: CalendarEvent<T>) => void;
+  defaultEventColor?: string;
 }) {
   const [start, setStart] = React.useState(event.start);
   const [end, setEnd] = React.useState(event.end);
@@ -83,9 +88,24 @@ export function CreateEvent<T>({
 
   const [title, setTitle] = React.useState(event.title ?? "");
 
+  const colors = ["#FF7043", "#5C6BC0", "#EC407A", "#26A69A", "#EF5350"];
+
   const [eventColor, setEventColor] = React.useState(
-    event.color ?? DEFAULT_COLOR
+    event.color ?? defaultEventColor ?? DEFAULT_COLOR
   );
+
+  const unofficialColors = React.useRef<string[]>([]);
+
+  if (!colors.includes(eventColor)) {
+    if (!unofficialColors.current.includes(eventColor)) {
+      unofficialColors.current.push(eventColor);
+    }
+  }
+  unofficialColors.current.forEach((color) => {
+    if (!colors.includes(color)) {
+      colors.unshift(color);
+    }
+  });
 
   const onChangeEventColor = (event: SelectChangeEvent) => {
     setEventColor(event.target.value);
@@ -375,20 +395,18 @@ export function CreateEvent<T>({
               value={eventColor}
               onChange={onChangeEventColor}
             >
-              {["#FF7043", "#5C6BC0", "#EC407A", "#26A69A", "#EF5350"].map(
-                (hex) => (
-                  <MenuItem key={hex} value={hex}>
-                    <Box
-                      sx={{
-                        background: hex,
-                        width: "24px",
-                        aspectRatio: 1,
-                        borderRadius: "24px",
-                      }}
-                    />
-                  </MenuItem>
-                )
-              )}
+              {colors.map((hex) => (
+                <MenuItem key={hex} value={hex}>
+                  <Box
+                    sx={{
+                      background: hex,
+                      width: "24px",
+                      aspectRatio: 1,
+                      borderRadius: "24px",
+                    }}
+                  />
+                </MenuItem>
+              ))}
             </Select>
           </FlexRow>
         </DialogContent>
@@ -414,7 +432,8 @@ export function CreateEvent<T>({
                 start.getTime() === event.start.getTime() &&
                 end?.getTime() === event.end?.getTime() &&
                 title === event.title &&
-                eventColor === (event.color ?? DEFAULT_COLOR)
+                eventColor ===
+                  (event.color ?? defaultEventColor ?? DEFAULT_COLOR)
               }
               onClick={() => {
                 onSave(

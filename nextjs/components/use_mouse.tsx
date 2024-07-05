@@ -238,7 +238,6 @@ export function useMouse<T>(
               // maintain as sub day task
               newEnd = newStart;
             }
-            console.log("??");
             if (dragged?.type === "new") {
               if (effectRefs.current.dragCreateEvent) {
                 effectRefs.current.dragCreateEvent(newStart, newEnd);

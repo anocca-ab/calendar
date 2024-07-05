@@ -69,6 +69,7 @@ export function InteractiveDemo(props: {
     <Box p={2}>
       {editModalOpen && (
         <CreateEvent
+          defaultEventColor={props.defaultEventColor}
           event={editModalOpen.event}
           onCloseModalRef={onCloseModal}
           onSave={(event, originalEvent) => {
