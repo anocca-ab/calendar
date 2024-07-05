@@ -9,7 +9,7 @@ import {
   subDays,
 } from "date-fns";
 
-export const manyEvents: CalendarEvent[] = [
+export const manyEvents: CalendarEvent<undefined>[] = [
   {
     start: startOfDay(new Date()),
     end: startOfDay(new Date()),

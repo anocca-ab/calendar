@@ -42,16 +42,16 @@ import {
 } from "date-fns";
 import React from "react";
 
-export function CreateEvent({
+export function CreateEvent<T>({
   event,
   onCloseModalRef,
   onSave,
   onDelete,
 }: {
-  event: CalendarEvent;
+  event: CalendarEvent<T>;
   onCloseModalRef: { current?: (cb: () => void) => void };
-  onSave: (event: CalendarEvent, originalEvent: CalendarEvent) => void;
-  onDelete: (event: CalendarEvent) => void;
+  onSave: (event: CalendarEvent<undefined>, originalEvent: CalendarEvent<T>) => void;
+  onDelete: (event: CalendarEvent<T>) => void;
 }) {
   const [start, setStart] = React.useState(event.start);
   const [end, setEnd] = React.useState(event.end);

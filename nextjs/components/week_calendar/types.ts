@@ -1,10 +1,10 @@
 import { CalendarEvent } from "../types";
 
-export type ModifiableEvent = {
+export type ModifiableEvent<T> = {
   /**
    * The real calendar event
    */
-  sourceEvent: CalendarEvent;
+  sourceEvent: CalendarEvent<T>;
   /**
    * "Prettified" start time, so that it fits the use case
    */

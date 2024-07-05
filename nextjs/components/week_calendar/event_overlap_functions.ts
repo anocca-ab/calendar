@@ -4,30 +4,30 @@ import {
   endOfDay,
   areIntervalsOverlapping,
 } from "date-fns";
-import { CalendarEvent } from "../types";
+import { CalendarEvent } from "@/components/types";
 import { ModifiableEvent } from "./types";
 
-export function getAllDayOverlaps<T extends CalendarEvent>(
+export function getAllDayOverlaps<T>(
   startOfWeek: Date,
   daysInWeek: number,
-  events: T[],
+  events: ModifiableEvent<T>[]
 ) {
-  const overlaps: { [key: string]: (T | undefined)[] } = {};
-  const eventYSlots = new WeakMap<T, number>();
+  const overlaps: { [key: string]: (ModifiableEvent<T> | undefined)[] } = {};
+  const eventYSlots = new WeakMap<ModifiableEvent<T>, number>();
   for (let i = 0; i < daysInWeek; i++) {
     const eventsOnThisDay = events.filter((event) => {
       const dayStart = startOfDay(addDays(startOfDay(startOfWeek), i));
       const dayEnd = endOfDay(addDays(startOfDay(startOfWeek), i));
       return areIntervalsOverlapping(
         { start: dayStart, end: dayEnd },
-        { start: event.start, end: event.end ?? event.start },
+        { start: event.start, end: event.end ?? event.start }
       );
     });
 
     /**
      * The y-position slots
      */
-    const slots: (T | undefined)[] = [];
+    const slots: (ModifiableEvent<T> | undefined)[] = [];
 
     let maxSlot: number | undefined = undefined;
 
@@ -90,7 +90,7 @@ const dfs = (
   graph: Graph,
   node: number,
   visited: boolean[],
-  component: Component,
+  component: Component
 ) => {
   visited[node] = true;
   component.push(node);
@@ -138,7 +138,7 @@ const isClique = (graph: Graph, nodes: number[]): boolean => {
 
 export const findAllCliques = (
   graph: Graph,
-  component: Component,
+  component: Component
 ): Clique[] => {
   const cliques: Clique[] = [];
 
@@ -166,7 +166,7 @@ export const findAllCliques = (
   return cliques;
 };
 
-export function findEventOverlaps(events: ModifiableEvent[]) {
+export function findEventOverlaps<T>(events: ModifiableEvent<T>[]) {
   /**
    * For each event, which other events is it overlapping with?
    * Overlaps is a graph where each event is a node and each edge is an overlap between two events
@@ -192,7 +192,7 @@ export function findEventOverlaps(events: ModifiableEvent[]) {
           {
             start: otherEvent.start,
             end: otherEvent.end,
-          },
+          }
         )
       ) {
         if (!overlaps[index].includes(otherIndex)) {

@@ -4,8 +4,8 @@ import { StartDay } from "../types";
 import { ModifiableEvent } from "../week_calendar/types";
 import { monthCalendarRange } from "../event_grid";
 
-export function filterEventsInMonth(
-  events: ModifiableEvent[],
+export function filterEventsInMonth<T>(
+  events: ModifiableEvent<T>[],
   startDay: StartDay,
   startOfMonth: Date
 ) {
@@ -13,7 +13,7 @@ export function filterEventsInMonth(
     startDay,
     startOfMonth
   );
-  const eventsInMonth: ModifiableEvent[] = events
+  const eventsInMonth: ModifiableEvent<T>[] = events
     .filter((event) => {
       return areIntervalsOverlapping(
         { start: startOfMonthCalendar, end: endOfMonthCalendar },

@@ -25,8 +25,8 @@ export function monthCalendarRange(startDay: StartDay, startOfMonth: Date) {
   return { startOfMonthCalendar, endOfMonthCalendar };
 }
 
-export function eventGrid(
-  events: ModifiableEvent[],
+export function eventGrid<T>(
+  events: ModifiableEvent<T>[],
   startDay: StartDay,
   startTime: Date
 ) {
@@ -78,7 +78,7 @@ export function eventGrid(
     week: number,
     day: number,
     eventIndex: number,
-    event: ModifiableEvent
+    event: ModifiableEvent<T>
   ) => {
     grid[week] = grid[week] ?? [];
     grid[week][day] = grid[week][day] ?? [];
@@ -140,7 +140,7 @@ export function eventGrid(
   });
 
   // construct the list of more buttons
-  type MoreButton = { week: number; day: number; events: ModifiableEvent[] };
+  type MoreButton = { week: number; day: number; events: ModifiableEvent<T>[] };
 
   const moreButtonsDict: Record<
     /**

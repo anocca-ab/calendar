@@ -11,19 +11,25 @@ test("all day event overlapping", () => {
       {
         start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
         end: endOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 1)),
-        title: "A two day event",
+        sourceEvent: {
+          start: new Date(),
+        },
       },
       {
         start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
         end: endOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
-        title: "All day event",
+        sourceEvent: {
+          start: new Date(),
+        },
       },
       {
         start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
         end: endOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 2)),
-        title: "A three day event",
+        sourceEvent: {
+          start: new Date(),
+        },
       },
-    ],
+    ]
   );
   expect(result).toMatchSnapshot();
 });

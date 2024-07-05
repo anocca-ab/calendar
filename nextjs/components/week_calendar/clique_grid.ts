@@ -6,7 +6,7 @@ import {
 } from "./event_overlap_functions";
 import { ModifiableEvent } from "./types";
 
-export const getPositions = (events: ModifiableEvent[]) => {
+export function getPositions<T>(events: ModifiableEvent<T>[]) {
   /**
    * Overlaps is a graph where each event is a node and each edge is an overlap between two events
    * For each event, which other events is it overlapping with?
@@ -140,4 +140,4 @@ export const getPositions = (events: ModifiableEvent[]) => {
   });
 
   return [verticalPositions, numCols] as const;
-};
+}

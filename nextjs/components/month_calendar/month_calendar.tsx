@@ -42,7 +42,7 @@ import { filterEventsInMonth } from "./filter_events_in_month";
 import { splitMultiWeekEvents } from "./split_multi_week_events";
 import { MonthCalendarEvent } from "./month_calendar_event";
 
-export const MonthCalendarConfigContext = createContext<
+type RawContext<T> =
   | undefined
   | {
       startDay: StartDay;
@@ -50,46 +50,28 @@ export const MonthCalendarConfigContext = createContext<
       now: Date;
       onCreateEvent?: (start: Date, end: Date) => void;
       onMoveEvent?: (
-        event: CalendarEvent,
+        event: CalendarEvent<T>,
         newStart: Date,
         newEnd: Date | undefined
       ) => void;
-    }
->(undefined);
+    };
+export const MonthCalendarConfigContext =
+  createContext<RawContext<any>>(undefined);
 
-export const useMonthCalendar = () => {
-  const ctx = useContext(MonthCalendarConfigContext);
+export function useMonthCalendar<T>() {
+  const ctx = useContext<RawContext<T>>(MonthCalendarConfigContext);
   if (!ctx) {
     throw new Error("useCalendar must be used within a CalendarConfigContext");
   }
   return ctx;
-};
+}
 
-const parseDefaultProps = (
-  props: React.ComponentPropsWithRef<typeof MonthCalendar>
-) => {
-  const events = props.events ?? [];
-  let startDay = props.startDay ?? "monday";
-
-  const now = props.now ?? new Date();
-
-  return {
-    events,
-    startDay,
-    startOfMonth: startOfMonth(props.startOfMonth ?? new Date()),
-    now,
-    onCreateEvent: props.onCreateEvent,
-    onMoveEvent: props.onMoveEvent,
-    onEditEvent: props.onEditEvent,
-  };
-};
-
-export function MonthCalendar(props: {
+export type MonthCalendarProps<T> = {
   /**
    * Events for the calendar
    * @default []
    */
-  events?: CalendarEvent[];
+  events?: CalendarEvent<T>[];
   /**
    * start week on monday or sunday
    * @default 'monday'
@@ -121,7 +103,7 @@ export function MonthCalendar(props: {
    * @returns void
    */
   onMoveEvent?: (
-    event: CalendarEvent,
+    event: CalendarEvent<T>,
     newStart: Date,
     newEnd: Date | undefined
   ) => void;
@@ -131,8 +113,27 @@ export function MonthCalendar(props: {
    * @param event a calendar event
    * @returns void
    */
-  onEditEvent?: (event: CalendarEvent) => void;
-}) {
+  onEditEvent?: (event: CalendarEvent<T>) => void;
+};
+
+function parseDefaultProps<T>(props: MonthCalendarProps<T>) {
+  const events = props.events ?? [];
+  let startDay = props.startDay ?? "monday";
+
+  const now = props.now ?? new Date();
+
+  return {
+    events,
+    startDay,
+    startOfMonth: startOfMonth(props.startOfMonth ?? new Date()),
+    now,
+    onCreateEvent: props.onCreateEvent,
+    onMoveEvent: props.onMoveEvent,
+    onEditEvent: props.onEditEvent,
+  };
+}
+
+export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
   const { startDay, now, startOfMonth, ...calendarProps } =
     parseDefaultProps(props);
 
@@ -147,7 +148,7 @@ export function MonthCalendar(props: {
 
   // step 0.
   // get all the events that are part of the month
-  const eventsInMonth: ModifiableEvent[] = filterEventsInMonth(
+  const eventsInMonth: ModifiableEvent<T>[] = filterEventsInMonth(
     allEvents,
     startDay,
     startOfMonth
@@ -177,7 +178,7 @@ export function MonthCalendar(props: {
    */
   function calculateNewTime(
     state: MouseState,
-    dragged: DragPosition<ModifiableEvent>,
+    dragged: DragPosition<ModifiableEvent<T>>,
     container: EventContainer
   ) {
     if (state.pos && state.pos0) {

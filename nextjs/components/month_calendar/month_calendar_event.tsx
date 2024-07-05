@@ -5,14 +5,14 @@ import type { CalendarEvent } from "../types";
 import { Triangle } from "../week_calendar/week_calendar";
 import { FlexCol, FlexRow } from "../wrappers";
 
-export function MonthCalendarEvent({
+export function MonthCalendarEvent<T>({
   event,
   state = "normal",
   triangle,
   allDayEvent,
   ...buttonProps
 }: {
-  event: CalendarEvent;
+  event: CalendarEvent<T>;
   allDayEvent?: boolean;
   state?: "normal" | "selected";
   triangle?: "right" | "left" | "both";

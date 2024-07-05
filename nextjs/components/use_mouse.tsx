@@ -93,31 +93,31 @@ export type DragPosition<T extends { start: Date; end?: Date | undefined }> = {
   colX: number;
 };
 
-export function useMouse(
+export function useMouse<T>(
   target: string,
   effectRefs: React.MutableRefObject<{
     onMoveEvent?: (
-      event: ModifiableEvent,
+      event: ModifiableEvent<T>,
       start: Date,
       end: Date | undefined
     ) => void;
-    onEditEvent?: (event: ModifiableEvent) => void;
-    events: ModifiableEvent[];
+    onEditEvent?: (event: ModifiableEvent<T>) => void;
+    events: ModifiableEvent<T>[];
     setDraggedEvent: React.Dispatch<
-      React.SetStateAction<DraggedEvent<ModifiableEvent> | undefined>
+      React.SetStateAction<DraggedEvent<ModifiableEvent<T>> | undefined>
     >;
     /**
      * if event has moved return the new start and end time
      */
     calculateNewTime: (
       state: MouseState,
-      dragged: DragPosition<ModifiableEvent>,
+      dragged: DragPosition<ModifiableEvent<T>>,
       container: EventContainer
     ) => { start: Date; end: Date } | undefined;
     createNewEvent?: (
       pos0: MouseStatePos,
       container: DOMRect
-    ) => DragPosition<ModifiableEvent> | undefined;
+    ) => DragPosition<ModifiableEvent<T>> | undefined;
     eventContainerRef: React.MutableRefObject<HTMLDivElement | null>;
   }>,
   workWeek: boolean
@@ -136,7 +136,7 @@ export function useMouse(
     /**
      * Position data regarding the dragged event
      */
-    let dragged: undefined | DragPosition<ModifiableEvent> = undefined;
+    let dragged: undefined | DragPosition<ModifiableEvent<T>> = undefined;
 
     let container: undefined | EventContainer;
 
@@ -144,7 +144,7 @@ export function useMouse(
      * Same as the React.state draggedEvent, but outside the context of react state
      * A "live" version, whereas the state version is only updated after react component updates
      */
-    let draggedEvent: DraggedEvent<ModifiableEvent> | undefined = undefined;
+    let draggedEvent: DraggedEvent<ModifiableEvent<T>> | undefined = undefined;
     const mouseDown = (ev: MouseEvent) => {
       if (ev.target instanceof HTMLElement) {
         const clickedEvent = ev.target.dataset.type === target;
@@ -352,15 +352,15 @@ export function useMouse(
   }, [daysInWeek, effectRefs, target]);
 }
 
-export const useDragableEvents = (events: CalendarEvent[]) => {
+export function useDragableEvents<T>(events: CalendarEvent<T>[]) {
   const [draggedEvent, setDraggedEvent] = React.useState<
-    DraggedEvent<ModifiableEvent> | undefined
+    DraggedEvent<ModifiableEvent<T>> | undefined
   >(undefined);
 
   /**
    * All events, store reference to the source event and add modifiable start and end times (modified when dragged)
    */
-  const allEvents: ModifiableEvent[] = events.map((sourceEvent) => ({
+  const allEvents: ModifiableEvent<T>[] = events.map((sourceEvent) => ({
     sourceEvent,
     start: sourceEvent.start,
     // an event "collision box" should be at least 15 minutes in height (=15px)
@@ -388,16 +388,16 @@ export const useDragableEvents = (events: CalendarEvent[]) => {
     }
   }
   return [allEvents, draggedEvent, setDraggedEvent] as const;
-};
+}
 
 /**
  * when dragging an event on the x axis, dayDiff how many days the event has moved
  * @returns
  */
-export function dayDiff(
+export function dayDiff<T>(
   pos: MouseStatePos,
   pos0: MouseStatePos,
-  dragged: DragPosition<ModifiableEvent>,
+  dragged: DragPosition<ModifiableEvent<T>>,
   daysInWeek: number,
   container: EventContainer
 ) {
@@ -432,39 +432,39 @@ export function dayUnitToPx(
   return container.width * (width / (120 * daysInWeek));
 }
 
-export const useEffectRefs = (
-  events: ModifiableEvent[],
+export function useEffectRefs<T>(
+  events: ModifiableEvent<T>[],
   setDraggedEvent: React.Dispatch<
-    React.SetStateAction<DraggedEvent<ModifiableEvent> | undefined>
+    React.SetStateAction<DraggedEvent<ModifiableEvent<T>> | undefined>
   >,
   calculateNewTime: (
     state: MouseState,
-    dragged: DragPosition<ModifiableEvent>,
+    dragged: DragPosition<ModifiableEvent<T>>,
     container: EventContainer
   ) => { start: Date; end: Date } | undefined,
   calendarProps: {
     onMoveEvent?: (
-      event: CalendarEvent,
+      event: CalendarEvent<T>,
       newStart: Date,
       newEnd: Date | undefined
     ) => void;
-    onEditEvent?: (event: CalendarEvent) => void;
+    onEditEvent?: (event: CalendarEvent<T>) => void;
     onCreateEvent?: (start: Date, end: Date) => void;
   },
   createNewEvent?: (
     pos0: MouseStatePos,
     container: DOMRect
-  ) => DragPosition<ModifiableEvent> | undefined
-) => {
+  ) => DragPosition<ModifiableEvent<T>> | undefined
+) {
   const ome = calendarProps.onMoveEvent;
   const onMoveEvent = ome
-    ? (event: ModifiableEvent, start: Date, end?: Date) => {
+    ? (event: ModifiableEvent<T>, start: Date, end?: Date) => {
         ome(event.sourceEvent, start, end);
       }
     : undefined;
   const oev = calendarProps.onEditEvent;
   const onEditEvent = oev
-    ? (event: ModifiableEvent) => {
+    ? (event: ModifiableEvent<T>) => {
         oev(event.sourceEvent);
       }
     : undefined;
@@ -495,4 +495,4 @@ export const useEffectRefs = (
   };
 
   return [effectRefs, eventContainerRef] as const;
-};
+}

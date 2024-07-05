@@ -10,7 +10,7 @@ import { ModifiableEvent } from "../week_calendar/types";
 jest.useFakeTimers().setSystemTime(new Date("2024-06-15"));
 
 test("split_multi_week_events", () => {
-  const event: ModifiableEvent = {
+  const event: ModifiableEvent<undefined> = {
     start: startOfDay(addDays(new Date(), 1)), // 16th 00:00
     end: endOfDay(addDays(new Date(), 3)), // 18th 23:59,
     sourceEvent: {
@@ -52,7 +52,7 @@ test("split_multi_week_events", () => {
 });
 
 test("split_multi_week_events", () => {
-  const event: ModifiableEvent = {
+  const event: ModifiableEvent<undefined> = {
     start: startOfDay(addDays(new Date(), 0)), // 15th 00:00
     end: endOfDay(addDays(new Date(), 1)), // 16th 23:59,
     sourceEvent: {
@@ -84,7 +84,7 @@ test("split_multi_week_events", () => {
   /**
    * 5 day event (4 days + end of day)
    */
-  const longerEvent: ModifiableEvent = {
+  const longerEvent: ModifiableEvent<undefined> = {
     sourceEvent: {
       start: startOfDay(addDays(new Date(), 5)),
       end: endOfDay(addDays(addDays(new Date(), 5), 4)),

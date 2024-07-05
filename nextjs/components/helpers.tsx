@@ -27,7 +27,7 @@ export function mergeSx(...sxs: (Sx | null | undefined | boolean)[]): Sx {
   return sx;
 }
 
-export function isAllDayEvent(event: CalendarEvent) {
+export function isAllDayEvent<T>(event: CalendarEvent<T>) {
   return (
     // task
     !event.end ||
@@ -207,7 +207,7 @@ export function getEventColor(
   };
 }
 
-export function getEventEnd(event: CalendarEvent) {
+export function getEventEnd<T>(event: CalendarEvent<T>) {
   if (event.end && event.start.getTime() === event.end?.getTime()) {
     return addMinutes(event.start, 15);
   }

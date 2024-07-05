@@ -11,12 +11,12 @@ import { ModifiableEvent } from "../week_calendar/types";
  * split up events that span multiple weeks into multiple events that span a maximum of 1 week
  * we also trim the events so they perfectly fit into our grid (see step 3)
  */
-export function splitMultiWeekEvents(
-  eventsInMonth: ModifiableEvent[],
+export function splitMultiWeekEvents<T>(
+  eventsInMonth: ModifiableEvent<T>[],
   startDay: StartDay
 ) {
   const weekStartsOn: StartOfWeekOptions["weekStartsOn"] = startDay === "monday" ? 1 : 0;
-  const events: ModifiableEvent[] = eventsInMonth.flatMap((defaultEvent) => {
+  const events: ModifiableEvent<T>[] = eventsInMonth.flatMap((defaultEvent) => {
     let parts: { start: Date; end: Date; }[] = [];
     if (differenceInCalendarWeeks(defaultEvent.end, defaultEvent.start, {
       weekStartsOn,

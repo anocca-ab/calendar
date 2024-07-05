@@ -1,7 +1,7 @@
 import React from "react";
 import { CalendarEvent, StartDay } from "../types";
 
-export const CalendarConfigContext = React.createContext<
+type RawContext<T> =
   | undefined
   | {
       startDay: StartDay;
@@ -9,19 +9,21 @@ export const CalendarConfigContext = React.createContext<
       startOfWeek: Date;
       now: Date;
       onCreateEvent?: (start: Date, end: Date) => void;
-      onEditEvent?: (event: CalendarEvent) => void;
+      onEditEvent?: (event: CalendarEvent<T>) => void;
       onMoveEvent?: (
-        event: CalendarEvent,
+        event: CalendarEvent<T>,
         newStart: Date,
-        newEnd: Date | undefined,
+        newEnd: Date | undefined
       ) => void;
-    }
->(undefined);
+      dragCreateEvent?: (start: Date, end: Date) => CalendarEvent<T>;
+    };
+export const CalendarConfigContext =
+  React.createContext<RawContext<any>>(undefined);
 
-export const useCalendar = () => {
-  const ctx = React.useContext(CalendarConfigContext);
+export function useCalendar<T>() {
+  const ctx: RawContext<T> = React.useContext(CalendarConfigContext);
   if (!ctx) {
     throw new Error("useCalendar must be used within a CalendarConfigContext");
   }
   return ctx;
-};
+}

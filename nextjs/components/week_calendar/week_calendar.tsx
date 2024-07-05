@@ -50,40 +50,12 @@ import {
 } from "../use_mouse";
 import { getPositions } from "./clique_grid";
 
-const parseDefaultProps = (
-  props: React.ComponentPropsWithRef<typeof WeekCalendar>
-) => {
-  const events = props.events ?? [];
-  let startDay = props.startDay ?? "monday";
-  let workWeek = props.workWeek ?? false;
-  const now = props.now ?? new Date();
-  if (workWeek) {
-    startDay = "monday";
-  }
-  const startOpts: StartOfWeekOptions = {
-    weekStartsOn: startDay === "monday" ? 1 : 0,
-  };
-  const startOfWeek = props.startOfWeek
-    ? fnsStartOfWeek(props.startOfWeek, startOpts)
-    : fnsStartOfWeek(new Date(), startOpts);
-  return {
-    events,
-    startDay,
-    workWeek,
-    startOfWeek,
-    now,
-    onCreateEvent: props.onCreateEvent,
-    onMoveEvent: props.onMoveEvent,
-    onEditEvent: props.onEditEvent,
-  };
-};
-
-export function WeekCalendar(props: {
+export type WeekCalendarProps<T> = {
   /**
    * Events for the calendar
    * @default []
    */
-  events?: CalendarEvent[];
+  events?: CalendarEvent<T>[];
   /**
    * start week on monday or sunday. if workWeek is true, startDay will be monday
    * @default 'monday'
@@ -121,7 +93,7 @@ export function WeekCalendar(props: {
    * @returns void
    */
   onMoveEvent?: (
-    event: CalendarEvent,
+    event: CalendarEvent<T>,
     newStart: Date,
     newEnd: Date | undefined
   ) => void;
@@ -131,8 +103,41 @@ export function WeekCalendar(props: {
    * @param event a calendar event
    * @returns void
    */
-  onEditEvent?: (event: CalendarEvent) => void;
-}) {
+  onEditEvent?: (event: CalendarEvent<T>) => void;
+
+  /**
+   * Drag create event builder
+   */
+  dragCreateEvent?: (start: Date, end: Date) => CalendarEvent<T>;
+};
+
+function parseDefaultProps<T>(props: WeekCalendarProps<T>) {
+  const events = props.events ?? [];
+  let startDay = props.startDay ?? "monday";
+  let workWeek = props.workWeek ?? false;
+  const now = props.now ?? new Date();
+  if (workWeek) {
+    startDay = "monday";
+  }
+  const startOpts: StartOfWeekOptions = {
+    weekStartsOn: startDay === "monday" ? 1 : 0,
+  };
+  const startOfWeek = props.startOfWeek
+    ? fnsStartOfWeek(props.startOfWeek, startOpts)
+    : fnsStartOfWeek(new Date(), startOpts);
+  return {
+    events,
+    startDay,
+    workWeek,
+    startOfWeek,
+    now,
+    onCreateEvent: props.onCreateEvent,
+    onMoveEvent: props.onMoveEvent,
+    onEditEvent: props.onEditEvent,
+  };
+}
+
+export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
   const {
     events,
     startDay,
@@ -144,8 +149,8 @@ export function WeekCalendar(props: {
     onEditEvent,
   } = parseDefaultProps(props);
 
-  const allDayEvents: CalendarEvent[] = [];
-  const gridEvents: CalendarEvent[] = [];
+  const allDayEvents: CalendarEvent<T>[] = [];
+  const gridEvents: CalendarEvent<T>[] = [];
 
   events.forEach((event) => {
     const eventOverlapWithWeek = areIntervalsOverlapping(
@@ -236,7 +241,7 @@ const parseAllDayEnd = (end: Date) => {
   return end;
 };
 
-function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
+function WeekCalendarHeader<T>(props: { events: CalendarEvent<T>[] }) {
   const { workWeek, startOfWeek, now, onCreateEvent, ...calendarProps } =
     useCalendar();
   const daysInWeek = workWeek ? 5 : 7;
@@ -257,7 +262,7 @@ function WeekCalendarHeader(props: { events: CalendarEvent[] }) {
    */
   function calculateNewTime(
     state: MouseState,
-    dragged: DragPosition<ModifiableEvent>,
+    dragged: DragPosition<ModifiableEvent<T>>,
     container: EventContainer
   ) {
     if (state.pos && state.pos0) {
@@ -619,9 +624,9 @@ function TimeSidebar() {
   );
 }
 
-function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
+function WeekCalendarGrid<T>(props: { events: CalendarEvent<T>[] }) {
   const { workWeek, now, startOfWeek, startDay, ...calendarProps } =
-    useCalendar();
+    useCalendar<T>();
   const daysInWeek = workWeek ? 5 : 7;
 
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
@@ -635,7 +640,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
   /**
    * Events that cross 12am are split into two events
    */
-  const events: ModifiableEvent[] = allEvents
+  const events: ModifiableEvent<T>[] = allEvents
     .map((ev) => {
       return {
         ...ev,
@@ -688,7 +693,7 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
    */
   function calculateNewTime(
     state: MouseState,
-    dragged: DragPosition<ModifiableEvent>,
+    dragged: DragPosition<ModifiableEvent<T>>,
     container: EventContainer
   ) {
     if (state.pos && state.pos0) {
@@ -758,44 +763,42 @@ function WeekCalendarGrid(props: { events: CalendarEvent[] }) {
     return undefined;
   }
 
+  const dragCreateEvent = calendarProps.dragCreateEvent;
+
   const [effectRefs, eventContainerRef] = useEffectRefs(
     events,
     setDraggedEvent,
     calculateNewTime,
     calendarProps,
-    (pos0, container) => {
-      const x = pos0.x - container.x;
-      const y = pos0.y - container.y;
-      const day = Math.floor(x / dayUnitToPx(120, daysInWeek, container));
-      const minute = y;
-      const start = addMinutes(
-        startOfDay(addDays(fnsStartOfWeek(startOfWeek, options), day)),
-        minute
-      );
-      const end = addMinutes(start, 15);
+    !dragCreateEvent
+      ? undefined
+      : (pos0, container) => {
+          const x = pos0.x - container.x;
+          const y = pos0.y - container.y;
+          const day = Math.floor(x / dayUnitToPx(120, daysInWeek, container));
+          const minute = y;
+          const start = addMinutes(
+            startOfDay(addDays(fnsStartOfWeek(startOfWeek, options), day)),
+            minute
+          );
+          const end = addMinutes(start, 15);
 
-      const dragged: DragPosition<ModifiableEvent> = {
-        type: "new",
-        colX: 0,
-        elX: 0,
-        elY: 0,
-        event: {
-          start,
-          end,
-          sourceEvent: {
-            canEdit: true,
-            color: DEFAULT_COLOR,
-            end,
-            start,
-            title: "(No title)",
-          },
-        },
-        w: 1,
-        x: day + 1,
-      };
+          const dragged: DragPosition<ModifiableEvent<T>> = {
+            type: "new",
+            colX: 0,
+            elX: 0,
+            elY: 0,
+            event: {
+              start,
+              end,
+              sourceEvent: dragCreateEvent(start, end),
+            },
+            w: 1,
+            x: day + 1,
+          };
 
-      return dragged;
-    }
+          return dragged;
+        }
   );
 
   useMouse("week-calendar-sub-day-event", effectRefs, workWeek);

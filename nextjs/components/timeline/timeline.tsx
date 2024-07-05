@@ -46,61 +46,12 @@ import {
 } from "../week_calendar/event_overlap_functions";
 import { getPositions } from "../week_calendar/clique_grid";
 
-function getStartTime(
-  startTime: Date,
-  resolution: TimelineResolution,
-  startDay: StartDay
-): Date {
-  const options: StartOfWeekOptions = {
-    weekStartsOn: startDay === "monday" ? 1 : 0,
-  };
-  if (resolution === "month") {
-    return startOfWeek(startTime, options);
-  }
-  if (resolution === "3-months") {
-    return startOfMonth(startTime);
-  }
-  if (resolution === "year") {
-    return startOfQuarter(startTime);
-  }
-  if (resolution === "3-years") {
-    return startOfYear(startTime);
-  }
-  throw new Error("invalid resolution");
-}
-
-const parseDefaultProps = (
-  props: React.ComponentPropsWithRef<typeof Timeline>
-) => {
-  const events = props.events ?? [];
-  let startDay = props.startDay ?? "monday";
-  const now = props.now ?? new Date();
-
-  const resolution = props.resolution ?? "month";
-
-  return {
-    events,
-    startDay,
-    startTime: getStartTime(
-      props.startTime ?? new Date(),
-      resolution,
-      startDay
-    ),
-    startOfWeek,
-    resolution,
-    now,
-    onCreateEvent: props.onCreateEvent,
-    onMoveEvent: props.onMoveEvent,
-    onEditEvent: props.onEditEvent,
-  };
-};
-
-export function Timeline(props: {
+export type TimelineProps<T> = {
   /**
    * Events for the calendar
    * @default []
    */
-  events?: CalendarEvent[];
+  events?: CalendarEvent<T>[];
   /**
    * Will be e.g. start of the week / year / month / quarter / 3 years / 3 months depending on the resolution
    * @default new Date()
@@ -139,7 +90,7 @@ export function Timeline(props: {
    * @returns void
    */
   onMoveEvent?: (
-    event: CalendarEvent,
+    event: CalendarEvent<T>,
     newStart: Date,
     newEnd: Date | undefined
   ) => void;
@@ -149,8 +100,57 @@ export function Timeline(props: {
    * @param event a calendar event
    * @returns void
    */
-  onEditEvent?: (event: CalendarEvent) => void;
-}) {
+  onEditEvent?: (event: CalendarEvent<T>) => void;
+};
+
+function getStartTime(
+  startTime: Date,
+  resolution: TimelineResolution,
+  startDay: StartDay
+): Date {
+  const options: StartOfWeekOptions = {
+    weekStartsOn: startDay === "monday" ? 1 : 0,
+  };
+  if (resolution === "month") {
+    return startOfWeek(startTime, options);
+  }
+  if (resolution === "3-months") {
+    return startOfMonth(startTime);
+  }
+  if (resolution === "year") {
+    return startOfQuarter(startTime);
+  }
+  if (resolution === "3-years") {
+    return startOfYear(startTime);
+  }
+  throw new Error("invalid resolution");
+}
+
+function parseDefaultProps<T>(props: TimelineProps<T>) {
+  const events = props.events ?? [];
+  let startDay = props.startDay ?? "monday";
+  const now = props.now ?? new Date();
+
+  const resolution = props.resolution ?? "month";
+
+  return {
+    events,
+    startDay,
+    startTime: getStartTime(
+      props.startTime ?? new Date(),
+      resolution,
+      startDay
+    ),
+    startOfWeek,
+    resolution,
+    now,
+    onCreateEvent: props.onCreateEvent,
+    onMoveEvent: props.onMoveEvent,
+    onEditEvent: props.onEditEvent,
+  };
+}
+
+export function Timeline<T>(props: TimelineProps<T>) {
   const p = parseDefaultProps(props);
 
   return (
@@ -211,14 +211,14 @@ const constrainEvent = (
   };
 };
 
-function parseEventsInTimeline(
-  events: ModifiableEvent[],
+function parseEventsInTimeline<T>(
+  events: ModifiableEvent<T>[],
   resolution: TimelineResolution,
   startTime: Date
 ) {
   const [timelineStart, timelineEnd] = getTimelineRange(resolution, startTime);
 
-  const eventsInTimeline: ModifiableEvent[] = events
+  const eventsInTimeline: ModifiableEvent<T>[] = events
     .filter((event) => {
       return areIntervalsOverlapping(
         {
@@ -240,7 +240,7 @@ function parseEventsInTimeline(
   return eventsInTimeline;
 }
 
-function Grid({
+function Grid<T>({
   startTime,
   events: sourceEvents,
   startDay,
@@ -251,11 +251,11 @@ function Grid({
   startTime: Date;
   now: Date;
   resolution: TimelineResolution;
-  events: CalendarEvent[];
+  events: CalendarEvent<T>[];
   onCreateEvent?: (start: Date, end: Date) => void;
-  onEditEvent?: (event: CalendarEvent) => void;
+  onEditEvent?: (event: CalendarEvent<T>) => void;
   onMoveEvent?: (
-    event: CalendarEvent,
+    event: CalendarEvent<T>,
     newStart: Date,
     newEnd: Date | undefined
   ) => void;
@@ -263,7 +263,7 @@ function Grid({
   const [allEvents, draggedEvent, setDraggedEvent] =
     useDragableEvents(sourceEvents);
 
-  const events: ModifiableEvent[] = parseEventsInTimeline(
+  const events: ModifiableEvent<T>[] = parseEventsInTimeline(
     allEvents,
     resolution,
     startTime

@@ -18,75 +18,21 @@ const fns = {
   filterEvents: filterEventsInMonth,
 };
 
-function eventGrid(
-  events: ModifiableEvent[],
+function eventGrid<T>(
+  events: ModifiableEvent<T>[],
   startDay: "sunday" | "monday",
   startOfMonth: Date,
   _fns: typeof fns
 ) {
   return realEventGrid(
-    _fns.splitEvents(_fns.filterEvents(events, startDay, startOfMonth), startDay),
+    _fns.splitEvents(
+      _fns.filterEvents(events, startDay, startOfMonth),
+      startDay
+    ),
     startDay,
     monthCalendarRange(startDay, startOfMonth).startOfMonthCalendar
   );
 }
-
-const events: CalendarEvent[] = [
-  {
-    // data: { id: "1" },
-    title: "Task",
-    start: subMinutes(new Date(), 30),
-    color: "pink",
-  },
-  {
-    title: "Full day event",
-    start: startOfDay(new Date()),
-    end: addMinutes(startOfDay(new Date()), 1339),
-    color: "pink",
-  },
-  {
-    title: "2 days event",
-    start: startOfDay(addDays(new Date(), 2)),
-    end: endOfDay(addDays(new Date(), 2)),
-    color: "pink",
-  },
-  {
-    title: "4 days event",
-    start: startOfDay(addDays(new Date(), 1)),
-    end: endOfDay(addDays(addDays(new Date(), 1), 4)),
-    color: "red",
-  },
-  // {
-  //   title: "10min event",
-  //   start: subHours(new Date(), 3),
-  //   end: addMinutes(subHours(new Date(), 3), 10),
-  //   color: "orange",
-  // },
-  // {
-  //   title: "15min event",
-  //   start: addDays(new Date(), 2),
-  //   end: addMinutes(addDays(new Date(), 2), 15),
-  //   color: "red",
-  // },
-  // {
-  //   title: "36 min event",
-  //   start: addMinutes(new Date(), 15),
-  //   end: addMinutes(addMinutes(new Date(), 15), 36),
-  //   color: "teal",
-  // },
-  // {
-  //   title: "2 hours event",
-  //   start: new Date(),
-  //   end: addMinutes(new Date(), 120),
-  //   color: "pink",
-  // },
-  // {
-  //   title: "3 hours event",
-  //   start: new Date(),
-  //   end: addMinutes(new Date(), 181),
-  //   color: "indigo",
-  // },
-];
 
 test("works with a task", () => {
   expect(
