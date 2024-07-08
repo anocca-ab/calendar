@@ -318,12 +318,16 @@ function Grid<T>({
   const start = timelineStart.getTime();
   const end = timelineEnd.getTime();
   const totalSecondsOfMonth = end - start;
+  const maxHeight = Math.max(
+    Object.values(verticalPositions).reduce((p, c) => Math.max(p, c), 0),
+    5
+  );
 
   return (
     <Box
       sx={{
         position: "relative",
-        height: "120px",
+        height: maxHeight * (16 + 1) + 32,
         overflow: "hidden",
       }}
     >
@@ -363,7 +367,7 @@ function Grid<T>({
                   minWidth: "auto",
                   width: `${w}px`,
                   left: `${x}px`,
-                  top: verticalPositions[index] * (16 + 1) + 1 + 32,
+                  top: verticalPositions[index] * (16 + 1) + 11,
                   height: "16px",
                   position: "absolute",
                   overflow: "hidden",
@@ -409,6 +413,7 @@ function Grid<T>({
       >
         <TimeIndicator
           sx={{
+            height: '100%',
             left:
               String(
                 (720 * (calendarProps.now.getTime() - start)) /
@@ -424,12 +429,12 @@ function Grid<T>({
 function TimeIndicator(boxProps: BoxProps) {
   return (
     <Box
+      className="time-indicator"
       {...boxProps}
       sx={mergeSx(boxProps.sx, {
         width: "13px",
         marginLeft: "-6.5px",
         marginTop: "0px",
-        height: "100%",
         position: "absolute",
         overflow: "hidden",
       })}
@@ -495,10 +500,12 @@ function Header({
   startTime,
   now,
   resolution,
+  startDay,
 }: {
   startTime: Date;
   resolution: TimelineResolution;
   now: Date;
+  startDay: StartDay;
 }) {
   if (resolution === "month") {
     const weeks: Date[] = [];
@@ -621,9 +628,15 @@ function Header({
         />
         <Box sx={{ height: "16px" }} />
         <SmallTime
-          formatDate={(date) => format(date, "I")}
+          formatDate={(date) => "W" + format(date, "I")}
           times={weeks}
           noBorderMod={4}
+          isActive={(d) => {
+            const options: StartOfWeekOptions = {
+              weekStartsOn: startDay === "monday" ? 1 : 0,
+            };
+            return isSameWeek(d, now, options);
+          }}
         />
       </Box>
     );
@@ -658,6 +671,7 @@ function Header({
           formatDate={(date) => format(date, "MMM")}
           times={months}
           noBorderMod={3}
+          isActive={(d) => isSameMonth(d, now)}
         />
       </Box>
     );
@@ -691,6 +705,7 @@ function Header({
           formatDate={(date) => format(date, "qqq")}
           times={quarters}
           noBorderMod={4}
+          isActive={(d) => isSameQuarter(d, now)}
         />
       </Box>
     );
@@ -775,22 +790,36 @@ function SmallTime({
   times,
   formatDate,
   noBorderMod,
+  isActive,
 }: {
   times: Date[];
   formatDate: (date: Date) => string;
   noBorderMod: number;
+  isActive: (date: Date) => boolean;
 }) {
   return (
     <FlexRow justifyContent="space-between">
       {times.flatMap((week, index) => {
         const els = [
           <FlexRow key={index} justifyContent="center" flex="1">
-            <Typography
-              variant="body2"
-              color={(theme) => theme.palette.text.secondary}
-            >
-              {formatDate(week)}
-            </Typography>
+            <Box>
+              <Typography
+                variant="body2"
+                color={(theme) => theme.palette.text.secondary}
+              >
+                {formatDate(week)}
+              </Typography>
+              {isActive(week) ? (
+                <Box
+                  sx={{
+                    background: (theme) => theme.palette.primary.main,
+                    height: "2px",
+                    borderRadius: "2px",
+                    width: "100%",
+                  }}
+                ></Box>
+              ) : null}
+            </Box>
           </FlexRow>,
         ];
         if (index !== 0) {

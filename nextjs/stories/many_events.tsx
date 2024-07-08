@@ -259,4 +259,9 @@ export const manyEvents: CalendarEvent<undefined>[] = [
     end: endOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
     title: "All day event",
   },
+  {
+    start: new Date("2025-01-01T00:00:00.000Z"),
+    end: new Date("2026-01-01T00:00:00.000Z"),
+    title: "A year event",
+  },
 ].map((ev) => ({ ...ev, canEdit: ev.canEdit === false ? false : true }));
