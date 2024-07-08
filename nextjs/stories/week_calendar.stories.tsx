@@ -106,6 +106,7 @@ export const WithHuuugeSubDayEvent: Story = {
         start: subDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 5),
         end: addDays(endOfWeek(new Date(), { weekStartsOn: 1 }), 5),
         title: "Huuuge event",
+        canEdit: true,
       },
     ],
 

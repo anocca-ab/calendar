@@ -20,14 +20,5 @@ export function filterEventsInMonth<T>(
         { start: event.start, end: getEventEnd(event) }
       );
     })
-    .map((event) => {
-      let start = max([event.start, startOfMonthCalendar]);
-      let end = min([getEventEnd(event), endOfMonthCalendar]);
-      return {
-        sourceEvent: event.sourceEvent,
-        start,
-        end
-      };
-    });
   return eventsInMonth;
 }

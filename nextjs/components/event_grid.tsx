@@ -1,16 +1,20 @@
 import {
   StartOfWeekOptions,
   addDays,
+  differenceInCalendarWeeks,
   differenceInDays,
   differenceInWeeks,
   endOfWeek,
   startOfMonth as fnsStartOfMonth,
   format,
   lastDayOfMonth,
+  max,
+  min,
   startOfWeek,
 } from "date-fns";
 import { StartDay } from "./types";
 import { ModifiableEvent } from "./week_calendar/types";
+import { getEventEnd } from "./helpers";
 
 export function monthCalendarRange(startDay: StartDay, startOfMonth: Date) {
   const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
@@ -28,7 +32,8 @@ export function monthCalendarRange(startDay: StartDay, startOfMonth: Date) {
 export function eventGrid<T>(
   events: ModifiableEvent<T>[],
   startDay: StartDay,
-  startTime: Date
+  startTime: Date,
+  endTime: Date,
 ) {
   const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
     startDay === "monday" ? 1 : 0;
@@ -106,11 +111,17 @@ export function eventGrid<T>(
     }
   };
 
+
   events.forEach((event, index) => {
-    const week = differenceInWeeks(event.start, startTime);
+    const eventStart = max([event.start, startTime]);
+    const eventEnd = min([getEventEnd(event), endTime]);
+
+    const week = differenceInCalendarWeeks(eventStart, startTime, {
+      weekStartsOn,
+    });
     const day = differenceInDays(
-      event.start,
-      startOfWeek(event.start, { weekStartsOn })
+      eventStart,
+      startOfWeek(eventStart, { weekStartsOn })
     );
 
     assignEventToGrid(week, day, index, event);
@@ -118,9 +129,11 @@ export function eventGrid<T>(
     // we have a 1 day event - we will assign it to the grid according to the line above
     // we have a 2 day event - we will assign the first day of the event to the grid according to the line above
     //  - for a 2 day event, the loop with have d === 1, the end - start === 1 so the loop will loop only once
-    for (let d = 1; d <= differenceInDays(event.end, event.start); d++) {
-      const start = addDays(event.start, d);
-      const week = differenceInWeeks(start, startTime);
+    for (let d = 1; d <= differenceInDays(eventEnd, eventStart); d++) {
+      const start = addDays(eventStart, d);
+      const week = differenceInCalendarWeeks(start, startTime, {
+        weekStartsOn,
+      });
       const day = differenceInDays(start, startOfWeek(start, { weekStartsOn }));
 
       assignEventToGrid(week, day, index, event);

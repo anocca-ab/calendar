@@ -12,9 +12,12 @@ import {
   isSameDay,
   isSameMonth,
   isSameWeek,
+  max,
+  min,
   startOfDay,
   startOfMonth,
   startOfWeek,
+  subDays,
 } from "date-fns";
 import React, {
   ReactElement,
@@ -160,12 +163,22 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
   /**
    * Events that cross into a new week are split into two events or more
    */
-  const splitEvents = splitMultiWeekEvents(eventsInMonth, startDay);
+  const splitEvents = splitMultiWeekEvents(
+    eventsInMonth,
+    startDay,
+    startOfMonth
+  );
+
+  const { startOfMonthCalendar, endOfMonthCalendar } = monthCalendarRange(
+    startDay,
+    startOfMonth
+  );
 
   const { eventProperties, events, moreButtons } = eventGrid(
     splitEvents,
     startDay,
-    monthCalendarRange(startDay, startOfMonth).startOfMonthCalendar
+    startOfMonthCalendar,
+    endOfMonthCalendar
   );
 
   const weeksOfMonth = getWeeksInMonth(startOfMonth, {
@@ -243,6 +256,35 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
   useMouse("month-calendar-event", effectRefs, false);
 
   const { onCreateEvent } = calendarProps;
+
+  /**
+   * Store events with same source event
+   */
+  const eventParts: Record<
+    /** event index */
+    string,
+    /** list of events that have the same source event */
+    ModifiableEvent<T>[]
+  > = {};
+  const sourceIndex: CalendarEvent<T>[] = [];
+  const lists: Record<
+    /** srcIndex */
+    string,
+    ModifiableEvent<T>[]
+  > = {};
+  events.forEach((event, index) => {
+    let srcIndex = sourceIndex.indexOf(event.sourceEvent);
+    if (srcIndex === -1) {
+      srcIndex = sourceIndex.push(event.sourceEvent) - 1;
+    }
+    if (!lists[srcIndex]) {
+      lists[srcIndex] = [];
+    }
+    if (!eventParts[index]) {
+      eventParts[index] = lists[srcIndex];
+    }
+    eventParts[index].push(event);
+  });
 
   return (
     <MonthCalendarConfigContext.Provider
@@ -525,8 +567,12 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
             <>
               {events.map((event, index) => {
                 const { week, day, row, maxRow } = eventProperties[`${index}`];
-                let width = differenceInCalendarDays(event.end, event.start);
-                if (event.end.getTime() === endOfDay(event.end).getTime()) {
+
+                const eventStart = max([event.start, startOfMonthCalendar]);
+                const eventEnd = min([getEventEnd(event), endOfMonthCalendar]);
+
+                let width = differenceInCalendarDays(eventEnd, eventStart);
+                if (eventEnd.getTime() === endOfDay(eventEnd).getTime()) {
                   width += 1;
                 }
                 width = Math.max(width, 1);
@@ -539,25 +585,24 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                     w: Math.max(width, 1),
                   }),
                 };
+                let triangleLeft = false;
+                let triangleRight = false;
 
-                const startOfWeekOfEventEnd = startOfWeek(
-                  getEventEnd(event.sourceEvent),
-                  {
-                    weekStartsOn: startDay === "monday" ? 1 : 0,
-                  }
-                );
-                const firstWeekStart = startOfWeek(startOfMonth, {
-                  weekStartsOn: startDay === "monday" ? 1 : 0,
-                });
+                // only if we are dealing with the first event of the "splitted events"
+                if (eventParts[index].indexOf(event) === 0) {
+                  triangleLeft =
+                    event.start.getTime() < startOfMonthCalendar.getTime();
+                }
 
-                const triangleLeft =
-                  week === 0 &&
-                  width === 7 &&
-                  !isSameWeek(event.sourceEvent.start, firstWeekStart);
-                const triangleRight =
-                  weeksOfMonth === week + 1 &&
-                  width === 7 &&
-                  !isSameWeek(event.end, startOfWeekOfEventEnd);
+                // only if we are dealing with the last event of the "splitted events"
+                if (
+                  eventParts[index].indexOf(event) ===
+                  eventParts[index].length - 1
+                ) {
+                  triangleRight =
+                    event.end.getTime() > endOfMonthCalendar.getTime();
+                }
+
                 const triangle =
                   triangleLeft && triangleRight
                     ? "both"

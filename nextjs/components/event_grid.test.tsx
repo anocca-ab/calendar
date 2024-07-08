@@ -27,10 +27,12 @@ function eventGrid<T>(
   return realEventGrid(
     _fns.splitEvents(
       _fns.filterEvents(events, startDay, startOfMonth),
-      startDay
+      startDay,
+      startOfMonth
     ),
     startDay,
-    monthCalendarRange(startDay, startOfMonth).startOfMonthCalendar
+    monthCalendarRange(startDay, startOfMonth).startOfMonthCalendar,
+    monthCalendarRange(startDay, startOfMonth).endOfMonthCalendar
   );
 }
 

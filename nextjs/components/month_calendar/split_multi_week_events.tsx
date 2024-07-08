@@ -1,10 +1,16 @@
 import {
   StartOfWeekOptions,
-  addDays, differenceInCalendarWeeks, endOfWeek, min,
-  startOfWeek
+  addDays,
+  differenceInCalendarWeeks,
+  endOfWeek,
+  max,
+  min,
+  startOfWeek,
 } from "date-fns";
 import { StartDay } from "../types";
 import { ModifiableEvent } from "../week_calendar/types";
+import { monthCalendarRange } from "../event_grid";
+import { getEventEnd } from "../helpers";
 
 /**
  * Events that cross into a new week are split into two events or more.
@@ -13,19 +19,34 @@ import { ModifiableEvent } from "../week_calendar/types";
  */
 export function splitMultiWeekEvents<T>(
   eventsInMonth: ModifiableEvent<T>[],
-  startDay: StartDay
+  startDay: StartDay,
+  startOfMonth: Date
 ) {
-  const weekStartsOn: StartOfWeekOptions["weekStartsOn"] = startDay === "monday" ? 1 : 0;
+  const { startOfMonthCalendar, endOfMonthCalendar } = monthCalendarRange(
+    startDay,
+    startOfMonth
+  );
+  const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
+    startDay === "monday" ? 1 : 0;
   const events: ModifiableEvent<T>[] = eventsInMonth.flatMap((defaultEvent) => {
-    let parts: { start: Date; end: Date; }[] = [];
-    if (differenceInCalendarWeeks(defaultEvent.end, defaultEvent.start, {
-      weekStartsOn,
-    }) > 0) {
+    const eventEnd = getEventEnd(defaultEvent);
+
+    const constrainedStart = max([defaultEvent.start, startOfMonthCalendar]);
+    const constrainedEnd = min([eventEnd, endOfMonthCalendar]);
+
+    let parts: { start: Date; end: Date }[] = [];
+    if (
+      differenceInCalendarWeeks(constrainedEnd, constrainedStart, {
+        weekStartsOn,
+      }) > 0
+    ) {
       // split event up into multiple events to not overflow a single day
       // an event can't be longer than a day
       const part0 = {
         start: defaultEvent.start,
-        end: endOfWeek(defaultEvent.start, { weekStartsOn }),
+        end: endOfWeek(constrainedStart, {
+          weekStartsOn,
+        }),
       };
       parts.push(part0);
       while (true) {
@@ -37,13 +58,21 @@ export function splitMultiWeekEvents<T>(
           endOfWeek(nextWeekStart, {
             weekStartsOn,
           }),
-          defaultEvent.end,
+          eventEnd,
         ]);
+        if (nextWeekEnd.getTime() >= constrainedEnd.getTime()) {
+          // persist the tail of the "snake"
+          parts.push({
+            start: nextWeekStart,
+            end: eventEnd,
+          });
+          break;
+        }
         parts.push({
           start: nextWeekStart,
           end: nextWeekEnd,
         });
-        if (nextWeekEnd.getTime() >= defaultEvent.end.getTime()) {
+        if (nextWeekEnd.getTime() >= eventEnd.getTime()) {
           break;
         }
       }
