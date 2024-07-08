@@ -6,7 +6,17 @@ const baseDir = "lib-out";
 
 const glob = new Glob("**/*.{ts,tsx}");
 
-await rmdir(baseDir, { recursive: true });
+for await (const file of new Glob("**").scan({
+  cwd: baseDir,
+  absolute: true,
+  dot: true,
+})) {
+  if (file.includes("node_modules")) {
+    continue;
+  }
+  await $`rm -rf ${file}`;
+}
+
 await mkdir(baseDir, { recursive: true });
 
 const packageJson = await Bun.file("package.json").json();
