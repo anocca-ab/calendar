@@ -13,7 +13,7 @@ import {
 } from "date-fns";
 
 const meta = {
-  title: "Month Calendar",
+  title: "Calendar/Month",
   component: MonthCalendar,
   // tags: ["autodocs"],
   argTypes: {

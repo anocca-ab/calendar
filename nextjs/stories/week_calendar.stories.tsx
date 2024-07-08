@@ -12,7 +12,7 @@ import { WeekCalendar } from "../components/week_calendar/week_calendar";
 import { manyEvents } from "./many_events";
 
 const meta = {
-  title: "Week Calendar",
+  title: "Calendar/Week",
   component: WeekCalendar,
   parameters: {
     // layout: "centered",

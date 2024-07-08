@@ -1,5 +1,7 @@
 import {
   Clique,
+  Component,
+  Graph,
   findAllCliques,
   findConnectedComponents,
   findEventOverlaps,
@@ -38,9 +40,14 @@ export function getPositions<T>(events: ModifiableEvent<T>[]) {
     number
   > = {};
 
+  const allCliques = findCliques(overlaps);
   // create the numCols and find the maxCliques
   components.forEach((component, index) => {
-    const cliques = findAllCliques(overlaps, component);
+    // const cliques1 = findAllCliques(overlaps, component);
+    const cliques2 = allCliques.filter((clique) =>
+      clique.some((node) => component.includes(node))
+    );
+    const cliques = cliques2;
 
     const maxCliqueSizeForComponent = cliques.reduce((max, clique) => {
       return clique.length > max ? clique.length : max;
@@ -140,4 +147,56 @@ export function getPositions<T>(events: ModifiableEvent<T>[]) {
   });
 
   return [verticalPositions, numCols] as const;
+}
+
+function findCliques(graph: Graph): Clique[] {
+  const cliques: Clique[] = [];
+  const allNodes = graph.map((_, index) => index);
+  bronKerboschTomita(graph, [], allNodes, [], cliques);
+  return cliques;
+}
+
+// https://www.geeksforgeeks.org/find-the-number-of-cliques-in-a-graph/
+// Hybrid algorithm of Bron-Kerbosch and Tomita
+function bronKerboschTomita(
+  graph: Graph,
+  r: Component,
+  p: Component,
+  x: Component,
+  cliques: Clique[]
+) {
+  if (p.length === 0 && x.length === 0) {
+    cliques.push([...r]);
+    return;
+  }
+
+  // Choosing a pivot to minimize the size of P
+  const pivot = choosePivot(graph, p, x);
+  const pWithoutPivotNeighbors = p.filter((v) => !graph[pivot].includes(v));
+
+  for (const v of pWithoutPivotNeighbors) {
+    const neighbors = graph[v];
+    bronKerboschTomita(
+      graph,
+      [...r, v],
+      p.filter((w) => neighbors.includes(w)),
+      x.filter((w) => neighbors.includes(w)),
+      cliques
+    );
+    p = p.filter((w) => w !== v);
+    x.push(v);
+  }
+}
+
+function choosePivot(graph: Graph, p: Component, x: Component): number {
+  let pivot = p[0] || x[0]; // default pivot
+  let maxDegree = -1;
+  for (const v of [...p, ...x]) {
+    const degree = graph[v].length;
+    if (degree > maxDegree) {
+      maxDegree = degree;
+      pivot = v;
+    }
+  }
+  return pivot;
 }

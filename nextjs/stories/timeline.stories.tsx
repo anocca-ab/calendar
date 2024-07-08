@@ -15,7 +15,7 @@ import {
 import { InteractiveDemo } from "@/components/interactive_demo";
 
 const meta = {
-  title: "Timeline Calendar",
+  title: "Timeline/Timeline",
   component: Timeline,
   parameters: {
     layout: "centered",
@@ -70,7 +70,7 @@ export const WithInteractivity: Story = {
       {
         start: startOfDay(new Date()),
         end: endOfDay(
-          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
+          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14),
         ),
         title: "A loong day event",
         canEdit: true,
@@ -97,18 +97,18 @@ export const WithEvents: Story = {
       {
         start: addDays(
           startOfDay(startOfWeek(subWeeks(new Date(), 2), { weekStartsOn: 1 })),
-          3
+          3,
         ),
         end: addDays(
           startOfDay(startOfWeek(subWeeks(new Date(), 2), { weekStartsOn: 1 })),
-          5
+          5,
         ),
         title: "2 days",
       },
       {
         start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
         end: endOfDay(
-          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 15)
+          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 15),
         ),
         title: "2 weeks",
       },
@@ -162,7 +162,7 @@ export const Month: Story = {
       {
         start: startOfDay(new Date()),
         end: endOfDay(
-          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
+          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14),
         ),
         title: "A loong day event",
       },
@@ -177,7 +177,7 @@ export const ThreeMonths: Story = {
       {
         start: startOfDay(new Date()),
         end: endOfDay(
-          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
+          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14),
         ),
         title: "A loong day event",
       },
@@ -191,7 +191,7 @@ export const Year: Story = {
       {
         start: startOfDay(new Date()),
         end: endOfDay(
-          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
+          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14),
         ),
         title: "A loong day event",
       },
@@ -205,11 +205,30 @@ export const ThreeYears: Story = {
       {
         start: startOfDay(new Date()),
         end: endOfDay(
-          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
+          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14),
         ),
         title: "A loong day event",
       },
     ],
     resolution: "3-years",
+  },
+};
+
+export const MonthInteractive: Story = {
+  args: {
+    startDay: "monday",
+    events: manyEvents,
+
+    resolution: "month",
+  },
+
+  render: (props) => {
+    return (
+      <InteractiveDemo
+        type="timeline"
+        {...props}
+        timelineResolution={props.resolution}
+      />
+    );
   },
 };

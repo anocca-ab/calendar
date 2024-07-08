@@ -5,7 +5,7 @@ import { Box, Typography } from "@mui/material";
 import { TimelineNav } from "@/components/nav/timeline_nav";
 
 const meta = {
-  title: "Timeline Nav",
+  title: "Timeline/Nav",
   component: TimelineNav,
   parameters: {
     layout: "centered",

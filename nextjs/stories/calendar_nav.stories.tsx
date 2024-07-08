@@ -5,7 +5,7 @@ import { format, startOfMonth, startOfWeek } from "date-fns";
 import { Box, Typography } from "@mui/material";
 
 const meta = {
-  title: "Calendar Nav",
+  title: "Calendar/Nav",
   component: CalendarNav,
   parameters: {
     layout: "centered",
