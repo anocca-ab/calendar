@@ -4,6 +4,8 @@ import {
   addWeeks,
   areIntervalsOverlapping,
   differenceInCalendarDays,
+  differenceInDays,
+  differenceInWeeks,
   endOfDay,
   format,
   getDate,
@@ -141,8 +143,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
     calendarProps.events,
   );
 
-  const [moreButtonClicked, setMoreButtonClicked] = useState<Date>(new Date());
-  const [modal, setModal] = useState<undefined | { top: string; left: string }>(
+  const [moreButtonClicked, setMoreButtonClicked] = useState<Date | undefined>(
     undefined,
   );
 
@@ -157,7 +158,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
         if (elementTree.contains(event.target as Node)) {
           return;
         }
-        setModal(undefined);
+        setMoreButtonClicked(undefined);
       }
     };
 
@@ -308,6 +309,22 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
     }
     eventParts[index].push(event);
   });
+
+  let modal: undefined | { top: string; left: string } = undefined;
+  if (moreButtonClicked) {
+    const week = differenceInWeeks(moreButtonClicked, startOfMonthCalendar, {});
+    const day = differenceInDays(
+      moreButtonClicked,
+      startOfWeek(moreButtonClicked, {
+        weekStartsOn: startDay == "monday" ? 1 : 0,
+      }),
+    );
+
+    modal = {
+      top: `${week * 120 - 20}px`,
+      left: `${widthToPct(day * 120 - 10, daysInWeek)}`,
+    };
+  }
 
   return (
     <MonthCalendarConfigContext.Provider
@@ -561,10 +578,6 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                               ),
                             );
                       }
-                      setModal({
-                        top: `${week * 120 + row - 20}px`,
-                        left: `${widthToPct(day * 120 - 10, daysInWeek)}`,
-                      });
                     }}
                     className="more-events-button"
                     numHiddenEvents={moreButtonEvents.length}
@@ -663,7 +676,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
           </Box>
 
           {/** More events modal */}
-          {modal && (
+          {moreButtonClicked && modal && (
             <div id="modal-container">
               <Box
                 sx={{
@@ -785,10 +798,8 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                             event: event.sourceEvent,
                             sx: {
                               width: "100%",
-                              // top: week * 120 + row * (16 + 1) + 1 + 50,
                               top: index * (16 + 1),
                               height: "16px",
-                              // position: "absolute",
                               zIndex: 3,
                             },
                             allDayEvent: isAllDayEvent(event.sourceEvent),
@@ -810,7 +821,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                     variant="text"
                     size="small"
                     onClick={() => {
-                      setModal(undefined);
+                      setMoreButtonClicked(undefined);
                     }}
                   >
                     Close
