@@ -1,7 +1,6 @@
 import { Box, Button, ButtonProps, Divider, Typography } from "@mui/material";
 import {
   addDays,
-  addMinutes,
   addWeeks,
   areIntervalsOverlapping,
   differenceInCalendarDays,
@@ -11,19 +10,17 @@ import {
   getWeeksInMonth,
   isSameDay,
   isSameMonth,
-  isSameWeek,
   max,
   min,
   startOfDay,
   startOfMonth,
   startOfWeek,
-  subDays,
 } from "date-fns";
 import React, {
   ReactElement,
   createContext,
   useContext,
-  useRef,
+  useEffect,
   useState,
 } from "react";
 import { eventGrid, monthCalendarRange } from "../event_grid";
@@ -42,8 +39,8 @@ import { ModifiableEvent } from "../week_calendar/types";
 import { FlexCol, FlexRow } from "../wrappers";
 
 import { filterEventsInMonth } from "./filter_events_in_month";
-import { splitMultiWeekEvents } from "./split_multi_week_events";
 import { MonthCalendarEvent } from "./month_calendar_event";
+import { splitMultiWeekEvents } from "./split_multi_week_events";
 
 type RawContext<T> =
   | undefined
@@ -145,7 +142,31 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
   );
 
   const [moreButtonClicked, setMoreButtonClicked] = useState<Date>(new Date());
-  const modalRef = useRef<HTMLDivElement>(null);
+  const [modal, setModal] = useState<undefined | { top: string; left: string }>(
+    undefined,
+  );
+
+  useEffect(() => {
+    const handleDocumentClick = (event: MouseEvent) => {
+      const elementTree = document.getElementById("modal-container");
+      const ignoreElement = (event.target as HTMLElement).closest(
+        ".more-events-button",
+      );
+
+      if (elementTree !== null && !ignoreElement) {
+        if (elementTree.contains(event.target as Node)) {
+          return;
+        }
+        setModal(undefined);
+      }
+    };
+
+    window.addEventListener("click", handleDocumentClick);
+
+    return () => {
+      document.removeEventListener("click", handleDocumentClick);
+    };
+  });
 
   const daysInWeek = 7;
 
@@ -266,12 +287,14 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
     /** list of events that have the same source event */
     ModifiableEvent<T>[]
   > = {};
+
   const sourceIndex: CalendarEvent<T>[] = [];
   const lists: Record<
     /** srcIndex */
     string,
     ModifiableEvent<T>[]
   > = {};
+
   events.forEach((event, index) => {
     let srcIndex = sourceIndex.indexOf(event.sourceEvent);
     if (srcIndex === -1) {
@@ -538,16 +561,10 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                               ),
                             );
                       }
-                      if (modalRef.current) {
-                        modalRef.current.style.visibility = "visible";
-                        modalRef.current.style.left = `${widthToPct(
-                          day * 120 - 20,
-                          daysInWeek,
-                        )}`;
-                        modalRef.current.style.top = `${
-                          week * 120 + row - 20
-                        }px`;
-                      }
+                      setModal({
+                        top: `${week * 120 + row - 20}px`,
+                        left: `${widthToPct(day * 120 - 10, daysInWeek)}`,
+                      });
                     }}
                     className="more-events-button"
                     numHiddenEvents={moreButtonEvents.length}
@@ -646,158 +663,162 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
           </Box>
 
           {/** More events modal */}
-          <Box
-            ref={modalRef}
-            sx={{
-              visibility: "hidden",
-              px: "4px",
-              py: "2px",
-              height: "fit-content",
-              width: widthToPct(140, daysInWeek),
-              position: "absolute",
-              inset: 0,
-              zIndex: 3,
-              bgcolor: (theme) =>
-                theme.palette.mode === "light"
-                  ? theme.palette.background.default
-                  : "white",
-              boxShadow: (theme) => theme.shadows[1],
-              borderRadius: "4px",
-            }}
-          >
-            <FlexCol width="100%">
-              <FlexCol height="66px">
-                <FlexRow
-                  height="40px"
-                  width="100%"
-                  justifyContent="center"
-                  alignItems="center"
-                >
-                  <Typography
-                    variant="body2"
-                    color={
-                      isSameDay(moreButtonClicked, startOfMonth)
-                        ? (theme) => theme.palette.primary.contrastText
-                        : isSameMonth(moreButtonClicked, startOfMonth)
-                          ? (theme) => theme.palette.text.primary
-                          : (theme) => theme.palette.text.secondary
-                    }
-                  >
-                    {format(moreButtonClicked, "EEE")}
-                  </Typography>
-                </FlexRow>
-                <FlexRow
-                  height="40px"
-                  width="100%"
-                  justifyContent="center"
-                  alignItems="center"
-                >
-                  <Typography
-                    variant="body2"
-                    color={
-                      isSameDay(moreButtonClicked, startOfMonth)
-                        ? (theme) => theme.palette.primary.contrastText
-                        : isSameMonth(moreButtonClicked, startOfMonth)
-                          ? (theme) => theme.palette.text.primary
-                          : (theme) => theme.palette.text.secondary
-                    }
-                  >
-                    {format(moreButtonClicked, "d")}
-                  </Typography>
-                </FlexRow>
-              </FlexCol>
-              <FlexCol
-                gap="1px"
-                position="relative"
+          {modal && (
+            <div id="modal-container">
+              <Box
                 sx={{
-                  height: `${
-                    eventsInMonth.filter((ev) =>
-                      areIntervalsOverlapping(
-                        {
-                          start: moreButtonClicked,
-                          end: endOfDay(moreButtonClicked),
-                        },
-                        { start: ev.start, end: ev.end },
-                      ),
-                    ).length * 18
-                  }px`,
+                  px: "4px",
+                  py: "2px",
+                  height: "fit-content",
+                  width: widthToPct(140, daysInWeek),
+                  position: "absolute",
+                  inset: 0,
+                  top: modal.top,
+                  left: modal.left,
+                  zIndex: 3,
+                  bgcolor: (theme) =>
+                    theme.palette.mode === "light"
+                      ? theme.palette.background.default
+                      : "white",
+                  boxShadow: (theme) => theme.shadows[1],
+                  borderRadius: "4px",
                 }}
               >
-                {moreButtonClicked &&
-                  events
-                    .filter((ev) =>
-                      areIntervalsOverlapping(
-                        {
-                          start: moreButtonClicked,
-                          end: endOfDay(moreButtonClicked),
-                        },
-                        { start: ev.start, end: ev.end },
-                      ),
-                    )
-                    .map((event, index) => {
-                      const indexOfEvent = events.indexOf(event);
+                <FlexCol width="100%">
+                  <FlexCol height="66px">
+                    <FlexRow
+                      height="40px"
+                      width="100%"
+                      justifyContent="center"
+                      alignItems="center"
+                    >
+                      <Typography
+                        variant="body2"
+                        color={
+                          isSameDay(moreButtonClicked, startOfMonth)
+                            ? (theme) => theme.palette.primary.contrastText
+                            : isSameMonth(moreButtonClicked, startOfMonth)
+                              ? (theme) => theme.palette.text.primary
+                              : (theme) => theme.palette.text.secondary
+                        }
+                      >
+                        {format(moreButtonClicked, "EEE")}
+                      </Typography>
+                    </FlexRow>
+                    <FlexRow
+                      height="40px"
+                      width="100%"
+                      justifyContent="center"
+                      alignItems="center"
+                    >
+                      <Typography
+                        variant="body2"
+                        color={
+                          isSameDay(moreButtonClicked, startOfMonth)
+                            ? (theme) => theme.palette.primary.contrastText
+                            : isSameMonth(moreButtonClicked, startOfMonth)
+                              ? (theme) => theme.palette.text.primary
+                              : (theme) => theme.palette.text.secondary
+                        }
+                      >
+                        {format(moreButtonClicked, "d")}
+                      </Typography>
+                    </FlexRow>
+                  </FlexCol>
+                  <FlexCol
+                    gap="1px"
+                    position="relative"
+                    sx={{
+                      height: `${
+                        eventsInMonth.filter((ev) =>
+                          areIntervalsOverlapping(
+                            {
+                              start: moreButtonClicked,
+                              end: endOfDay(moreButtonClicked),
+                            },
+                            { start: ev.start, end: ev.end },
+                          ),
+                        ).length * 18
+                      }px`,
+                    }}
+                  >
+                    {moreButtonClicked &&
+                      events
+                        .filter((ev) =>
+                          areIntervalsOverlapping(
+                            {
+                              start: moreButtonClicked,
+                              end: endOfDay(moreButtonClicked),
+                            },
+                            { start: ev.start, end: ev.end },
+                          ),
+                        )
+                        .map((event, index) => {
+                          const indexOfEvent = events.indexOf(event);
 
-                      const { week, day, row } =
-                        eventProperties[`${indexOfEvent}`];
+                          const { week, day, row } =
+                            eventProperties[`${indexOfEvent}`];
 
-                      let width = differenceInCalendarDays(
-                        event.end,
-                        event.start,
-                      );
-                      if (
-                        event.end.getTime() === endOfDay(event.end).getTime()
-                      ) {
-                        width += 1;
-                      }
-                      width = Math.max(width, 1);
-                      const dataProps: any = {
-                        "data-type": "month-calendar-event",
-                        "data-calendar-event": JSON.stringify({
-                          x: day,
-                          colX: 0,
-                          index: indexOfEvent,
-                          w: Math.max(width, 1),
-                        }),
-                      };
-                      const props: React.ComponentPropsWithoutRef<
-                        typeof MonthCalendarEvent
-                      > = {
-                        event: event.sourceEvent,
-                        sx: {
-                          width: "100%",
-                          // top: week * 120 + row * (16 + 1) + 1 + 50,
-                          top: index * (16 + 1),
-                          height: "16px",
-                          // position: "absolute",
-                          zIndex: 3,
-                        },
-                        allDayEvent: isAllDayEvent(event.sourceEvent),
-                        state:
-                          draggedEvent &&
-                          event.sourceEvent === draggedEvent?.source.sourceEvent
-                            ? "selected"
-                            : "normal",
-                        ...dataProps,
-                      };
+                          let width = differenceInCalendarDays(
+                            event.end,
+                            event.start,
+                          );
+                          if (
+                            event.end.getTime() ===
+                            endOfDay(event.end).getTime()
+                          ) {
+                            width += 1;
+                          }
+                          width = Math.max(width, 1);
+                          const dataProps: any = {
+                            "data-type": "month-calendar-event",
+                            "data-calendar-event": JSON.stringify({
+                              x: day,
+                              colX: 0,
+                              index: indexOfEvent,
+                              w: Math.max(width, 1),
+                            }),
+                          };
+                          const props: React.ComponentPropsWithoutRef<
+                            typeof MonthCalendarEvent
+                          > = {
+                            event: event.sourceEvent,
+                            sx: {
+                              width: "100%",
+                              // top: week * 120 + row * (16 + 1) + 1 + 50,
+                              top: index * (16 + 1),
+                              height: "16px",
+                              // position: "absolute",
+                              zIndex: 3,
+                            },
+                            allDayEvent: isAllDayEvent(event.sourceEvent),
+                            state:
+                              draggedEvent &&
+                              event.sourceEvent ===
+                                draggedEvent?.source.sourceEvent
+                                ? "selected"
+                                : "normal",
+                            ...dataProps,
+                          };
 
-                      return (
-                        <MonthCalendarEvent key={indexOfEvent} {...props} />
-                      );
-                    })}
-              </FlexCol>
-              <Button
-                variant="text"
-                size="small"
-                onClick={() => {
-                  if (modalRef.current) {
-                    modalRef.current.style.visibility = "hidden";
-                  }
-                }}
-              >
-                Close
-              </Button>
-            </FlexCol>
-          </Box>
+                          return (
+                            <MonthCalendarEvent key={indexOfEvent} {...props} />
+                          );
+                        })}
+                  </FlexCol>
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={() => {
+                      setModal(undefined);
+                    }}
+                  >
+                    Close
+                  </Button>
+                </FlexCol>
+              </Box>
+            </div>
+          )}
         </Box>
       </FlexRow>
     </MonthCalendarConfigContext.Provider>
