@@ -432,3 +432,93 @@ test("eventProperties", () => {
     }
   `);
 });
+
+test("some edge-case", () => {
+  expect(
+    eventGrid(
+      [
+        {
+          sourceEvent: {
+            start: startOfDay(addDays(new Date(), 5)),
+            color: "red",
+            title: "A",
+            canEdit: true,
+          },
+          start: startOfDay(addDays(new Date(), 5)),
+          end: endOfDay(addDays(new Date(), 5)),
+        },
+        {
+          start: startOfDay(addDays(new Date(), 3)),
+          end: endOfDay(addDays(new Date(), 4)),
+          sourceEvent: {
+            start: startOfDay(addDays(new Date(), 3)),
+            end: endOfDay(addDays(new Date(), 4)),
+            title: "B",
+            color: "green",
+            canEdit: true,
+          },
+        },
+        {
+          start: startOfDay(addDays(new Date(), 4)),
+          end: endOfDay(addDays(new Date(), 5)),
+          sourceEvent: {
+            start: startOfDay(addDays(new Date(), 4)),
+            end: endOfDay(addDays(new Date(), 5)),
+            title: "C",
+            color: "blue",
+            canEdit: true,
+          },
+        },
+      ],
+
+      "monday",
+      new Date(),
+      fns
+    ).grid
+  ).toMatchInlineSnapshot(`
+    [
+      ,
+      ,
+      ,
+      [
+        ,
+        [
+          {
+            "end": "2024-06-19 23:59",
+            "index": 0,
+            "start": "2024-06-18 00:00",
+            "title": "B",
+          },
+        ],
+        [
+          {
+            "end": "2024-06-19 23:59",
+            "index": 0,
+            "start": "2024-06-18 00:00",
+            "title": "B",
+          },
+          {
+            "end": "2024-06-20 23:59",
+            "index": 1,
+            "start": "2024-06-19 00:00",
+            "title": "C",
+          },
+        ],
+        [
+          {
+            "end": "2024-06-20 23:59",
+            "index": 2,
+            "start": "2024-06-20 00:00",
+            "title": "A",
+          },
+          {
+            "end": "2024-06-20 23:59",
+            "index": 1,
+            "start": "2024-06-19 00:00",
+            "title": "C",
+          },
+        ],
+      ],
+    ]
+  `);
+});

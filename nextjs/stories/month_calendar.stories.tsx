@@ -131,3 +131,33 @@ export const FilledCalendar: Story = {
     return <InteractiveDemo type="month" {...props} />;
   },
 };
+
+export const WithBuggedEvents: Story = {
+  args: {
+    events: [
+      {
+        title: "A",
+        start: startOfDay(addDays(new Date(), 2)),
+        color: "red",
+        canEdit: true,
+      },
+      {
+        title: "B",
+        start: startOfDay(addDays(new Date(), 0)),
+        end: endOfDay(addDays(new Date(), 1)),
+        color: "green",
+        canEdit: true,
+      },
+      {
+        title: "C",
+        start: startOfDay(addDays(new Date(), 1)),
+        end: endOfDay(addDays(new Date(), 2)),
+        color: "blue",
+        canEdit: true,
+      },
+    ],
+  },
+  render: (props) => {
+    return <InteractiveDemo type="month" {...props} />;
+  },
+};

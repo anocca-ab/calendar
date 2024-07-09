@@ -33,7 +33,7 @@ export function eventGrid<T>(
   events: ModifiableEvent<T>[],
   startDay: StartDay,
   startTime: Date,
-  endTime: Date,
+  endTime: Date
 ) {
   const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
     startDay === "monday" ? 1 : 0;
@@ -91,9 +91,36 @@ export function eventGrid<T>(
     const rows = grid[week][day];
 
     // find the first available position
-    const firstAvailableRow = rows.findIndex((e) => typeof e === "undefined");
-    const row = firstAvailableRow === -1 ? rows.length : firstAvailableRow;
-    rows[row] = {
+    let occupiedRows: number[] = [];
+    let pinnedRow = -1;
+    grid[week].forEach((week, dayIndex) => {
+      week.forEach((event, row) => {
+        const ev = events[event.index];
+        const eventEnd = min([getEventEnd(ev), endTime]);
+        const evEndDay = differenceInDays(
+          eventEnd,
+          startOfWeek(eventEnd, { weekStartsOn })
+        );
+        if (evEndDay >= day) {
+          if (event.index === eventIndex) {
+            pinnedRow = row;
+          } else {
+            occupiedRows.push(row);
+          }
+        }
+      });
+    });
+    let firstAvailableRow = pinnedRow !== -1 ? pinnedRow : rows.length;
+    if (pinnedRow === -1) {
+      for (let i = 0; i < Math.max(...occupiedRows); i += 1) {
+        if (!occupiedRows.includes(i)) {
+          firstAvailableRow = i;
+          break;
+        }
+      }
+    }
+
+    rows[firstAvailableRow] = {
       index: eventIndex,
       title: event.sourceEvent.title ?? "no title",
       start: format(event.start, "yyyy-MM-dd HH:mm"),
@@ -103,14 +130,13 @@ export function eventGrid<T>(
     // only the first time we assign the event to the grid we will store the properties
     if (!eventProperties[eventIndex]) {
       eventProperties[eventIndex] = {
-        row,
+        row: firstAvailableRow,
         day,
         week,
         maxRow: 0,
       };
     }
   };
-
 
   events.forEach((event, index) => {
     const eventStart = max([event.start, startTime]);
