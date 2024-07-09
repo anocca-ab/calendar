@@ -28,9 +28,14 @@ await Bun.write(
       name: "@anocca/calendar",
       version: packageJson.version,
       license: "MIT",
-      main: "build/index.js",
-      module: "build/index.js",
-      types: "build/index.d.ts",
+      main: "dist/cjs/index.js",
+      module: "dist/esm/index.js",
+      exports: {
+        ".": {
+          import: "./dist/esm/index.js",
+          require: "./dist/cjs/index.js",
+        },
+      },
       description: "A calendar component for React",
       title: "Calendar",
       author: "Anocca",
@@ -51,38 +56,70 @@ await Bun.write(
     2,
   ),
 );
-await Bun.write(
-  path.join(baseDir, "tsconfig.json"),
-  JSON.stringify(
-    {
-      compilerOptions: {
-        lib: ["dom", "dom.iterable", "esnext"],
-        allowJs: false,
-        skipLibCheck: true,
-        strict: true,
-        noEmit: false,
-        outDir: "build",
-        esModuleInterop: true,
-        module: "esnext",
-        moduleResolution: "node",
-        resolveJsonModule: true,
-        isolatedModules: false,
-        downlevelIteration: true,
-        jsx: "react-jsx",
-        incremental: true,
-        declaration: true,
-        declarationMap: true,
-        paths: {
-          "@/components/*": ["./*"],
-        },
-      },
-      include: ["**/*.ts", "**/*.tsx", "global.d.ts"],
-      exclude: ["node_modules"],
+for (const props of [
+  {
+    type: "esm",
+    compilerOptions: { module: "esnext", outDir: "dist/esm", target: "esnext" },
+  },
+  {
+    type: "cjs",
+    compilerOptions: {
+      module: "commonjs",
+      outDir: "dist/cjs",
+      target: "es2015",
     },
-    null,
-    2,
-  ),
-);
+  },
+]) {
+  await Bun.write(
+    path.join(baseDir, `tsconfig-${props.type}.json`),
+    JSON.stringify(
+      {
+        compilerOptions: {
+          lib: ["dom", "dom.iterable", "esnext"],
+          allowJs: false,
+          skipLibCheck: true,
+          strict: true,
+          noEmit: false,
+          sourceMap: false,
+          esModuleInterop: true,
+          moduleResolution: "node",
+          resolveJsonModule: true,
+          isolatedModules: false,
+          downlevelIteration: true,
+          jsx: "react-jsx",
+          pretty: true,
+          incremental: true,
+          declaration: true,
+          declarationMap: true,
+          paths: {
+            "@/components/*": ["./*"],
+          },
+          ...props.compilerOptions,
+        },
+        include: ["**/*.ts", "**/*.tsx", "global.d.ts"],
+        exclude: ["node_modules"],
+      },
+      null,
+      2,
+    ),
+  );
+}
+
+async function replaceAsync(
+  str: string,
+  regex: RegExp,
+  asyncFn: (...args: any[]) => Promise<any>,
+) {
+  const promises: Promise<any>[] = [];
+
+  str.replaceAll(regex, (full, ...args) => {
+    promises.push(asyncFn(full, ...args));
+    return full;
+  });
+
+  const data = await Promise.all(promises);
+  return str.replaceAll(regex, () => data.shift());
+}
 
 for await (const file of glob.scan("nextjs/components")) {
   if (file.includes(".test.")) {
@@ -93,10 +130,12 @@ for await (const file of glob.scan("nextjs/components")) {
   await mkdir(outDir, { recursive: true });
   const f = Bun.file(path.join("nextjs/components", file));
   const relPath = path.relative(outDir, baseDir);
+
   const content = (await f.text()).replaceAll(
     /from (["'])(@\/components\/)/gm,
     `from $1${relPath === "" ? "." : relPath}/`,
   );
+
   await Bun.write(path.join(baseDir, file), content);
 }
 
@@ -138,12 +177,61 @@ await Bun.write(
 
 await Bun.write(path.join(baseDir, "README.md"), Bun.file("README.md"));
 
-await $`cd ${baseDir} && bunx tsc`;
+await $`cd ${baseDir} && bunx tsc -p tsconfig-esm.json && bunx tsc -p tsconfig-cjs.json`;
+
+for (const type of ["esm", "cjs"]) {
+  await Bun.write(
+    path.join(baseDir, "dist", type, "package.json"),
+    JSON.stringify(
+      {
+        type: type === "esm" ? "module" : "commonjs",
+      },
+      null,
+      2,
+    ),
+  );
+}
 
 await Bun.write(
   path.join(baseDir, ".npmignore"),
-  [".npmrc", "tsconfig.json"].join("\n") + "\n",
+  [".npmrc", "tsconfig.json", "tsconfig-esm.json", "tsconfig-cjs.json"].join(
+    "\n",
+  ) + "\n",
 );
+
+for await (const file of new Glob("**/*.js").scan(
+  path.join(baseDir, "dist/esm"),
+)) {
+  const dir = path.parse(file).dir;
+
+  const fileDir = path.join(baseDir, "dist/esm", dir);
+  const f = Bun.file(path.join(baseDir, "dist/esm", file));
+
+  const content = await replaceAsync(
+    await f.text(),
+    /from (["'])([^"']+)(["'])/gm,
+    async (match, p1, p2, p3) => {
+      if (!p2.startsWith(".")) {
+        return match;
+      }
+
+      const fPaths = ["js"].map((ext) => [
+        path.join(fileDir, p2) + "." + ext,
+        ext,
+      ]);
+      console.log(fPaths);
+      for (const [fPath, ext] of fPaths) {
+        if (await Bun.file(fPath).exists()) {
+          return `from ${p1}${p2}.${ext}${p3}`;
+        }
+      }
+
+      return match;
+    },
+  );
+
+  await Bun.write(path.join(baseDir, "dist/esm", file), content);
+}
 
 await $`cd ${baseDir} && npm publish --always-auth=false --registry=https://verdaccio--kube.anocca.com/ --access=public`;
 
