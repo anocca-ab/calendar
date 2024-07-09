@@ -99,7 +99,7 @@ export function useMouse<T>(
     onMoveEvent?: (
       event: ModifiableEvent<T>,
       start: Date,
-      end: Date | undefined
+      end: Date | undefined,
     ) => void;
     onEditEvent?: (event: ModifiableEvent<T>) => void;
     events: ModifiableEvent<T>[];
@@ -112,16 +112,16 @@ export function useMouse<T>(
     calculateNewTime: (
       state: MouseState,
       dragged: DragPosition<ModifiableEvent<T>>,
-      container: EventContainer
+      container: EventContainer,
     ) => { start: Date; end: Date } | undefined;
     createNewEvent?: (
       pos0: MouseStatePos,
-      container: DOMRect
+      container: DOMRect,
     ) => DragPosition<ModifiableEvent<T>> | undefined;
     dragCreateEvent?: (start: Date, end?: Date) => void;
     eventContainerRef: React.MutableRefObject<HTMLDivElement | null>;
   }>,
-  workWeek: boolean
+  workWeek: boolean,
 ) {
   const daysInWeek = workWeek ? 5 : 7;
 
@@ -173,6 +173,7 @@ export function useMouse<T>(
             colX: number;
           } = JSON.parse(ev.target.dataset.calendarEvent!);
           const event = effectRefs.current.events[data.index];
+
           const rect = ev.target.getBoundingClientRect();
           dragged = {
             type: "existing",
@@ -188,7 +189,7 @@ export function useMouse<T>(
           if (effectRefs.current.createNewEvent && container) {
             const createNewEvent = effectRefs.current.createNewEvent(
               pos0,
-              container.getBoundingClientRect()
+              container.getBoundingClientRect(),
             );
             if (createNewEvent) {
               dragged = createNewEvent;
@@ -247,7 +248,7 @@ export function useMouse<T>(
                 effectRefs.current.onMoveEvent(
                   draggedEvent.source,
                   newStart,
-                  newEnd
+                  newEnd,
                 );
               }
             }
@@ -287,7 +288,7 @@ export function useMouse<T>(
         const newEventTime = effectRefs.current.calculateNewTime(
           state,
           dragged,
-          container
+          container,
         );
 
         /**
@@ -388,7 +389,7 @@ export function useDragableEvents<T>(events: CalendarEvent<T>[]) {
     };
     newDragged.end = getEventEnd(newDragged);
     const index = allEvents.findIndex(
-      (ev) => ev.sourceEvent === draggedEvent.source.sourceEvent
+      (ev) => ev.sourceEvent === draggedEvent.source.sourceEvent,
     );
     if (index !== -1) {
       // it is a new event
@@ -410,7 +411,7 @@ export function dayDiff<T>(
   pos0: MouseStatePos,
   dragged: DragPosition<ModifiableEvent<T>>,
   daysInWeek: number,
-  container: EventContainer
+  container: EventContainer,
 ) {
   let rawDelta = pos.x + -pos0.x + pos.scrollX - pos0.scrollX;
 
@@ -428,9 +429,9 @@ export function dayDiff<T>(
   const delta = Math.min(
     Math.max(
       Math.floor(rawDelta / dayUnitToPx(120, daysInWeek, container)),
-      minDiff
+      minDiff,
     ),
-    daysInWeek - dragged.x - 1
+    daysInWeek - dragged.x - 1,
   );
   return delta;
 }
@@ -438,7 +439,7 @@ export function dayDiff<T>(
 export function dayUnitToPx(
   width: number,
   daysInWeek: number,
-  container: EventContainer
+  container: EventContainer,
 ) {
   return container.width * (width / (120 * daysInWeek));
 }
@@ -451,13 +452,13 @@ export function useEffectRefs<T>(
   calculateNewTime: (
     state: MouseState,
     dragged: DragPosition<ModifiableEvent<T>>,
-    container: EventContainer
+    container: EventContainer,
   ) => { start: Date; end: Date } | undefined,
   calendarProps: {
     onMoveEvent?: (
       event: CalendarEvent<T>,
       newStart: Date,
-      newEnd: Date | undefined
+      newEnd: Date | undefined,
     ) => void;
     onEditEvent?: (event: CalendarEvent<T>) => void;
     onCreateEvent?: (start: Date, end: Date) => void;
@@ -465,8 +466,8 @@ export function useEffectRefs<T>(
   },
   createNewEvent?: (
     pos0: MouseStatePos,
-    container: DOMRect
-  ) => DragPosition<ModifiableEvent<T>> | undefined
+    container: DOMRect,
+  ) => DragPosition<ModifiableEvent<T>> | undefined,
 ) {
   const ome = calendarProps.onMoveEvent;
   const onMoveEvent = ome

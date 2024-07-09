@@ -286,8 +286,6 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
     eventParts[index].push(event);
   });
 
-  console.log(draggedEvent);
-
   return (
     <MonthCalendarConfigContext.Provider
       value={{
@@ -737,7 +735,11 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                       ),
                     )
                     .map((event, index) => {
-                      const { week, day, row } = eventProperties[`${index}`];
+                      const indexOfEvent = events.indexOf(event);
+
+                      const { week, day, row } =
+                        eventProperties[`${indexOfEvent}`];
+
                       let width = differenceInCalendarDays(
                         event.end,
                         event.start,
@@ -753,7 +755,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         "data-calendar-event": JSON.stringify({
                           x: day,
                           colX: 0,
-                          index,
+                          index: indexOfEvent,
                           w: Math.max(width, 1),
                         }),
                       };
@@ -778,7 +780,9 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         ...dataProps,
                       };
 
-                      return <MonthCalendarEvent key={index} {...props} />;
+                      return (
+                        <MonthCalendarEvent key={indexOfEvent} {...props} />
+                      );
                     })}
               </FlexCol>
               <Button
