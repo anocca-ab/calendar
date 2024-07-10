@@ -9,7 +9,7 @@ type RawContext<T> =
       startOfWeek: Date;
       now: Date;
       onCreateEvent?: (start: Date, end: Date) => void;
-      onEditEvent?: (event: CalendarEvent<T>) => void;
+      onEditEvent?: (event: CalendarEvent<T>, nativeEvent: MouseEvent) => void;
       onMoveEvent?: (
         event: CalendarEvent<T>,
         newStart: Date,

@@ -103,7 +103,7 @@ export type WeekCalendarProps<T> = {
    * @param event a calendar event
    * @returns void
    */
-  onEditEvent?: (event: CalendarEvent<T>) => void;
+  onEditEvent?: (event: CalendarEvent<T>, nativeEvent: MouseEvent) => void;
 
   /**
    * If provided the user can drag to create events
