@@ -233,7 +233,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
 
   return (
     <Box sx={{ position: "relative" }}>
-      <Grid {...p} height={height ? height + 11 : height} />
+      <Grid {...p} height={height} empty={events.length === 0} />
       <Header {...p} />
       <Box
         sx={{

@@ -17,15 +17,7 @@ import { TimelineResolution, StartDay } from "../types";
 import { FlexRow, FlexCol } from "../wrappers";
 import { widthToPct } from "./to_pct";
 
-function MonthHeader({
-  startTime,
-  now,
-  startDay,
-}: {
-  startTime: Date;
-  now: Date;
-  startDay: StartDay;
-}) {
+function MonthHeader({ startTime, now }: { startTime: Date; now: Date }) {
   const weeks: Date[] = [];
   const days: Date[] = [];
   for (let i = 0; i < 6; i += 1) {
@@ -49,7 +41,6 @@ function MonthHeader({
         width={119}
       />
       <Box sx={{ height: "16px" }} />
-
       <FlexRow>
         {days.map((day, index) => {
           let w = 17;
@@ -66,6 +57,7 @@ function MonthHeader({
                 alignItems: "center",
                 height: "16px",
                 position: "relative",
+                justifyContent: "center",
               }}
             >
               {index !== 0 && (
@@ -80,9 +72,12 @@ function MonthHeader({
                 ></Box>
               )}
               <FlexRow
-                justifyContent="center"
-                alignItems={"center"}
-                sx={{ width: `${widthToPct(w - 1)}px`, height: "16px" }}
+                sx={{
+                  width: widthToPct(w - 1),
+                  height: "16px",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
               >
                 <FlexCol alignItems="center" justifyContent="center">
                   <Typography
@@ -101,7 +96,7 @@ function MonthHeader({
                       sx={{
                         background: (theme) => theme.palette.primary.main,
                         height: "1px",
-                        width: widthToPct(8),
+                        width: `min(${100 * 8 / w}%, 12px)`,
                         borderRadius: "1px",
                         position: "absolute",
                         bottom: "2px",

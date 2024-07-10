@@ -63,7 +63,7 @@ function MonthHeader({
                 key={index}
                 sx={{
                   display: "flex",
-                  width: `${w}px`,
+                  width: widthToPct(w),
                   alignItems: "center",
                   height: "16px",
                   position: "relative",
@@ -188,18 +188,29 @@ export function Grid({
   now: Date;
   startDay: StartDay;
   height: number;
+  empty: boolean;
 }) {
+  let height = props.height;
+  if (!props.empty) {
+    height += 11; // for the time indicator
+  }
   if (resolution === "month") {
-    return <MonthHeader {...props} />;
+    // month is a little special
+    if (!props.empty) {
+      height -= 6;
+    }
+  }
+  if (resolution === "month") {
+    return <MonthHeader {...props} height={height} />;
   }
   if (resolution === "3-months") {
-    return <ThreeMonthHeader {...props} />;
+    return <ThreeMonthHeader {...props} height={height} />;
   }
   if (resolution === "year") {
-    return <YearHeader {...props} />;
+    return <YearHeader {...props} height={height} />;
   }
   if (resolution === "3-years") {
-    return <ThreeYearHeader {...props} />;
+    return <ThreeYearHeader {...props} height={height} />;
   }
   throw new Error("Invalid resolution");
 }
