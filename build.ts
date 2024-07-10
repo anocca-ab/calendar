@@ -219,7 +219,6 @@ for await (const file of new Glob("**/*.js").scan(
         path.join(fileDir, p2) + "." + ext,
         ext,
       ]);
-      console.log(fPaths);
       for (const [fPath, ext] of fPaths) {
         if (await Bun.file(fPath).exists()) {
           return `from ${p1}${p2}.${ext}${p3}`;

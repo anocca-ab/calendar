@@ -45,6 +45,9 @@ import {
   findEventOverlaps,
 } from "../week_calendar/event_overlap_functions";
 import { getPositions } from "../week_calendar/clique_grid";
+import { Header } from "./header";
+import { Grid } from "./grid";
+import { widthToPct } from "./to_pct";
 
 export type TimelineProps<T> = {
   /**
@@ -152,11 +155,187 @@ function parseDefaultProps<T>(props: TimelineProps<T>) {
 
 export function Timeline<T>(props: TimelineProps<T>) {
   const p = parseDefaultProps(props);
+  const {
+    startTime,
+    events: sourceEvents,
+    startDay,
+    resolution,
+    ...calendarProps
+  } = p;
+
+  const [allEvents, draggedEvent, setDraggedEvent] =
+    useDragableEvents(sourceEvents);
+
+  const events: ModifiableEvent<T>[] = parseEventsInTimeline(
+    allEvents,
+    resolution,
+    startTime
+  );
+
+  const [verticalPositions] = getPositions(events);
+
+  const [timelineStart, timelineEnd] = getTimelineRange(resolution, startTime);
+
+  const [effectRefs, eventContainerRef] = useEffectRefs(
+    events,
+    setDraggedEvent,
+    (state, dragged, container) => {
+      if (state.pos && state.pos0) {
+        const { pos, pos0 } = state;
+        let rawDelta = pos.x + -pos0.x + pos.scrollX - pos0.scrollX;
+
+        let addedMs =
+          (timelineEnd.getTime() - timelineStart.getTime()) *
+          (rawDelta / container.width);
+
+        const minDuration =
+          (4 * (timelineEnd.getTime() - timelineStart.getTime())) /
+          container.width; // 4px width
+
+        const minAddedMs =
+          timelineStart.getTime() - dragged.event.end.getTime() + minDuration;
+
+        const maxAddedMs =
+          timelineEnd.getTime() - dragged.event.start.getTime() - minDuration;
+
+        addedMs = Math.min(Math.max(addedMs, minAddedMs), maxAddedMs);
+
+        let start = addMilliseconds(dragged.event.sourceEvent.start, addedMs);
+        let end = addMilliseconds(
+          getEventEnd(dragged.event.sourceEvent),
+          addedMs
+        );
+
+        if (addedMs !== 0) {
+          return {
+            start,
+            end,
+          };
+        }
+      }
+      return undefined;
+    },
+    calendarProps
+  );
+
+  useMouse("timeline-event", effectRefs, false);
+
+  const start = timelineStart.getTime();
+  const end = timelineEnd.getTime();
+  const totalSecondsOfMonth = end - start;
+  const indices = Object.values(verticalPositions);
+  const currentMaxHeight =
+    indices.length > 0 ? indices.reduce((p, c) => Math.max(p, c), 0) + 1 : 0;
+
+  const maxHeightRef = React.useRef(currentMaxHeight);
+  maxHeightRef.current = Math.max(currentMaxHeight, maxHeightRef.current);
+  const height = maxHeightRef.current * (16 + 1);
 
   return (
-    <Box>
+    <Box sx={{ position: "relative" }}>
+      <Grid {...p} height={height ? height + 11 : height} />
       <Header {...p} />
-      <Grid {...p} />
+      <Box
+        sx={{
+          position: "relative",
+          height: height + 9,
+        }}
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 1,
+          }}
+          ref={eventContainerRef}
+        >
+          {events.map((event, index) => {
+            const x = widthToPct(
+              (720 * (event.start.getTime() - start)) / totalSecondsOfMonth
+            );
+            const w = widthToPct(
+              (720 * (event.end.getTime() - event.start.getTime())) /
+                totalSecondsOfMonth
+            );
+
+            let width = differenceInCalendarDays(event.end, event.start);
+            if (event.end.getTime() === endOfDay(event.end).getTime()) {
+              width += 1;
+            }
+
+            return (
+              <React.Fragment key={index}>
+                <Box
+                  zIndex={2}
+                  component={Button}
+                  data-type={"timeline-event"}
+                  data-calendar-event={JSON.stringify({
+                    x: 0,
+                    colX: 0,
+                    index,
+                    w: Math.max(width, 1),
+                  })}
+                  sx={{
+                    minWidth: "auto",
+                    width: w,
+                    left: x,
+                    top: verticalPositions[index] * (16 + 1) + 11,
+                    height: "16px",
+                    position: "absolute",
+                    overflow: "hidden",
+                    borderRadius: "4px",
+                    padding: 0,
+                    margin: 0,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      backgroundColor: event.sourceEvent.color ?? DEFAULT_COLOR,
+                      display: "flex",
+                      justifyContent: "flex-start",
+                      padding: "0px 8px",
+                      flex: 1,
+                      alignItems: "center",
+                      whiteSpace: "nowrap",
+                      pointerEvents: "none",
+                      "*": {
+                        pointerEvents: "none",
+                      },
+                    }}
+                  >
+                    <Typography
+                      variant="event"
+                      color={(theme) => theme.palette.primary.contrastText}
+                    >
+                      {event.sourceEvent.title ?? "(No title)"}
+                    </Typography>
+                  </Box>
+                </Box>
+              </React.Fragment>
+            );
+          })}
+        </Box>
+        {events.length > 0 && (
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none",
+              zIndex: 2,
+            }}
+          >
+            <TimeIndicator
+              sx={{
+                height: "100%",
+                left: widthToPct(
+                  (720 * (calendarProps.now.getTime() - start)) /
+                    totalSecondsOfMonth
+                ),
+              }}
+            />
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 }
@@ -240,196 +419,6 @@ function parseEventsInTimeline<T>(
   return eventsInTimeline;
 }
 
-function Grid<T>({
-  startTime,
-  events: sourceEvents,
-  startDay,
-  resolution,
-  ...calendarProps
-}: {
-  startDay: StartDay;
-  startTime: Date;
-  now: Date;
-  resolution: TimelineResolution;
-  events: CalendarEvent<T>[];
-  onCreateEvent?: (start: Date, end: Date) => void;
-  onEditEvent?: (event: CalendarEvent<T>) => void;
-  onMoveEvent?: (
-    event: CalendarEvent<T>,
-    newStart: Date,
-    newEnd: Date | undefined
-  ) => void;
-}) {
-  const [allEvents, draggedEvent, setDraggedEvent] =
-    useDragableEvents(sourceEvents);
-
-  const events: ModifiableEvent<T>[] = parseEventsInTimeline(
-    allEvents,
-    resolution,
-    startTime
-  );
-
-  const [verticalPositions] = getPositions(events);
-
-  const [timelineStart, timelineEnd] = getTimelineRange(resolution, startTime);
-
-  const [effectRefs, eventContainerRef] = useEffectRefs(
-    events,
-    setDraggedEvent,
-    (state, dragged, container) => {
-      if (state.pos && state.pos0) {
-        const { pos, pos0 } = state;
-        let rawDelta = pos.x + -pos0.x + pos.scrollX - pos0.scrollX;
-
-        let addedMs =
-          (timelineEnd.getTime() - timelineStart.getTime()) * (rawDelta / 720);
-
-        const minDuration =
-          (4 * (timelineEnd.getTime() - timelineStart.getTime())) / 720; // 4px width
-
-        const minAddedMs =
-          timelineStart.getTime() - dragged.event.end.getTime() + minDuration;
-
-        const maxAddedMs =
-          timelineEnd.getTime() - dragged.event.start.getTime() - minDuration;
-
-        addedMs = Math.min(Math.max(addedMs, minAddedMs), maxAddedMs);
-
-        let start = addMilliseconds(dragged.event.sourceEvent.start, addedMs);
-        let end = addMilliseconds(
-          getEventEnd(dragged.event.sourceEvent),
-          addedMs
-        );
-
-        if (addedMs !== 0) {
-          return {
-            start,
-            end,
-          };
-        }
-      }
-      return undefined;
-    },
-    calendarProps
-  );
-
-  useMouse("timeline-event", effectRefs, false);
-
-  const start = timelineStart.getTime();
-  const end = timelineEnd.getTime();
-  const totalSecondsOfMonth = end - start;
-  const currentMaxHeight = Math.max(
-    Object.values(verticalPositions).reduce((p, c) => Math.max(p, c), 0),
-    5
-  );
-
-  const maxHeightRef = React.useRef(currentMaxHeight);
-  maxHeightRef.current = Math.max(currentMaxHeight, maxHeightRef.current);
-  const maxHeight = maxHeightRef.current;
-
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        height: maxHeight * (16 + 1) + 32,
-        overflow: "hidden",
-      }}
-    >
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 1,
-        }}
-        ref={eventContainerRef}
-      >
-        {events.map((event, index) => {
-          const x =
-            (720 * (event.start.getTime() - start)) / totalSecondsOfMonth;
-          const w =
-            (720 * (event.end.getTime() - event.start.getTime())) /
-            totalSecondsOfMonth;
-
-          let width = differenceInCalendarDays(event.end, event.start);
-          if (event.end.getTime() === endOfDay(event.end).getTime()) {
-            width += 1;
-          }
-
-          return (
-            <React.Fragment key={index}>
-              <Box
-                zIndex={2}
-                component={Button}
-                data-type={"timeline-event"}
-                data-calendar-event={JSON.stringify({
-                  x: 0,
-                  colX: 0,
-                  index,
-                  w: Math.max(width, 1),
-                })}
-                sx={{
-                  minWidth: "auto",
-                  width: `${w}px`,
-                  left: `${x}px`,
-                  top: verticalPositions[index] * (16 + 1) + 11,
-                  height: "16px",
-                  position: "absolute",
-                  overflow: "hidden",
-                  borderRadius: "4px",
-                  padding: 0,
-                  margin: 0,
-                }}
-              >
-                <Box
-                  sx={{
-                    backgroundColor: event.sourceEvent.color ?? DEFAULT_COLOR,
-                    display: "flex",
-                    justifyContent: "flex-start",
-                    padding: "0px 8px",
-                    flex: 1,
-                    alignItems: "center",
-                    whiteSpace: "nowrap",
-                    pointerEvents: "none",
-                    "*": {
-                      pointerEvents: "none",
-                    },
-                  }}
-                >
-                  <Typography
-                    variant="event"
-                    color={(theme) => theme.palette.primary.contrastText}
-                  >
-                    {event.sourceEvent.title ?? "(No title)"}
-                  </Typography>
-                </Box>
-              </Box>
-            </React.Fragment>
-          );
-        })}
-      </Box>
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-          zIndex: 2,
-        }}
-      >
-        <TimeIndicator
-          sx={{
-            height: "100%",
-            left:
-              String(
-                (720 * (calendarProps.now.getTime() - start)) /
-                  totalSecondsOfMonth
-              ) + "px",
-          }}
-        />
-      </Box>
-    </Box>
-  );
-}
-
 function TimeIndicator(boxProps: BoxProps) {
   return (
     <Box
@@ -497,361 +486,5 @@ function TimeIndicator(boxProps: BoxProps) {
         }}
       ></Box>
     </Box>
-  );
-}
-
-function Header({
-  startTime,
-  now,
-  resolution,
-  startDay,
-}: {
-  startTime: Date;
-  resolution: TimelineResolution;
-  now: Date;
-  startDay: StartDay;
-}) {
-  if (resolution === "month") {
-    const weeks: Date[] = [];
-    const days: Date[] = [];
-    for (let i = 0; i < 6; i += 1) {
-      for (let j = 0; j < 7; j += 1) {
-        if (j === 0) {
-          weeks.push(addDays(startTime, i * 7));
-        }
-        const k = i * 7 + j;
-        days.push(addDays(startTime, k));
-      }
-    }
-    return (
-      <Box>
-        <BigTime
-          now={now}
-          times={weeks}
-          isActive={isSameWeek}
-          formatDate={(date) => {
-            return `W${format(date, "I")}`;
-          }}
-          width={119}
-        />
-        <Box sx={{ height: "16px" }} />
-
-        <FlexRow>
-          {days.map((day, index) => {
-            let w = 17;
-            if (index === 0) {
-              w = 16;
-            }
-            w += 1 / 7;
-            return (
-              <Box
-                key={index}
-                sx={{
-                  display: "flex",
-                  width: `${w}px`,
-                  alignItems: "center",
-                  height: "16px",
-                  position: "relative",
-                }}
-              >
-                {index !== 0 && (
-                  <Box
-                    sx={{
-                      width: "1px",
-                      borderRadius: "1px",
-                      height: "18px",
-                      backgroundColor:
-                        index % 7 === 0
-                          ? "none"
-                          : (theme) => theme.palette.divider,
-                      marginTop: "-1px",
-                    }}
-                  ></Box>
-                )}
-                <FlexRow
-                  justifyContent="center"
-                  alignItems={"center"}
-                  sx={{ width: `${w - 1}px`, height: "16px" }}
-                >
-                  <FlexCol alignItems="center" justifyContent="center">
-                    <Typography
-                      variant="event"
-                      sx={{ fontSize: "8px", lineHeight: "8px" }}
-                      color={(theme) => {
-                        return theme.palette.text[
-                          isSameDay(day, now) ? "primary" : "secondary"
-                        ];
-                      }}
-                    >
-                      {format(day, "d")}
-                    </Typography>
-                    {isSameDay(day, now) && (
-                      <Box
-                        sx={{
-                          background: (theme) => theme.palette.primary.main,
-                          height: "1px",
-                          width: "8px",
-                          borderRadius: "1px",
-                          position: "absolute",
-                          bottom: "2px",
-                        }}
-                      ></Box>
-                    )}
-                  </FlexCol>
-                </FlexRow>
-              </Box>
-            );
-          })}
-        </FlexRow>
-      </Box>
-    );
-  }
-  if (resolution === "3-months") {
-    const months: Date[] = [];
-    const weeks: Date[] = [];
-    // 3 months
-    for (let i = 0; i < 3; i += 1) {
-      // 4 weeks
-      for (let j = 0; j < 4; j += 1) {
-        if (j === 0) {
-          months.push(addMonths(startTime, i));
-        }
-        weeks.push(addWeeks(addMonths(startTime, i), j));
-      }
-    }
-    return (
-      <Box>
-        <BigTime
-          now={now}
-          times={months}
-          isActive={isSameMonth}
-          formatDate={(date) => {
-            return format(date, "MMM");
-          }}
-          width={239}
-        />
-        <Box sx={{ height: "16px" }} />
-        <SmallTime
-          formatDate={(date) => "W" + format(date, "I")}
-          times={weeks}
-          noBorderMod={4}
-          isActive={(d) => {
-            const options: StartOfWeekOptions = {
-              weekStartsOn: startDay === "monday" ? 1 : 0,
-            };
-            return isSameWeek(d, now, options);
-          }}
-        />
-      </Box>
-    );
-  }
-  if (resolution === "year") {
-    const quarters: Date[] = [];
-    const months: Date[] = [];
-    // 4 quarters
-    for (let i = 0; i < 4; i += 1) {
-      // 3 months
-      for (let j = 0; j < 3; j += 1) {
-        if (j === 0) {
-          quarters.push(addMonths(startTime, i * 3));
-        }
-        const k = i * 3 + j;
-        months.push(addMonths(startTime, k));
-      }
-    }
-    return (
-      <Box>
-        <BigTime
-          now={now}
-          times={quarters}
-          isActive={isSameQuarter}
-          formatDate={(date) => {
-            return format(date, "qqq");
-          }}
-          width={179}
-        />
-        <Box sx={{ height: "16px" }} />
-        <SmallTime
-          formatDate={(date) => format(date, "MMM")}
-          times={months}
-          noBorderMod={3}
-          isActive={(d) => isSameMonth(d, now)}
-        />
-      </Box>
-    );
-  }
-  if (resolution === "3-years") {
-    const years: Date[] = [];
-    const quarters: Date[] = [];
-    // 3 years
-    for (let i = 0; i < 3; i += 1) {
-      // 4 quarters per year
-      for (let j = 0; j < 4; j += 1) {
-        if (j === 0) {
-          years.push(addYears(startTime, i));
-        }
-        quarters.push(addQuarters(addYears(startTime, i), j));
-      }
-    }
-    return (
-      <Box>
-        <BigTime
-          now={now}
-          times={years}
-          isActive={isSameYear}
-          formatDate={(date) => {
-            return format(date, "yyyy");
-          }}
-          width={239}
-        />
-        <Box sx={{ height: "16px" }} />
-        <SmallTime
-          formatDate={(date) => format(date, "qqq")}
-          times={quarters}
-          noBorderMod={4}
-          isActive={(d) => isSameQuarter(d, now)}
-        />
-      </Box>
-    );
-  }
-  return <Box></Box>;
-  return null;
-}
-
-function BigTime({
-  now,
-  times,
-  isActive,
-  formatDate,
-  width,
-}: {
-  now: Date;
-  times: Date[];
-  isActive: (a: Date, now: Date) => boolean;
-  formatDate: (date: Date) => string;
-  width: number;
-}) {
-  return (
-    <FlexRow>
-      {times.flatMap((month, index) => {
-        const els = [
-          <FlexRow
-            key={index}
-            sx={{ width: `${width}px`, height: "44px" }}
-            justifyContent={"center"}
-          >
-            <Box>
-              <Typography
-                variant="h4"
-                color={(theme) =>
-                  theme.palette.text[
-                    isActive(month, now) ? "primary" : "secondary"
-                  ]
-                }
-              >
-                {formatDate(month)}
-              </Typography>
-              {isActive(month, now) && (
-                <Box
-                  sx={{
-                    background: (theme) => theme.palette.primary.main,
-                    height: "2px",
-                    width: "100%",
-                    borderRadius: "2px",
-                  }}
-                ></Box>
-              )}
-            </Box>
-          </FlexRow>,
-        ];
-        if (index < times.length - 1) {
-          els.push(
-            <Box
-              key={index + "divider"}
-              sx={{
-                width: "1px",
-                height: "16px",
-              }}
-            >
-              <Box
-                sx={{
-                  width: "1px",
-                  height: "200px",
-                  background: (theme) => theme.palette.divider,
-                  borderRadius: "1px",
-                }}
-              ></Box>
-            </Box>
-          );
-        }
-        return els;
-      })}
-    </FlexRow>
-  );
-}
-
-function SmallTime({
-  times,
-  formatDate,
-  noBorderMod,
-  isActive,
-}: {
-  times: Date[];
-  formatDate: (date: Date) => string;
-  noBorderMod: number;
-  isActive: (date: Date) => boolean;
-}) {
-  return (
-    <FlexRow justifyContent="space-between">
-      {times.flatMap((week, index) => {
-        const els = [
-          <FlexRow key={index} justifyContent="center" flex="1">
-            <Box>
-              <Typography
-                variant="body2"
-                color={(theme) => theme.palette.text.secondary}
-              >
-                {formatDate(week)}
-              </Typography>
-              {isActive(week) ? (
-                <Box
-                  sx={{
-                    background: (theme) => theme.palette.primary.main,
-                    height: "2px",
-                    borderRadius: "2px",
-                    width: "100%",
-                  }}
-                ></Box>
-              ) : null}
-            </Box>
-          </FlexRow>,
-        ];
-        if (index !== 0) {
-          els.unshift(
-            <Box
-              key={index + "divider"}
-              sx={{
-                width: "1px",
-                height: "16px",
-              }}
-            >
-              <Box
-                sx={{
-                  width: "1px",
-                  height: 140,
-                  background:
-                    index % noBorderMod === 0
-                      ? "none"
-                      : (theme) => theme.palette.divider,
-                  borderTopLeftRadius: "1px",
-                  borderTopRightRadius: "1px",
-                }}
-              ></Box>
-            </Box>
-          );
-        }
-        return els;
-      })}
-    </FlexRow>
   );
 }

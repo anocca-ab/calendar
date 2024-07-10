@@ -18,7 +18,7 @@ const meta = {
   title: "Timeline/Timeline",
   component: Timeline,
   parameters: {
-    layout: "centered",
+    // layout: "centered",
   },
   // tags: ["autodocs"],
   argTypes: {
@@ -168,6 +168,19 @@ export const Month: Story = {
       },
     ],
     resolution: "month",
+  },
+};
+
+export const MonthNoEvents: Story = {
+  args: {
+    events: [],
+    resolution: "month",
+  },
+};
+export const ThreeMonthsNoEvents: Story = {
+  args: {
+    events: [],
+    resolution: "3-months",
   },
 };
 
