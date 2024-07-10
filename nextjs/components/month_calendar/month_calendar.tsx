@@ -25,7 +25,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { eventGrid, monthCalendarRange } from "../event_grid";
+import { MoreButton, eventGrid, monthCalendarRange } from "../event_grid";
 import { getEventEnd, isAllDayEvent, mergeSx, widthToPct } from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
 import {
@@ -143,31 +143,32 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
     calendarProps.events
   );
 
-  const [moreButtonClicked, setMoreButtonClicked] = useState<Date | undefined>(
-    undefined
-  );
+  const [moreButtonClicked, setMoreButtonClicked] = useState<
+    MoreButton<T> | undefined
+  >(undefined);
+  const [moreEventsModalEl, setMoreEventsModalEl] =
+    useState<HTMLElement | null>(null);
 
   useEffect(() => {
-    const handleDocumentClick = (event: MouseEvent) => {
-      const elementTree = document.getElementById("modal-container");
-      const ignoreElement = (event.target as HTMLElement).closest(
-        ".more-events-button"
-      );
-
-      if (elementTree !== null && !ignoreElement) {
-        if (elementTree.contains(event.target as Node)) {
-          return;
-        }
-        setMoreButtonClicked(undefined);
+    if (!moreEventsModalEl) {
+      return;
+    }
+    const onClick = (event: MouseEvent) => {
+      if (!event.target || !(event.target instanceof Node)) {
+        return;
       }
+      if (moreEventsModalEl.contains(event.target)) {
+        return;
+      }
+      setMoreButtonClicked(undefined);
     };
 
-    window.addEventListener("click", handleDocumentClick);
+    window.addEventListener("click", onClick);
 
     return () => {
-      document.removeEventListener("click", handleDocumentClick);
+      window.removeEventListener("click", onClick);
     };
-  });
+  }, [moreEventsModalEl]);
 
   const daysInWeek = 7;
 
@@ -310,17 +311,13 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
     eventParts[index].push(event);
   });
 
-  let modal: undefined | { top: string; left: string } = undefined;
+  let modal: undefined | ({ top: string; left: string } & MoreButton<T>) =
+    undefined;
   if (moreButtonClicked) {
-    const week = differenceInWeeks(moreButtonClicked, startOfMonthCalendar, {});
-    const day = differenceInDays(
-      moreButtonClicked,
-      startOfWeek(moreButtonClicked, {
-        weekStartsOn: startDay == "monday" ? 1 : 0,
-      })
-    );
+    const { week, day, date } = moreButtonClicked;
 
     modal = {
+      ...moreButtonClicked,
       top: `${week * 120 - 20}px`,
       left: `${widthToPct(day * 120 - 10, daysInWeek)}`,
     };
@@ -554,30 +551,9 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                 const row = 4;
                 return (
                   <MoreEventsButton
-                    onClick={() => {
-                      let startWeekDay = startOfDay(
-                        startOfWeek(startOfMonth, {
-                          weekStartsOn: startDay === "monday" ? 1 : 0,
-                        })
-                      );
-
-                      if (week === 0) {
-                        day === 0
-                          ? setMoreButtonClicked(startWeekDay)
-                          : setMoreButtonClicked(
-                              startOfDay(addDays(startWeekDay, day))
-                            );
-                      } else {
-                        day === 0
-                          ? setMoreButtonClicked(
-                              startOfDay(addWeeks(startWeekDay, week))
-                            )
-                          : setMoreButtonClicked(
-                              startOfDay(
-                                addDays(addWeeks(startWeekDay, week), day)
-                              )
-                            );
-                      }
+                    onClick={(ev) => {
+                      ev.stopPropagation();
+                      setMoreButtonClicked(moreButton);
                     }}
                     className="more-events-button"
                     numHiddenEvents={moreButtonEvents.length}
@@ -676,159 +652,132 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
           </Box>
 
           {/** More events modal */}
-          {moreButtonClicked && modal && (
-            <div id="modal-container">
-              <Box
-                sx={{
-                  px: "4px",
-                  py: "2px",
-                  height: "fit-content",
-                  width: widthToPct(140, daysInWeek),
-                  position: "absolute",
-                  inset: 0,
-                  top: modal.top,
-                  left: modal.left,
-                  zIndex: 3,
-                  bgcolor: (theme) =>
-                    theme.palette.mode === "light"
-                      ? theme.palette.background.default
-                      : "white",
-                  boxShadow: (theme) => theme.shadows[1],
-                  borderRadius: "4px",
-                }}
-              >
-                <FlexCol width="100%">
-                  <FlexCol height="66px">
-                    <FlexRow
-                      height="40px"
-                      width="100%"
-                      justifyContent="center"
-                      alignItems="center"
-                    >
-                      <Typography
-                        variant="body2"
-                        color={
-                          isSameDay(moreButtonClicked, startOfMonth)
-                            ? (theme) => theme.palette.primary.contrastText
-                            : isSameMonth(moreButtonClicked, startOfMonth)
-                            ? (theme) => theme.palette.text.primary
-                            : (theme) => theme.palette.text.secondary
-                        }
-                      >
-                        {format(moreButtonClicked, "EEE")}
-                      </Typography>
-                    </FlexRow>
-                    <FlexRow
-                      height="40px"
-                      width="100%"
-                      justifyContent="center"
-                      alignItems="center"
-                    >
-                      <Typography
-                        variant="body2"
-                        color={
-                          isSameDay(moreButtonClicked, startOfMonth)
-                            ? (theme) => theme.palette.primary.contrastText
-                            : isSameMonth(moreButtonClicked, startOfMonth)
-                            ? (theme) => theme.palette.text.primary
-                            : (theme) => theme.palette.text.secondary
-                        }
-                      >
-                        {format(moreButtonClicked, "d")}
-                      </Typography>
-                    </FlexRow>
-                  </FlexCol>
-                  <FlexCol
-                    gap="1px"
-                    position="relative"
-                    sx={{
-                      height: `${
-                        eventsInMonth.filter((ev) =>
-                          areIntervalsOverlapping(
-                            {
-                              start: moreButtonClicked,
-                              end: endOfDay(moreButtonClicked),
-                            },
-                            { start: ev.start, end: ev.end }
-                          )
-                        ).length * 18
-                      }px`,
-                    }}
+          {modal && (
+            <Box
+              ref={setMoreEventsModalEl}
+              id="more-event-modal"
+              sx={{
+                px: "4px",
+                py: "2px",
+                height: "fit-content",
+                width: widthToPct(140, daysInWeek),
+                position: "absolute",
+                inset: 0,
+                top: modal.top,
+                left: modal.left,
+                zIndex: 3,
+                bgcolor: (theme) =>
+                  theme.palette.mode === "light"
+                    ? theme.palette.background.default
+                    : "white",
+                boxShadow: (theme) => theme.shadows[1],
+                borderRadius: "4px",
+              }}
+            >
+              <FlexCol width="100%">
+                <FlexCol height="66px">
+                  <FlexRow
+                    height="40px"
+                    width="100%"
+                    justifyContent="center"
+                    alignItems="center"
                   >
-                    {moreButtonClicked &&
-                      events
-                        .filter((ev) =>
-                          areIntervalsOverlapping(
-                            {
-                              start: moreButtonClicked,
-                              end: endOfDay(moreButtonClicked),
-                            },
-                            { start: ev.start, end: ev.end }
-                          )
-                        )
-                        .map((event, index) => {
-                          const indexOfEvent = events.indexOf(event);
-
-                          const { week, day, row } =
-                            eventProperties[`${indexOfEvent}`];
-
-                          let width = differenceInCalendarDays(
-                            event.end,
-                            event.start
-                          );
-                          if (
-                            event.end.getTime() ===
-                            endOfDay(event.end).getTime()
-                          ) {
-                            width += 1;
-                          }
-                          width = Math.max(width, 1);
-                          const dataProps: any = {
-                            "data-type": "month-calendar-event",
-                            "data-calendar-event": JSON.stringify({
-                              x: day,
-                              colX: 0,
-                              index: indexOfEvent,
-                              w: Math.max(width, 1),
-                            }),
-                          };
-                          const props: React.ComponentPropsWithoutRef<
-                            typeof MonthCalendarEvent
-                          > = {
-                            event: event.sourceEvent,
-                            sx: {
-                              width: "100%",
-                              top: index * (16 + 1),
-                              height: "16px",
-                              zIndex: 3,
-                            },
-                            allDayEvent: isAllDayEvent(event.sourceEvent),
-                            state:
-                              draggedEvent &&
-                              event.sourceEvent ===
-                                draggedEvent?.source.sourceEvent
-                                ? "selected"
-                                : "normal",
-                            ...dataProps,
-                          };
-
-                          return (
-                            <MonthCalendarEvent key={indexOfEvent} {...props} />
-                          );
-                        })}
-                  </FlexCol>
-                  <Button
-                    variant="text"
-                    size="small"
-                    onClick={() => {
-                      setMoreButtonClicked(undefined);
-                    }}
+                    <Typography
+                      variant="body2"
+                      color={
+                        isSameDay(modal.date, startOfMonth)
+                          ? (theme) => theme.palette.primary.contrastText
+                          : isSameMonth(modal.date, startOfMonth)
+                          ? (theme) => theme.palette.text.primary
+                          : (theme) => theme.palette.text.secondary
+                      }
+                    >
+                      {format(modal.date, "EEE")}
+                    </Typography>
+                  </FlexRow>
+                  <FlexRow
+                    height="40px"
+                    width="100%"
+                    justifyContent="center"
+                    alignItems="center"
                   >
-                    Close
-                  </Button>
+                    <Typography
+                      variant="body2"
+                      color={
+                        isSameDay(modal.date, startOfMonth)
+                          ? (theme) => theme.palette.primary.contrastText
+                          : isSameMonth(modal.date, startOfMonth)
+                          ? (theme) => theme.palette.text.primary
+                          : (theme) => theme.palette.text.secondary
+                      }
+                    >
+                      {format(modal.date, "d")}
+                    </Typography>
+                  </FlexRow>
                 </FlexCol>
-              </Box>
-            </div>
+                <FlexCol
+                  gap="1px"
+                  position="relative"
+                  sx={{
+                    height: `${modal.allEvents.length * 18}px`,
+                  }}
+                >
+                  {modal.allEvents.map((indexOfEvent, index) => {
+                    const event = events[indexOfEvent];
+
+                    const { week, day, row } =
+                      eventProperties[`${indexOfEvent}`];
+
+                    let width = differenceInCalendarDays(
+                      event.end,
+                      event.start
+                    );
+                    if (event.end.getTime() === endOfDay(event.end).getTime()) {
+                      width += 1;
+                    }
+                    width = Math.max(width, 1);
+                    const dataProps: any = {
+                      "data-type": "month-calendar-event",
+                      "data-calendar-event": JSON.stringify({
+                        x: day,
+                        colX: 0,
+                        index: indexOfEvent,
+                        w: Math.max(width, 1),
+                      }),
+                    };
+                    const props: React.ComponentPropsWithoutRef<
+                      typeof MonthCalendarEvent
+                    > = {
+                      event: event.sourceEvent,
+                      sx: {
+                        width: "100%",
+                        top: index * (16 + 1),
+                        height: "16px",
+                        zIndex: 3,
+                      },
+                      allDayEvent: isAllDayEvent(event.sourceEvent),
+                      state:
+                        draggedEvent &&
+                        event.sourceEvent === draggedEvent?.source.sourceEvent
+                          ? "selected"
+                          : "normal",
+                      ...dataProps,
+                    };
+
+                    return <MonthCalendarEvent key={indexOfEvent} {...props} />;
+                  })}
+                </FlexCol>
+                <Button
+                  variant="text"
+                  size="small"
+                  onClick={() => {
+                    setMoreButtonClicked(undefined);
+                  }}
+                >
+                  Close
+                </Button>
+              </FlexCol>
+            </Box>
           )}
         </Box>
       </FlexRow>

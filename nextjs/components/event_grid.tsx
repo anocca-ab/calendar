@@ -1,6 +1,7 @@
 import {
   StartOfWeekOptions,
   addDays,
+  addWeeks,
   differenceInCalendarWeeks,
   differenceInDays,
   differenceInWeeks,
@@ -10,6 +11,7 @@ import {
   lastDayOfMonth,
   max,
   min,
+  startOfDay,
   startOfWeek,
 } from "date-fns";
 import { StartDay } from "./types";
@@ -179,30 +181,34 @@ export function eventGrid<T>(
   });
 
   // construct the list of more buttons
-  type MoreButton = { week: number; day: number; events: ModifiableEvent<T>[] };
 
   const moreButtonsDict: Record<
     /**
      * The key is the `${week}-${day}`
      */
     string,
-    MoreButton
+    MoreButton<T>
   > = {};
 
   events.forEach((event, eventIndex) => {
     const { week, day, row, maxRow } = eventProperties[eventIndex];
+    const key = `${week}-${day}`;
+
+    const moreButton = moreButtonsDict[key];
+    if (moreButton) {
+      moreButton.allEvents.push(eventIndex);
+    } else {
+      const date = startOfDay(addDays(addWeeks(startTime, week), day));
+      moreButtonsDict[key] = {
+        week,
+        day,
+        events: [],
+        allEvents: [eventIndex],
+        date,
+      };
+    }
     if (maxRow <= 5 ? row >= 5 : row >= 4) {
-      const key = `${week}-${day}`;
-      const moreButton = moreButtonsDict[key];
-      if (moreButton) {
-        moreButton.events.push(event);
-      } else {
-        moreButtonsDict[key] = {
-          week,
-          day,
-          events: [event],
-        };
-      }
+      moreButton.events.push(eventIndex);
     }
   });
 
@@ -210,6 +216,16 @@ export function eventGrid<T>(
     grid,
     eventProperties,
     events,
-    moreButtons: Object.values(moreButtonsDict),
+    moreButtons: Object.values(moreButtonsDict).filter(
+      (button) => button.events.length > 0
+    ),
   };
 }
+
+export type MoreButton<T> = {
+  week: number;
+  day: number;
+  date: Date;
+  events: number[];
+  allEvents: number[];
+};

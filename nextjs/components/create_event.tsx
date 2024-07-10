@@ -114,6 +114,9 @@ export function CreateEvent<T>({
   return (
     <React.Fragment>
       <Dialog
+        container={() =>
+          document.getElementById("more-event-modal") ?? document.body
+        }
         open={open}
         onClose={handleClose}
         onTransitionEnd={(event) => {
