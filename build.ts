@@ -151,6 +151,8 @@ await Bun.write(
     "export { WeekCalendar } from './week_calendar/week_calendar';",
     "export { MonthCalendar } from './month_calendar/month_calendar';",
     "export { Timeline } from './timeline/timeline';",
+    "export { CalendarNav } from './nav/calendar_nav';",
+    "export { TimelineNav } from './nav/timeline_nav';",
   ].join("\n") + "\n",
 );
 

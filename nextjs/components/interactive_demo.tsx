@@ -28,7 +28,7 @@ export function InteractiveDemo(props: {
 
   const onCloseModal = React.useRef<undefined | ((cb: () => void) => void)>();
 
-  const onEditEvent = (event: CalendarEvent<any>) => {
+  const onClickEvent = (event: CalendarEvent<any>) => {
     if (onCloseModal.current) {
       onCloseModal.current(() => {
         setEditModalOpen({ event, key: Math.random() });
@@ -131,10 +131,10 @@ export function InteractiveDemo(props: {
           });
         }}
         onCreateEvent={(start, end) => {
-          onEditEvent({ start, end });
+          onClickEvent({ start, end });
         }}
-        onEditEvent={(ev) => {
-          onEditEvent(ev);
+        onClickEvent={(ev) => {
+          onClickEvent(ev);
         }}
         onMoveEvent={onMoveEvent}
       />

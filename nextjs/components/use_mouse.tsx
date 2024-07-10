@@ -101,7 +101,7 @@ export function useMouse<T>(
       start: Date,
       end: Date | undefined
     ) => void;
-    onEditEvent?: (event: ModifiableEvent<T>, nativeEvent: MouseEvent) => void;
+    onClickEvent?: (event: ModifiableEvent<T>, nativeEvent: MouseEvent) => void;
     events: ModifiableEvent<T>[];
     setDraggedEvent: React.Dispatch<
       React.SetStateAction<DraggedEvent<ModifiableEvent<T>> | undefined>
@@ -254,8 +254,8 @@ export function useMouse<T>(
             }
           }
         }
-        if (effectRefs.current.onEditEvent && !mouseMoved) {
-          effectRefs.current.onEditEvent(draggedEvent.source, ev);
+        if (effectRefs.current.onClickEvent && !mouseMoved) {
+          effectRefs.current.onClickEvent(draggedEvent.source, ev);
         }
       }
       draggedEvent = undefined;
@@ -460,7 +460,7 @@ export function useEffectRefs<T>(
       newStart: Date,
       newEnd: Date | undefined
     ) => void;
-    onEditEvent?: (event: CalendarEvent<T>, nativeEvent: MouseEvent) => void;
+    onClickEvent?: (event: CalendarEvent<T>, nativeEvent: MouseEvent) => void;
     onCreateEvent?: (start: Date, end: Date) => void;
     dragCreateEvent?: (start: Date, end?: Date) => void;
   },
@@ -475,8 +475,8 @@ export function useEffectRefs<T>(
         ome(event.sourceEvent, start, end);
       }
     : undefined;
-  const oev = calendarProps.onEditEvent;
-  const onEditEvent = oev
+  const oev = calendarProps.onClickEvent;
+  const onClickEvent = oev
     ? (event: ModifiableEvent<T>, nativeEvent: MouseEvent) => {
         oev(event.sourceEvent, nativeEvent);
       }
@@ -488,7 +488,7 @@ export function useEffectRefs<T>(
   const effectRefs = React.useRef({
     onMoveEvent,
     events,
-    onEditEvent,
+    onClickEvent,
     onCreateEvent,
     setDraggedEvent,
     calculateNewTime,
@@ -501,7 +501,7 @@ export function useEffectRefs<T>(
     onMoveEvent,
     events,
     onCreateEvent,
-    onEditEvent,
+    onClickEvent,
     setDraggedEvent,
     calculateNewTime,
     eventContainerRef,

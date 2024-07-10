@@ -103,7 +103,7 @@ export type WeekCalendarProps<T> = {
    * @param event a calendar event
    * @returns void
    */
-  onEditEvent?: (event: CalendarEvent<T>, nativeEvent: MouseEvent) => void;
+  onClickEvent?: (event: CalendarEvent<T>, nativeEvent: MouseEvent) => void;
 
   /**
    * If provided the user can drag to create events
@@ -143,7 +143,7 @@ function parseDefaultProps<T>(props: WeekCalendarProps<T>) {
     now,
     onCreateEvent: props.onCreateEvent,
     onMoveEvent: props.onMoveEvent,
-    onEditEvent: props.onEditEvent,
+    onClickEvent: props.onClickEvent,
     dragCreateEvent: props.dragCreateEvent,
     defaultEventColor: props.defaultEventColor ?? DEFAULT_COLOR,
   };
@@ -158,7 +158,7 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
     now,
     onCreateEvent,
     onMoveEvent,
-    onEditEvent,
+    onClickEvent,
     dragCreateEvent,
     defaultEventColor,
   } = parseDefaultProps(props);
@@ -194,7 +194,7 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
         startOfWeek: startOfWeek,
         now,
         onCreateEvent,
-        onEditEvent,
+        onClickEvent,
         onMoveEvent,
         dragCreateEvent,
         defaultEventColor,

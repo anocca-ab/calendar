@@ -1,3 +1,5 @@
+import { CalendarNav } from "./components/nav/calendar_nav";
+import { TimelineNav } from "./components/nav/timeline_nav";
 import { WeekCalendar } from "./components/week_calendar/week_calendar";
 
 /**
@@ -9,14 +11,14 @@ export const Assert = <T extends unknown, U extends T>() => {};
 export const test = () => {
   <WeekCalendar
     events={[{ start: new Date(), data: { hello: 123 } }]}
-    onEditEvent={(event) => {
+    onClickEvent={(event) => {
       event.data.hello;
       Assert<number, typeof event.data.hello>();
     }}
   />;
   <WeekCalendar
     events={[{ start: new Date() }]}
-    onEditEvent={(event) => {
+    onClickEvent={(event) => {
       type keys = keyof typeof event;
       type ext = "data" extends keys ? "yes" : "no";
       Assert<"no", ext>();
@@ -25,8 +27,10 @@ export const test = () => {
   />;
   <WeekCalendar
     events={[{ start: new Date(), color: "red", data: 123 }]}
-    onEditEvent={(event) => {
+    onClickEvent={(event) => {
       Assert<number, typeof event.data>;
     }}
   />;
+  <TimelineNav />;
+  <CalendarNav type="month" />;
 };

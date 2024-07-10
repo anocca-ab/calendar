@@ -115,7 +115,7 @@ export type MonthCalendarProps<T> = {
    * @param event a calendar event
    * @returns void
    */
-  onEditEvent?: (event: CalendarEvent<T>, nativeEvent: MouseEvent) => void;
+  onClickEvent?: (event: CalendarEvent<T>, nativeEvent: MouseEvent) => void;
 };
 
 function parseDefaultProps<T>(props: MonthCalendarProps<T>) {
@@ -131,7 +131,7 @@ function parseDefaultProps<T>(props: MonthCalendarProps<T>) {
     now,
     onCreateEvent: props.onCreateEvent,
     onMoveEvent: props.onMoveEvent,
-    onEditEvent: props.onEditEvent,
+    onClickEvent: props.onClickEvent,
   };
 }
 

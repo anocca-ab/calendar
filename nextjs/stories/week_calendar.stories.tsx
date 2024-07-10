@@ -29,7 +29,7 @@ const meta = {
         disable: true,
       },
     },
-    onEditEvent: {
+    onClickEvent: {
       table: {
         disable: true,
       },
