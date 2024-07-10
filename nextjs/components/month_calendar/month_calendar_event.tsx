@@ -36,6 +36,7 @@ export function MonthCalendarEvent<T>({
           background: "none",
           minWidth: "auto",
           overflow: "hidden",
+          whiteSpace: 'nowrap',
           boxShadow:
             state === "selected"
               ? (theme) => theme.shadows[1]

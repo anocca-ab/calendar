@@ -318,10 +318,14 @@ function Grid<T>({
   const start = timelineStart.getTime();
   const end = timelineEnd.getTime();
   const totalSecondsOfMonth = end - start;
-  const maxHeight = Math.max(
+  const currentMaxHeight = Math.max(
     Object.values(verticalPositions).reduce((p, c) => Math.max(p, c), 0),
     5
   );
+
+  const maxHeightRef = React.useRef(currentMaxHeight);
+  maxHeightRef.current = Math.max(currentMaxHeight, maxHeightRef.current);
+  const maxHeight = maxHeightRef.current;
 
   return (
     <Box
@@ -413,7 +417,7 @@ function Grid<T>({
       >
         <TimeIndicator
           sx={{
-            height: '100%',
+            height: "100%",
             left:
               String(
                 (720 * (calendarProps.now.getTime() - start)) /

@@ -221,6 +221,37 @@ export const manyEvents: CalendarEvent<undefined>[] = [
   {
     start: addHours(
       startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+      9
+    ),
+    end: addMinutes(
+      addHours(
+        startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+        9
+      ),
+      30
+    ),
+    title: "To fix issue #23",
+  },
+  {
+    start: addMinutes(
+      addHours(
+        startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+        9
+      ),
+      30
+    ),
+    end: addMinutes(
+      addHours(
+        startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+        17
+      ),
+      0
+    ),
+    title: "To fix issue #23 /2",
+  },
+  {
+    start: addHours(
+      startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
       23
     ),
     end: addHours(
