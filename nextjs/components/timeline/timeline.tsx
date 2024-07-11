@@ -88,7 +88,7 @@ export type TimelineProps<T> = {
    * @param end when event ends
    * @returns void
    */
-  onCreateEvent?: (start: Date, end: Date) => void;
+  onCreateEvent?: (start: Date, end?: Date) => void;
 
   /**
    * Triggered when an event is moved

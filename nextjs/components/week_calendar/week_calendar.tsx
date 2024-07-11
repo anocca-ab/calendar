@@ -79,21 +79,14 @@ export type WeekCalendarProps<T> = {
   now?: Date;
 
   /**
-   * When provided the user can create an event by clicking on a day
+   * When provided the user can create an event by clicking on a day or...
+   * If provided the user can drag to create events
+   * When the user finishes the drag this function is called with the start and end date
    * @param start when the event starts
    * @param end when event ends
    * @returns void
    */
-  onCreateEvent?: (start: Date, end: Date) => void;
-
-  /**
-   * If provided the user can drag to create events
-   * When the user finishes the drag this function is called with the start and end date
-   * @param start when the event starts
-   * @param end when the event ends. If start === end then it is a 15 min task. If end is not provided it is an all day task
-   * @returns void
-   */
-  dragCreateEvent?: (start: Date, end?: Date) => void;
+  onCreateEvent?: (start: Date, end?: Date) => void;
 
   /**
    * Triggered when an event is moved
@@ -155,7 +148,6 @@ function parseDefaultProps<T>(props: WeekCalendarProps<T>) {
     onCreateEvent: props.onCreateEvent,
     onMoveEvent: props.onMoveEvent,
     onClickEvent: props.onClickEvent,
-    dragCreateEvent: props.dragCreateEvent,
     defaultEventColor: props.defaultEventColor ?? DEFAULT_COLOR,
     scrollContainers,
   };
@@ -171,7 +163,6 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
     onCreateEvent,
     onMoveEvent,
     onClickEvent,
-    dragCreateEvent,
     defaultEventColor,
     scrollContainers,
   } = parseDefaultProps(props);
@@ -209,7 +200,6 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
         onCreateEvent,
         onClickEvent,
         onMoveEvent,
-        dragCreateEvent,
         defaultEventColor,
         scrollContainers,
       }}
@@ -793,14 +783,14 @@ function WeekCalendarGrid<T>(props: { events: CalendarEvent<T>[] }) {
     return undefined;
   }
 
-  const dragCreateEvent = calendarProps.dragCreateEvent;
+  const onClickEvent = calendarProps.onClickEvent;
 
   const [effectRefs, eventContainerRef] = useEffectRefs(
     events,
     setDraggedEvent,
     calculateNewTime,
     calendarProps,
-    !dragCreateEvent
+    !onClickEvent
       ? undefined
       : (pos0, container) => {
           const x = pos0.x - container.x;

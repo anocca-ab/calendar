@@ -56,7 +56,7 @@ type RawContext<T> =
       startDay: StartDay;
       startOfMonth: Date;
       now: Date;
-      onCreateEvent?: (start: Date, end: Date) => void;
+      onCreateEvent?: (start: Date, end?: Date) => void;
       onMoveEvent?: (
         event: CalendarEvent<T>,
         newStart: Date,
@@ -101,7 +101,7 @@ export type MonthCalendarProps<T> = {
    * @param end when event ends
    * @returns void
    */
-  onCreateEvent?: (start: Date, end: Date) => void;
+  onCreateEvent?: (start: Date, end?: Date) => void;
 
   /**
    * Triggered when an event is moved

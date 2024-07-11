@@ -118,7 +118,7 @@ export function useMouse<T>(
       pos0: MouseStatePos,
       container: DOMRect
     ) => DragPosition<ModifiableEvent<T>> | undefined;
-    dragCreateEvent?: (start: Date, end?: Date) => void;
+    onCreateEvent?: (start: Date, end?: Date) => void;
     eventContainerRef: React.MutableRefObject<HTMLDivElement | null>;
     scrollContainers: ScrollContainer[];
   }>,
@@ -249,7 +249,7 @@ export function useMouse<T>(
         if (draggedEvent.dragged) {
           if (
             effectRefs.current.onMoveEvent ||
-            effectRefs.current.dragCreateEvent
+            effectRefs.current.onCreateEvent
           ) {
             const sourceEvent = draggedEvent.source.sourceEvent;
             const newStart = draggedEvent.dragged.start;
@@ -264,8 +264,8 @@ export function useMouse<T>(
               newEnd = newStart;
             }
             if (dragged?.type === "new") {
-              if (effectRefs.current.dragCreateEvent) {
-                effectRefs.current.dragCreateEvent(newStart, newEnd);
+              if (effectRefs.current.onCreateEvent) {
+                effectRefs.current.onCreateEvent(newStart, newEnd);
               }
             } else {
               if (effectRefs.current.onMoveEvent) {
@@ -522,8 +522,7 @@ export function useEffectRefs<T>(
       newEnd: Date | undefined
     ) => void;
     onClickEvent?: (event: CalendarEvent<T>, nativeEvent: MouseEvent) => void;
-    onCreateEvent?: (start: Date, end: Date) => void;
-    dragCreateEvent?: (start: Date, end?: Date) => void;
+    onCreateEvent?: (start: Date, end?: Date) => void;
     scrollContainers: ScrollContainer[];
   },
   createNewEvent?: (
@@ -556,7 +555,6 @@ export function useEffectRefs<T>(
     calculateNewTime,
     eventContainerRef,
     createNewEvent,
-    dragCreateEvent: calendarProps.dragCreateEvent,
     scrollContainers: calendarProps.scrollContainers,
   });
 
@@ -569,7 +567,6 @@ export function useEffectRefs<T>(
     calculateNewTime,
     eventContainerRef,
     createNewEvent,
-    dragCreateEvent: calendarProps.dragCreateEvent,
     scrollContainers: calendarProps.scrollContainers,
   };
 

@@ -116,19 +116,6 @@ export function InteractiveDemo(props: {
         startOfWeek={startTime} // week calendar
         startOfMonth={startTime} // month calendar
         events={events}
-        dragCreateEvent={(start, end) => {
-          const ev: CalendarEvent<undefined> = {
-            canEdit: true,
-            color: props.defaultEventColor ?? DEFAULT_COLOR,
-            end,
-            start,
-            title: "(No title)",
-          };
-          setEvents((prev) => {
-            return [...prev, ev];
-          });
-          onClickEvent(ev);
-        }}
         onCreateEvent={(start, end) => {
           const ev: CalendarEvent<undefined> = {
             canEdit: true,
