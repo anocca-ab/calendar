@@ -3,6 +3,8 @@ import {
   addDays,
   endOfDay,
   areIntervalsOverlapping,
+  min,
+  addMinutes,
 } from "date-fns";
 import { CalendarEvent } from "@/components/types";
 import { ModifiableEvent } from "./types";
@@ -188,10 +190,13 @@ export function findEventOverlaps<T>(events: ModifiableEvent<T>[]) {
           {
             start: event.start,
             end: event.end,
+            // todo - to make the events only not overlap at the start of events (in the week calendar context)
+            // end: min([event.end, addMinutes(event.start, 60)]),
           },
           {
             start: otherEvent.start,
             end: otherEvent.end,
+            // end: min([otherEvent.end, addMinutes(otherEvent.start, 60)]),
           }
         )
       ) {

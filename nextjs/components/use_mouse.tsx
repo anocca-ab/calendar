@@ -1,6 +1,6 @@
 import { addMinutes, max } from "date-fns";
 import React from "react";
-import { getEventEnd } from "./helpers";
+import { getEventEnd, getEventStart } from "./helpers";
 import { CalendarEvent } from "./types";
 import { ModifiableEvent } from "./week_calendar/types";
 
@@ -374,7 +374,7 @@ export function useDragableEvents<T>(events: CalendarEvent<T>[]) {
    */
   const allEvents: ModifiableEvent<T>[] = events.map((sourceEvent) => ({
     sourceEvent,
-    start: sourceEvent.start,
+    start: getEventStart(sourceEvent),
     end: getEventEnd(sourceEvent),
   }));
 
@@ -386,6 +386,7 @@ export function useDragableEvents<T>(events: CalendarEvent<T>[]) {
       ...draggedEvent.source,
       ...draggedEvent.dragged,
     };
+    newDragged.start = getEventStart(newDragged);
     newDragged.end = getEventEnd(newDragged);
     const index = allEvents.findIndex(
       (ev) => ev.sourceEvent === draggedEvent.source.sourceEvent

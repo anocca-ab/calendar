@@ -26,7 +26,13 @@ import React, {
   useState,
 } from "react";
 import { MoreButton, eventGrid, monthCalendarRange } from "../event_grid";
-import { getEventEnd, isAllDayEvent, mergeSx, widthToPct } from "../helpers";
+import {
+  getEventEnd,
+  getEventStart,
+  isAllDayEvent,
+  mergeSx,
+  widthToPct,
+} from "../helpers";
 import { CalendarEvent, StartDay } from "../types";
 import {
   DragPosition,
@@ -246,7 +252,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
           ? Math.min(rawDelta, maxVal)
           : Math.max(rawDelta, minVal);
 
-      let start = dragged.event.sourceEvent.start;
+      let start = getEventStart(dragged.event.sourceEvent);
       let end = getEventEnd(dragged.event.sourceEvent);
 
       if (addedWeeks !== 0) {
@@ -574,7 +580,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
               {events.map((event, index) => {
                 const { week, day, row, maxRow } = eventProperties[`${index}`];
 
-                const eventStart = max([event.start, startOfMonthCalendar]);
+                const eventStart = max([getEventStart(event), startOfMonthCalendar]);
                 const eventEnd = min([getEventEnd(event), endOfMonthCalendar]);
 
                 let width = differenceInCalendarDays(eventEnd, eventStart);

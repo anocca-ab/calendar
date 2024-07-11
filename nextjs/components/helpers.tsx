@@ -207,6 +207,13 @@ export function getEventColor(
   };
 }
 
+export function getEventStart<T>(event: CalendarEvent<T>) {
+  if (!event.end) {
+    return startOfDay(event.start);
+  }
+  return event.start;
+}
+
 export function getEventEnd<T>(event: CalendarEvent<T>) {
   if (event.end && event.start.getTime() === event.end?.getTime()) {
     return addMinutes(event.start, 15);

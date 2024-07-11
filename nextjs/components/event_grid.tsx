@@ -16,7 +16,7 @@ import {
 } from "date-fns";
 import { StartDay } from "./types";
 import { ModifiableEvent } from "./week_calendar/types";
-import { getEventEnd } from "./helpers";
+import { getEventEnd, getEventStart } from "./helpers";
 
 export function monthCalendarRange(startDay: StartDay, startOfMonth: Date) {
   const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
@@ -141,7 +141,7 @@ export function eventGrid<T>(
   };
 
   events.forEach((event, index) => {
-    const eventStart = max([event.start, startTime]);
+    const eventStart = max([getEventStart(event), startTime]);
     const eventEnd = min([getEventEnd(event), endTime]);
 
     const week = differenceInCalendarWeeks(eventStart, startTime, {

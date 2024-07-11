@@ -73,13 +73,18 @@ function MonthHeader({ startTime, now }: { startTime: Date; now: Date }) {
               )}
               <FlexRow
                 sx={{
-                  width: widthToPct(w - 1),
+                  width: `calc(100% - 1px)`,
                   height: "16px",
                   justifyContent: "center",
                   alignItems: "center",
+                  overflow: "hidden",
                 }}
               >
-                <FlexCol alignItems="center" justifyContent="center">
+                <FlexCol
+                  alignItems="center"
+                  justifyContent="center"
+                  sx={{ width: "100%" }}
+                >
                   <Typography
                     variant="event"
                     sx={{ fontSize: "8px", lineHeight: "8px" }}
@@ -96,7 +101,7 @@ function MonthHeader({ startTime, now }: { startTime: Date; now: Date }) {
                       sx={{
                         background: (theme) => theme.palette.primary.main,
                         height: "1px",
-                        width: `min(${100 * 8 / w}%, 12px)`,
+                        width: `min(${(100 * 8) / w}%, 12px)`,
                         borderRadius: "1px",
                         position: "absolute",
                         bottom: "2px",
@@ -290,7 +295,11 @@ function BigTime({
         const els = [
           <FlexRow
             key={index}
-            sx={{ width: widthToPct(width), height: "44px" }}
+            sx={{
+              width: widthToPct(width),
+              height: "44px",
+              overflow: "hidden",
+            }}
             justifyContent={"center"}
           >
             <Box>
@@ -358,7 +367,12 @@ function SmallTime({
     <FlexRow justifyContent="space-between">
       {times.flatMap((week, index) => {
         const els = [
-          <FlexRow key={index} justifyContent="center" flex="1">
+          <FlexRow
+            key={index}
+            justifyContent="center"
+            flex="1"
+            sx={{ overflow: "hidden" }}
+          >
             <Box>
               <Typography
                 variant="body2"

@@ -28,7 +28,7 @@ import {
 } from "date-fns";
 import React from "react";
 import { eventGrid } from "../event_grid";
-import { DEFAULT_COLOR, getEventEnd, mergeSx } from "../helpers";
+import { DEFAULT_COLOR, getEventEnd, getEventStart, mergeSx } from "../helpers";
 import { CalendarEvent, StartDay, TimelineResolution } from "../types";
 import { ModifiableEvent } from "../week_calendar/types";
 import {
@@ -209,7 +209,10 @@ export function Timeline<T>(props: TimelineProps<T>) {
 
         addedMs = Math.min(Math.max(addedMs, minAddedMs), maxAddedMs);
 
-        let start = addMilliseconds(dragged.event.sourceEvent.start, addedMs);
+        let start = addMilliseconds(
+          getEventStart(dragged.event.sourceEvent),
+          addedMs
+        );
         let end = addMilliseconds(
           getEventEnd(dragged.event.sourceEvent),
           addedMs
@@ -439,14 +442,14 @@ function parseEventsInTimeline<T>(
           start: timelineStart,
           end: timelineEnd,
         },
-        { start: event.start, end: getEventEnd(event) }
+        { start: getEventStart(event), end: getEventEnd(event) }
       );
     })
     .map((event) => {
       const { start, end } = constrainEvent(
         resolution,
         startTime,
-        event.start,
+        getEventStart(event),
         getEventEnd(event)
       );
       return { sourceEvent: event.sourceEvent, start, end };

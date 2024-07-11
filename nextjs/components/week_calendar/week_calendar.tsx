@@ -21,6 +21,7 @@ import {
   DEFAULT_COLOR,
   getEventColor,
   getEventEnd,
+  getEventStart,
   isAllDayEvent,
   mergeSx,
   widthToPct,
@@ -661,7 +662,7 @@ function WeekCalendarGrid<T>(props: { events: CalendarEvent<T>[] }) {
       return {
         ...ev,
         start: min([
-          max([ev.start, startOfWeek]),
+          max([getEventStart(ev), startOfWeek]),
           // it must be within the week
           subMinutes(endOfWeek(startOfWeek, options), 15),
         ]),
@@ -719,7 +720,7 @@ function WeekCalendarGrid<T>(props: { events: CalendarEvent<T>[] }) {
           : // only allow drag to create event on the current day
             0;
 
-      let start = dragged.event.sourceEvent.start;
+      let start = getEventStart(dragged.event.sourceEvent);
       let end = getEventEnd(dragged.event.sourceEvent);
 
       if (addedDays !== 0) {
