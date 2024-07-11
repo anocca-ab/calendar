@@ -29,7 +29,12 @@ import {
 import React from "react";
 import { eventGrid } from "../event_grid";
 import { DEFAULT_COLOR, getEventEnd, getEventStart, mergeSx } from "../helpers";
-import { CalendarEvent, StartDay, TimelineResolution } from "../types";
+import {
+  CalendarEvent,
+  ScrollContainer,
+  StartDay,
+  TimelineResolution,
+} from "../types";
 import { ModifiableEvent } from "../week_calendar/types";
 import {
   dayDiff,
@@ -104,6 +109,12 @@ export type TimelineProps<T> = {
    * @returns void
    */
   onClickEvent?: (event: CalendarEvent<T>, nativeEvent: MouseEvent) => void;
+
+  /**
+   * Provide elements that scroll around the calendar so that events can be moved while the user is scrolling
+   * @default [window]
+   */
+  scrollContainers?: ScrollContainer[];
 };
 
 function getStartTime(
@@ -136,6 +147,11 @@ function parseDefaultProps<T>(props: TimelineProps<T>) {
 
   const resolution = props.resolution ?? "month";
 
+  const scrollContainers = props.scrollContainers ?? [];
+  if (scrollContainers.length === 0) {
+    scrollContainers.push(window);
+  }
+
   return {
     events,
     startDay,
@@ -150,6 +166,7 @@ function parseDefaultProps<T>(props: TimelineProps<T>) {
     onCreateEvent: props.onCreateEvent,
     onMoveEvent: props.onMoveEvent,
     onClickEvent: props.onClickEvent,
+    scrollContainers,
   };
 }
 

@@ -130,7 +130,17 @@ export function InteractiveDemo(props: {
           onClickEvent(ev);
         }}
         onCreateEvent={(start, end) => {
-          onClickEvent({ start, end });
+          const ev: CalendarEvent<undefined> = {
+            canEdit: true,
+            color: props.defaultEventColor ?? DEFAULT_COLOR,
+            end,
+            start,
+            title: "(No title)",
+          };
+          setEvents((prev) => {
+            return [...prev, ev];
+          });
+          onClickEvent(ev);
         }}
         onClickEvent={(ev) => {
           onClickEvent(ev);

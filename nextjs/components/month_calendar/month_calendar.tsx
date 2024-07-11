@@ -33,7 +33,7 @@ import {
   mergeSx,
   widthToPct,
 } from "../helpers";
-import { CalendarEvent, StartDay } from "../types";
+import { CalendarEvent, ScrollContainer, StartDay } from "../types";
 import {
   DragPosition,
   EventContainer,
@@ -122,6 +122,12 @@ export type MonthCalendarProps<T> = {
    * @returns void
    */
   onClickEvent?: (event: CalendarEvent<T>, nativeEvent: MouseEvent) => void;
+
+  /**
+   * Provide elements that scroll around the calendar so that events can be moved while the user is scrolling
+   * @default [window]
+   */
+  scrollContainers?: ScrollContainer[];
 };
 
 function parseDefaultProps<T>(props: MonthCalendarProps<T>) {
@@ -129,6 +135,11 @@ function parseDefaultProps<T>(props: MonthCalendarProps<T>) {
   let startDay = props.startDay ?? "monday";
 
   const now = props.now ?? new Date();
+
+  const scrollContainers = props.scrollContainers ?? [];
+  if (scrollContainers.length === 0) {
+    scrollContainers.push(window);
+  }
 
   return {
     events,
@@ -138,6 +149,7 @@ function parseDefaultProps<T>(props: MonthCalendarProps<T>) {
     onCreateEvent: props.onCreateEvent,
     onMoveEvent: props.onMoveEvent,
     onClickEvent: props.onClickEvent,
+    scrollContainers,
   };
 }
 
@@ -580,7 +592,10 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
               {events.map((event, index) => {
                 const { week, day, row, maxRow } = eventProperties[`${index}`];
 
-                const eventStart = max([getEventStart(event), startOfMonthCalendar]);
+                const eventStart = max([
+                  getEventStart(event),
+                  startOfMonthCalendar,
+                ]);
                 const eventEnd = min([getEventEnd(event), endOfMonthCalendar]);
 
                 let width = differenceInCalendarDays(eventEnd, eventStart);

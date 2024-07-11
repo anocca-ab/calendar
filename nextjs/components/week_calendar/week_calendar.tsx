@@ -26,7 +26,7 @@ import {
   mergeSx,
   widthToPct,
 } from "../helpers";
-import { CalendarEvent, StartDay } from "../types";
+import { CalendarEvent, ScrollContainer, StartDay } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { CalendarConfigContext, useCalendar } from "./context";
 import {
@@ -79,12 +79,21 @@ export type WeekCalendarProps<T> = {
   now?: Date;
 
   /**
-   * When provided the user can create an event by clicking on a day or dragging over areas in the calendar
+   * When provided the user can create an event by clicking on a day
    * @param start when the event starts
    * @param end when event ends
    * @returns void
    */
   onCreateEvent?: (start: Date, end: Date) => void;
+
+  /**
+   * If provided the user can drag to create events
+   * When the user finishes the drag this function is called with the start and end date
+   * @param start when the event starts
+   * @param end when the event ends. If start === end then it is a 15 min task. If end is not provided it is an all day task
+   * @returns void
+   */
+  dragCreateEvent?: (start: Date, end?: Date) => void;
 
   /**
    * Triggered when an event is moved
@@ -107,19 +116,16 @@ export type WeekCalendarProps<T> = {
   onClickEvent?: (event: CalendarEvent<T>, nativeEvent: MouseEvent) => void;
 
   /**
-   * If provided the user can drag to create events
-   * When the user finishes the drag this function is called with the start and end date
-   * @param start when the event starts
-   * @param end when the event ends. If start === end then it is a 15 min task. If end is not provided it is an all day task
-   * @returns void
-   */
-  dragCreateEvent?: (start: Date, end?: Date) => void;
-
-  /**
    * This is the default event color, when no event.color is provided (and for new events that are created by dragging for example)
    * @default "#FF7043"
    */
   defaultEventColor?: string;
+
+  /**
+   * Provide elements that scroll around the calendar so that events can be moved while the user is scrolling
+   * @default [window]
+   */
+  scrollContainers?: ScrollContainer[];
 };
 
 function parseDefaultProps<T>(props: WeekCalendarProps<T>) {
@@ -136,6 +142,10 @@ function parseDefaultProps<T>(props: WeekCalendarProps<T>) {
   const startOfWeek = props.startOfWeek
     ? fnsStartOfWeek(props.startOfWeek, startOpts)
     : fnsStartOfWeek(new Date(), startOpts);
+  const scrollContainers = props.scrollContainers ?? [];
+  if (scrollContainers.length === 0) {
+    scrollContainers.push(window);
+  }
   return {
     events,
     startDay,
@@ -147,6 +157,7 @@ function parseDefaultProps<T>(props: WeekCalendarProps<T>) {
     onClickEvent: props.onClickEvent,
     dragCreateEvent: props.dragCreateEvent,
     defaultEventColor: props.defaultEventColor ?? DEFAULT_COLOR,
+    scrollContainers,
   };
 }
 
@@ -162,6 +173,7 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
     onClickEvent,
     dragCreateEvent,
     defaultEventColor,
+    scrollContainers,
   } = parseDefaultProps(props);
 
   const allDayEvents: CalendarEvent<T>[] = [];
@@ -199,6 +211,7 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
         onMoveEvent,
         dragCreateEvent,
         defaultEventColor,
+        scrollContainers,
       }}
     >
       <FlexCol>

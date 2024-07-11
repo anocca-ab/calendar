@@ -1,7 +1,7 @@
 import { addMinutes, max } from "date-fns";
 import React from "react";
 import { getEventEnd, getEventStart } from "./helpers";
-import { CalendarEvent } from "./types";
+import { CalendarEvent, ScrollContainer } from "./types";
 import { ModifiableEvent } from "./week_calendar/types";
 
 export type DraggedEvent<T extends { start: Date; end?: Date | undefined }> = {
@@ -120,6 +120,7 @@ export function useMouse<T>(
     ) => DragPosition<ModifiableEvent<T>> | undefined;
     dragCreateEvent?: (start: Date, end?: Date) => void;
     eventContainerRef: React.MutableRefObject<HTMLDivElement | null>;
+    scrollContainers: ScrollContainer[];
   }>,
   workWeek: boolean
 ) {
@@ -141,6 +142,31 @@ export function useMouse<T>(
 
     let container: undefined | EventContainer;
 
+    const getCurrentScroll = (): { scrollX: number; scrollY: number } => {
+      return {
+        scrollX: effectRefs.current.scrollContainers
+          .map(
+            (el): number =>
+              el?.current?.scrollX ??
+              el?.scrollX ??
+              el?.current?.scrollLeft ??
+              el?.scrollLeft ??
+              0
+          )
+          .reduce((a, b) => a + b, 0),
+        scrollY: effectRefs.current.scrollContainers
+          .map(
+            (el): number =>
+              el?.current?.scrollY ??
+              el?.scrollY ??
+              el?.current?.scrollTop ??
+              el?.scrollTop ??
+              0
+          )
+          .reduce((a, b) => a + b, 0),
+      };
+    };
+
     /**
      * Same as the React.state draggedEvent, but outside the context of react state
      * A "live" version, whereas the state version is only updated after react component updates
@@ -155,8 +181,7 @@ export function useMouse<T>(
         const pos0: MouseStatePos = {
           x: ev.clientX,
           y: ev.clientY,
-          scrollX: window.scrollX,
-          scrollY: window.scrollY,
+          ...getCurrentScroll(),
         };
 
         const activateDrag = () => {
@@ -204,8 +229,7 @@ export function useMouse<T>(
       state.pos = {
         x: ev.clientX,
         y: ev.clientY,
-        scrollX: window.scrollX,
-        scrollY: window.scrollY,
+        ...getCurrentScroll(),
       };
       update();
     };
@@ -265,21 +289,52 @@ export function useMouse<T>(
       draggedEvent = undefined;
       effectRefs.current.setDraggedEvent(undefined);
     };
-    const scroll = (ev: Event) => {
+    const scroll = () => {
       if (!state.pos) {
         return;
       }
       state.pos = {
         ...state.pos,
-        scrollX: window.scrollX,
-        scrollY: window.scrollY,
+        ...getCurrentScroll(),
       };
       update();
     };
     window.addEventListener("mouseup", mouseUp);
     window.addEventListener("mousemove", mouseMove);
     window.addEventListener("mousedown", mouseDown);
-    window.addEventListener("scroll", scroll);
+
+    const cbs = effectRefs.current.scrollContainers.map((el) => {
+      let addEventListener =
+        el?.current?.addEventListener ?? el?.addEventListener;
+      let removeEventListener =
+        el?.current?.removeEventListener ?? el?.removeEventListener;
+
+      if (el?.current?.addEventListener) {
+        addEventListener = el.current.addEventListener.bind(el.current);
+      }
+      if (el?.current?.removeEventListener) {
+        removeEventListener = el.current.removeEventListener.bind(el.current);
+      }
+      if (!addEventListener || !removeEventListener) {
+        if (el?.addEventListener) {
+          addEventListener = el.addEventListener.bind(el);
+        }
+        if (el?.removeEventListener) {
+          removeEventListener = el.removeEventListener.bind(el);
+        }
+      }
+
+      if (!addEventListener || !removeEventListener) {
+        return () => {};
+      }
+
+      addEventListener("scroll", scroll, { passive: true });
+      return () => {
+        if (removeEventListener) {
+          removeEventListener("scroll", scroll);
+        }
+      };
+    });
 
     function update() {
       setUpContainerRefListener();
@@ -360,10 +415,12 @@ export function useMouse<T>(
       window.removeEventListener("mouseup", mouseUp);
       window.removeEventListener("mousemove", mouseMove);
       window.removeEventListener("mousedown", mouseDown);
-      window.removeEventListener("scroll", scroll);
       if (cleanupContainerListener) {
         cleanupContainerListener();
       }
+      cbs.forEach((cb) => {
+        cb();
+      });
     };
   }, [daysInWeek, effectRefs, target]);
 }
@@ -467,6 +524,7 @@ export function useEffectRefs<T>(
     onClickEvent?: (event: CalendarEvent<T>, nativeEvent: MouseEvent) => void;
     onCreateEvent?: (start: Date, end: Date) => void;
     dragCreateEvent?: (start: Date, end?: Date) => void;
+    scrollContainers: ScrollContainer[];
   },
   createNewEvent?: (
     pos0: MouseStatePos,
@@ -499,6 +557,7 @@ export function useEffectRefs<T>(
     eventContainerRef,
     createNewEvent,
     dragCreateEvent: calendarProps.dragCreateEvent,
+    scrollContainers: calendarProps.scrollContainers,
   });
 
   effectRefs.current = {
@@ -511,6 +570,7 @@ export function useEffectRefs<T>(
     eventContainerRef,
     createNewEvent,
     dragCreateEvent: calendarProps.dragCreateEvent,
+    scrollContainers: calendarProps.scrollContainers,
   };
 
   return [effectRefs, eventContainerRef] as const;

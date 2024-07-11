@@ -20,3 +20,19 @@ export type CalendarEvent<T> = {
 export type StartDay = "monday" | "sunday";
 
 export type TimelineResolution = "month" | "3-months" | "year" | "3-years";
+
+export type ScrollContainer =
+  | (El & {
+      current?: El | null;
+    })
+  | undefined
+  | null;
+
+type El = {
+  scrollTop?: number;
+  scrollLeft?: number;
+  scrollY?: number;
+  scrollX?: number;
+  addEventListener?(type: string, listener: (...args: any[]) => any, options?: any): void;
+  removeEventListener?(type: string, listener: (...args: any[]) => any, options?: any): void;
+};

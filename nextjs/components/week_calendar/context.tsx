@@ -1,5 +1,5 @@
 import React from "react";
-import { CalendarEvent, StartDay } from "../types";
+import { CalendarEvent, ScrollContainer, StartDay } from "../types";
 
 type RawContext<T> =
   | undefined
@@ -17,6 +17,7 @@ type RawContext<T> =
       ) => void;
       dragCreateEvent?: (start: Date, end?: Date) => void;
       defaultEventColor: string;
+      scrollContainers: ScrollContainer[];
     };
 export const CalendarConfigContext =
   React.createContext<RawContext<any>>(undefined);

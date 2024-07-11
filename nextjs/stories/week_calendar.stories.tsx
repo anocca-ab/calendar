@@ -10,6 +10,8 @@ import {
 } from "date-fns";
 import { WeekCalendar } from "../components/week_calendar/week_calendar";
 import { manyEvents } from "./many_events";
+import { Box } from "@mui/material";
+import React from "react";
 
 const meta = {
   title: "Calendar/Week",
@@ -136,3 +138,29 @@ export const WeekStartsOnSunday: Story = {
     return <InteractiveDemo type="week" {...props} />;
   },
 };
+
+export const WithScrollableContainers: Story = {
+  args: {
+    events: manyEvents,
+    workWeek: true,
+  },
+  render: (props) => {
+    return <ScrollDemo {...props} />;
+  },
+};
+function ScrollDemo(
+  props: React.ComponentPropsWithoutRef<typeof WeekCalendar>
+) {
+  const scrollableContainer = React.useRef<HTMLDivElement>(null);
+  return (
+    <Box
+      sx={{ maxHeight: "480px", overflowY: "scroll" }}
+      ref={scrollableContainer}
+    >
+      <WeekCalendar
+        {...props}
+        scrollContainers={[scrollableContainer, window]}
+      />
+    </Box>
+  );
+}
