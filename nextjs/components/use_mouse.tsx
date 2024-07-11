@@ -254,7 +254,11 @@ export function useMouse<T>(
             }
           }
         }
-        if (effectRefs.current.onClickEvent && !mouseMoved) {
+        if (
+          effectRefs.current.onClickEvent &&
+          !mouseMoved &&
+          dragged?.type !== "new"
+        ) {
           effectRefs.current.onClickEvent(draggedEvent.source, ev);
         }
       }

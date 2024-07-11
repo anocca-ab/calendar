@@ -117,18 +117,17 @@ export function InteractiveDemo(props: {
         startOfMonth={startTime} // month calendar
         events={events}
         dragCreateEvent={(start, end) => {
+          const ev: CalendarEvent<undefined> = {
+            canEdit: true,
+            color: props.defaultEventColor ?? DEFAULT_COLOR,
+            end,
+            start,
+            title: "(No title)",
+          };
           setEvents((prev) => {
-            return [
-              ...prev,
-              {
-                canEdit: true,
-                color: props.defaultEventColor ?? DEFAULT_COLOR,
-                end,
-                start,
-                title: "(No title)",
-              },
-            ];
+            return [...prev, ev];
           });
+          onClickEvent(ev);
         }}
         onCreateEvent={(start, end) => {
           onClickEvent({ start, end });
