@@ -172,7 +172,16 @@ export function Timeline<T>(props: TimelineProps<T>) {
     startTime
   );
 
-  const [verticalPositions] = getPositions(events);
+  const verticalPositionsRef = React.useRef<
+    Record<number, number> | undefined
+  >();
+
+  if (!draggedEvent?.dragged || verticalPositionsRef.current === undefined) {
+    const [verticalPositions] = getPositions(events);
+    verticalPositionsRef.current = verticalPositions;
+  }
+
+  const verticalPositions = verticalPositionsRef.current;
 
   const [timelineStart, timelineEnd] = getTimelineRange(resolution, startTime);
 
@@ -250,6 +259,9 @@ export function Timeline<T>(props: TimelineProps<T>) {
           ref={eventContainerRef}
         >
           {events.map((event, index) => {
+            const dragged =
+              draggedEvent?.source.sourceEvent === event.sourceEvent;
+
             const x = widthToPct(
               (720 * (event.start.getTime() - start)) / totalSecondsOfMonth
             );
@@ -262,6 +274,8 @@ export function Timeline<T>(props: TimelineProps<T>) {
             if (event.end.getTime() === endOfDay(event.end).getTime()) {
               width += 1;
             }
+
+            const y = verticalPositions[index];
 
             return (
               <React.Fragment key={index}>
@@ -277,38 +291,59 @@ export function Timeline<T>(props: TimelineProps<T>) {
                   })}
                   sx={{
                     minWidth: "auto",
-                    width: w,
-                    left: x,
-                    top: verticalPositions[index] * (16 + 1) + 11,
+                    width: dragged ? `calc(${w} + 2px)` : w,
+                    left: dragged ? `calc(${x} - 1px)` : x,
+                    top: y * (16 + 1) + 11,
                     height: "16px",
                     position: "absolute",
-                    overflow: "hidden",
                     borderRadius: "4px",
                     padding: 0,
                     margin: 0,
+                    zIndex: dragged ? 2 : 1,
+                    paddingX: dragged ? "1px" : 0,
+                    background: "white",
                   }}
                 >
                   <Box
                     sx={{
+                      borderRadius: "4px",
+                      height: "16px",
+                      overflow: "hidden",
+                      boxShadow: (theme) =>
+                        dragged ? theme.shadows[4] : "none",
                       backgroundColor: event.sourceEvent.color ?? DEFAULT_COLOR,
                       display: "flex",
-                      justifyContent: "flex-start",
-                      padding: "0px 8px",
+                      justifyContent: "center",
                       flex: 1,
                       alignItems: "center",
+                      flexShrink: 1,
                       whiteSpace: "nowrap",
+                      padding: 0,
                       pointerEvents: "none",
                       "*": {
                         pointerEvents: "none",
                       },
                     }}
                   >
-                    <Typography
-                      variant="event"
-                      color={(theme) => theme.palette.primary.contrastText}
+                    <Box
+                      sx={{
+                        paddingLeft: "8px",
+                        paddingRight: "8px",
+                        flexShrink: 1,
+                        height: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "flex-start",
+                        width: "100%",
+                      }}
                     >
-                      {event.sourceEvent.title ?? "(No title)"}
-                    </Typography>
+                      <Typography
+                        variant="event"
+                        color={(theme) => theme.palette.primary.contrastText}
+                      >
+                        {event.sourceEvent.title ?? "(No title)"}
+                      </Typography>
+                    </Box>
                   </Box>
                 </Box>
               </React.Fragment>

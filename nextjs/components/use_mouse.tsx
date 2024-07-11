@@ -375,7 +375,6 @@ export function useDragableEvents<T>(events: CalendarEvent<T>[]) {
   const allEvents: ModifiableEvent<T>[] = events.map((sourceEvent) => ({
     sourceEvent,
     start: sourceEvent.start,
-    // an event "collision box" should be at least 15 minutes in height (=15px)
     end: getEventEnd(sourceEvent),
   }));
 
