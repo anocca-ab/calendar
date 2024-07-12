@@ -17,6 +17,7 @@ import {
   min,
   roundToNearestMinutes,
   startOfDay,
+  subMilliseconds,
   subMinutes,
 } from "date-fns";
 import React from "react";
@@ -652,8 +653,17 @@ function WeekCalendarGrid<T>(props: { events: CalendarEvent<T>[] }) {
     useCalendar<T>();
   const daysInWeek = workWeek ? 5 : 7;
 
-  const snapFn = (start: Date, end: Date) => {
+  const snapFn = (start: Date, end: Date, strict?: boolean) => {
     const delta = differenceInMilliseconds(end, start);
+    if (strict) {
+      const newStart = roundToNearestMinutes(start, { nearestTo: 15 });
+      const newEnd = roundToNearestMinutes(end, { nearestTo: 15 });
+
+      return {
+        start: newStart,
+        end: newEnd,
+      };
+    }
     const newStart = roundToNearestMinutes(start, { nearestTo: 15 });
     const newEnd = addMilliseconds(newStart, delta);
     return {
@@ -776,9 +786,9 @@ function WeekCalendarGrid<T>(props: { events: CalendarEvent<T>[] }) {
       if (dragged.type === "new") {
         // when creating a new event by dragging, we must maintain an "anchor" which depends which is the end if dragging up or the start when dragging down
         if (!draggingUp) {
-          return snapFn(dragged.event.start, end);
+          return snapFn(dragged.event.start, end, true);
         } else {
-          return snapFn(start, dragged.event.end);
+          return snapFn(start, dragged.event.end, true);
         }
       }
 
