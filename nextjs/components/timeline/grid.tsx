@@ -12,6 +12,10 @@ import {
   addYears,
   addQuarters,
   isSameYear,
+  getMonth,
+  startOfMonth,
+  startOfWeek,
+  differenceInMilliseconds,
 } from "date-fns";
 import { TimelineResolution, StartDay } from "../types";
 import { FlexRow, FlexCol } from "../wrappers";
@@ -104,22 +108,58 @@ function ThreeMonthHeader({
   height: number;
   startTime: Date;
 }) {
-  const months: Date[] = [];
+  const monthMap = new Map<number, Date>();
   const weeks: Date[] = [];
-  // 3 months
-  for (let i = 0; i < 3; i += 1) {
-    // 4 weeks
-    for (let j = 0; j < 4; j += 1) {
-      if (j === 0) {
-        months.push(addMonths(startTime, i));
-      }
-      weeks.push(addWeeks(addMonths(startTime, i), j));
+  for (let i = 0; i < 15; i += 1) {
+    const week = addWeeks(startTime, i);
+    weeks.push(week);
+    const month = getMonth(week);
+    if (!monthMap.has(month)) {
+      monthMap.set(month, startOfMonth(week));
     }
   }
+  const months: Date[] = Array.from(monthMap.values());
+
+  const totalWidth = differenceInMilliseconds(
+    addWeeks(startTime, 15),
+    startTime
+  );
+
   return (
     <Wrapper>
-      <BigTime times={months} width={239} height={height} />
-      <SmallTime times={weeks} noBorderMod={4} height={height} />
+      <Box sx={{ position: "absolute", inset: 0 }}>
+        <>
+          {months.flatMap((month, index) => {
+            const xStart = month.getTime() - startTime.getTime();
+            const xWidth = differenceInMilliseconds(
+              startOfMonth(addMonths(month, 1)),
+              month
+            );
+            return (
+              <Box
+                key={index + "divider"}
+                sx={{
+                  width: "1px",
+                  height: 44,
+                  position: "absolute",
+                  left: widthToPct((720 * xStart) / totalWidth),
+                }}
+              >
+                <Box
+                  sx={{
+                    width: "1px",
+                    height: "100%",
+                    background: (theme) => theme.palette.divider,
+                    borderRadius: "1px",
+                  }}
+                ></Box>
+              </Box>
+            );
+          })}
+        </>
+      </Box>
+
+      <SmallTime times={weeks} noBorderMod={0} height={height} />
     </Wrapper>
   );
 }
@@ -280,30 +320,40 @@ function SmallTime({
           const els = [
             <FlexRow key={index} justifyContent="center" flex="1"></FlexRow>,
           ];
-          if (index !== 0) {
-            els.unshift(
+          const divider = (index: number) => (
+            <Box
+              key={index + "divider"}
+              sx={{
+                width: "1px",
+                height: "16px",
+              }}
+            >
               <Box
-                key={index + "divider"}
                 sx={{
                   width: "1px",
-                  height: "16px",
+                  height: height + 16,
+                  background:
+                    index % noBorderMod === 0
+                      ? "none"
+                      : (theme) => theme.palette.divider,
+                  borderTopLeftRadius: "1px",
+                  borderTopRightRadius: "1px",
                 }}
-              >
-                <Box
-                  sx={{
-                    width: "1px",
-                    height: height + 16,
-                    background:
-                      index % noBorderMod === 0
-                        ? "none"
-                        : (theme) => theme.palette.divider,
-                    borderTopLeftRadius: "1px",
-                    borderTopRightRadius: "1px",
-                  }}
-                ></Box>
-              </Box>
-            );
+              ></Box>
+            </Box>
+          );
+
+          // don't put borders on left and right
+          if (index !== 0) {
+            els.unshift(divider(index));
           }
+
+          // put borders on left and right
+          // els.unshift(divider(index));
+          // if (index === times.length - 1) {
+          //   els.push(divider(index + 1));
+          // }
+
           return els;
         })}
       </FlexRow>

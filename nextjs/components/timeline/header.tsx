@@ -12,6 +12,9 @@ import {
   addYears,
   addQuarters,
   isSameYear,
+  getMonth,
+  startOfMonth,
+  differenceInMilliseconds,
 } from "date-fns";
 import { TimelineResolution, StartDay } from "../types";
 import { FlexRow, FlexCol } from "../wrappers";
@@ -127,29 +130,73 @@ function ThreeMonthHeader({
   now: Date;
   startDay: StartDay;
 }) {
-  const months: Date[] = [];
+  const monthMap = new Map<number, Date>();
   const weeks: Date[] = [];
-  // 3 months
-  for (let i = 0; i < 3; i += 1) {
-    // 4 weeks
-    for (let j = 0; j < 4; j += 1) {
-      if (j === 0) {
-        months.push(addMonths(startTime, i));
-      }
-      weeks.push(addWeeks(addMonths(startTime, i), j));
+  for (let i = 0; i < 15; i += 1) {
+    const week = addWeeks(startTime, i);
+    weeks.push(week);
+    const month = getMonth(week);
+    if (!monthMap.has(month)) {
+      monthMap.set(month, startOfMonth(week));
     }
   }
+  const months: Date[] = Array.from(monthMap.values());
+
+  const totalWidth = differenceInMilliseconds(
+    addWeeks(startTime, 15),
+    startTime
+  );
+
   return (
     <Box>
-      <BigTime
-        now={now}
-        times={months}
-        isActive={isSameMonth}
-        formatDate={(date) => {
-          return format(date, "MMM");
-        }}
-        width={239}
-      />
+      <Box sx={{ position: "relative", height: "44px", width: "100%" }}>
+        <>
+          {months.flatMap((month, index) => {
+            const xStart = month.getTime() - startTime.getTime();
+            const xWidth = differenceInMilliseconds(
+              startOfMonth(addMonths(month, 1)),
+              month
+            );
+
+            return (
+              <FlexRow
+                key={index}
+                sx={{
+                  width: widthToPct((720 * xWidth) / totalWidth),
+                  height: "44px",
+                  overflow: "hidden",
+                  left: widthToPct((720 * xStart) / totalWidth),
+                  position: "absolute",
+                }}
+                justifyContent={"center"}
+              >
+                <Box>
+                  <Typography
+                    variant="h4"
+                    color={(theme) =>
+                      theme.palette.text[
+                        isSameMonth(month, now) ? "primary" : "secondary"
+                      ]
+                    }
+                  >
+                    {format(month, "MMM")}
+                  </Typography>
+                  {isSameMonth(month, now) && (
+                    <Box
+                      sx={{
+                        background: (theme) => theme.palette.primary.main,
+                        height: "2px",
+                        width: "100%",
+                        borderRadius: "2px",
+                      }}
+                    ></Box>
+                  )}
+                </Box>
+              </FlexRow>
+            );
+          })}
+        </>
+      </Box>
       <Box sx={{ height: "16px" }} />
       <SmallTime
         formatDate={(date) => "W" + format(date, "I")}

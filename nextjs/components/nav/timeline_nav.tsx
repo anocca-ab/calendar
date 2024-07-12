@@ -59,7 +59,7 @@ export function TimelineNav(props: {
 
   const speeds: Record<TimelineResolution, Speed[]> = {
     month: ["week", "month"],
-    "3-months": ["month", "3-months"],
+    "3-months": ["week", "month", "3-months"],
     year: ["quarter", "year"],
     "3-years": ["year", "3-years"],
   };
@@ -84,7 +84,7 @@ export function TimelineNav(props: {
     },
     month: {
       left: (val) => {
-        if (resolution === "month") {
+        if (resolution === "month" || resolution === "3-months") {
           return startOfWeek(
             startOfMonth(subMonths(endOfWeek(val, options), 1)),
             options
@@ -93,7 +93,7 @@ export function TimelineNav(props: {
         return subMonths(val, 1);
       },
       right: (val) => {
-        if (resolution === "month") {
+        if (resolution === "month" || resolution === "3-months") {
           return startOfWeek(
             startOfMonth(addMonths(endOfWeek(val, options), 1)),
             options
@@ -103,8 +103,8 @@ export function TimelineNav(props: {
       },
     },
     "3-months": {
-      left: (val) => subMonths(val, 3),
-      right: (val) => addMonths(val, 3),
+      left: (val) => startOfWeek(subWeeks(val, 15), options),
+      right: (val) => startOfWeek(addWeeks(val, 15), options),
     },
     quarter: {
       left: (val) => subMonths(val, 3),
@@ -139,14 +139,14 @@ export function TimelineNav(props: {
     day: "do",
     week: () => "W" + format(currentDate, "I"),
     month: () => {
-      if (resolution === "month") {
+      if (resolution === "month" || resolution === "3-months") {
         return format(endOfWeek(currentDate, options), "MMMM");
       }
       return format(currentDate, "MMMM");
     },
     "3-months": () =>
-      `${format(currentDate, "MMM")} – ${format(
-        addMonths(currentDate, 3),
+      `${format(endOfWeek(currentDate, options), "MMM")} – ${format(
+        startOfWeek(addMonths(currentDate, 3), options),
         "MMM"
       )}`,
     quarter: "qqq",

@@ -135,7 +135,7 @@ function getStartTime(
     return startOfWeek(startTime, options);
   }
   if (resolution === "3-months") {
-    return startOfMonth(startTime);
+    return startOfWeek(startTime, options);
   }
   if (resolution === "year") {
     return startOfQuarter(startTime);
@@ -251,7 +251,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
       return snapToDay();
     }
     if (resolution === "3-months") {
-      return snapToWeek();
+      return snapToDay();
     }
     if (resolution === "year") {
       return snapToDay();
@@ -342,7 +342,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
   const height = maxHeightRef.current * (16 + 1);
 
   return (
-    <Box sx={{ position: "relative" }}>
+    <Box sx={{ position: "relative", overflow: 'hidden' }}>
       <Grid {...p} height={height} empty={events.length === 0} />
       <Header {...p} />
       <Box
@@ -484,7 +484,7 @@ const getTimelineRange = (
     return [startTime, addWeeks(startTime, 6)];
   }
   if (resolution === "3-months") {
-    return [startTime, addMonths(startTime, 3)];
+    return [startTime, addWeeks(startTime, 15)];
   }
   if (resolution === "year") {
     return [startTime, addQuarters(startTime, 4)];
