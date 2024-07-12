@@ -8,7 +8,7 @@ import { parseProps } from "./parse_props";
 export function CalendarNav(props: {
   now?: Date;
   time?: Date;
-  setTime?: React.Dispatch<React.SetStateAction<Date>>;
+  setTime?: (newTime: Date) => void;
   type: "week" | "month";
 }) {
   const parsedProps = parseProps(props);

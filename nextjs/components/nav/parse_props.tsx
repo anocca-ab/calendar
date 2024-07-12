@@ -1,5 +1,3 @@
-import React from "react";
-
 export const parseProps = ({
   now,
   time: time,
@@ -7,7 +5,7 @@ export const parseProps = ({
 }: {
   now?: Date;
   time?: Date;
-  setTime?: React.Dispatch<React.SetStateAction<Date>>;
+  setTime?: (newTime: Date) => void;
 }) => {
   return {
     now: now ?? new Date(),

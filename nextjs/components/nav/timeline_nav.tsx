@@ -49,7 +49,7 @@ const allSpeeds: Speed[] = [
 export function TimelineNav(props: {
   now?: Date;
   time?: Date;
-  setTime?: React.Dispatch<React.SetStateAction<Date>>;
+  setTime?: (newTime: Date) => void;
   resolution?: TimelineResolution;
   startDay?: StartDay;
 }) {
@@ -200,7 +200,7 @@ export function TimelineNav(props: {
               width: 160,
             }}
             renderValue={(value) => {
-              if (value === 'year' || value === '3-years') {
+              if (value === "year" || value === "3-years") {
                 return getTimeLabel(value);
               }
               return (

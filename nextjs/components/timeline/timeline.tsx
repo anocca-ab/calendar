@@ -9,8 +9,11 @@ import {
   addWeeks,
   addYears,
   areIntervalsOverlapping,
+  compareAsc,
   differenceInCalendarDays,
+  differenceInMilliseconds,
   endOfDay,
+  endOfMonth,
   endOfYear,
   format,
   isSameDay,
@@ -20,8 +23,11 @@ import {
   isSameYear,
   max,
   min,
+  roundToNearestHours,
+  startOfDay,
   startOfMonth,
   startOfQuarter,
+  startOfTomorrow,
   startOfWeek,
   startOfYear,
   subMilliseconds,
@@ -180,8 +186,86 @@ export function Timeline<T>(props: TimelineProps<T>) {
     ...calendarProps
   } = p;
 
-  const [allEvents, draggedEvent, setDraggedEvent] =
-    useDragableEvents(sourceEvents);
+  const options: StartOfWeekOptions = {
+    weekStartsOn: startDay === "monday" ? 1 : 0,
+  };
+
+  const snapFn = (start: Date, end: Date) => {
+    const snapToMonth = () => {
+      const delta = differenceInMilliseconds(end, start);
+
+      const monthDelta = differenceInMilliseconds(
+        startOfMonth(addMonths(start, 1)),
+        startOfMonth(start)
+      );
+
+      const middleOfTheMonth = addMilliseconds(
+        startOfMonth(start),
+        monthDelta / 2
+      );
+      const newStart =
+        compareAsc(start, middleOfTheMonth) === -1
+          ? startOfMonth(start)
+          : startOfMonth(addMonths(start, 1));
+
+      const newEnd = addMilliseconds(newStart, delta);
+      return {
+        start: newStart,
+        end: newEnd,
+      };
+    };
+    const snapToDay = () => {
+      const delta = differenceInMilliseconds(end, start);
+      const middleOfTheDay = addMinutes(startOfDay(start), 720 / 2);
+      const newStart =
+        compareAsc(start, middleOfTheDay) === -1
+          ? startOfDay(start)
+          : startOfDay(addDays(start, 1));
+
+      const newEnd = addMilliseconds(newStart, delta);
+      return {
+        start: newStart,
+        end: newEnd,
+      };
+    };
+
+    const snapToWeek = () => {
+      const delta = differenceInMilliseconds(end, start);
+      const middleOfTheWeek = addMinutes(
+        startOfWeek(start, options),
+        (7 * 720) / 2
+      );
+      const newStart =
+        compareAsc(start, middleOfTheWeek) === -1
+          ? startOfWeek(start, options)
+          : startOfWeek(addWeeks(start, 1), options);
+
+      const newEnd = addMilliseconds(newStart, delta);
+      return {
+        start: newStart,
+        end: newEnd,
+      };
+    };
+
+    if (resolution === "month") {
+      return snapToDay();
+    }
+    if (resolution === "3-months") {
+      return snapToWeek();
+    }
+    if (resolution === "year") {
+      return snapToDay();
+    }
+    if (resolution === "3-years") {
+      return snapToMonth();
+    }
+    return { start, end };
+  };
+
+  const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
+    sourceEvents,
+    snapFn
+  );
 
   const events: ModifiableEvent<T>[] = parseEventsInTimeline(
     allEvents,
@@ -235,11 +319,8 @@ export function Timeline<T>(props: TimelineProps<T>) {
           addedMs
         );
 
-        if (addedMs !== 0) {
-          return {
-            start,
-            end,
-          };
+        if (state.hasDragged) {
+          return snapFn(start, end);
         }
       }
       return undefined;
@@ -402,11 +483,11 @@ const getTimelineRange = (
   if (resolution === "month") {
     return [startTime, addWeeks(startTime, 6)];
   }
-  if (resolution === "year") {
-    return [startTime, endOfYear(startTime)];
-  }
   if (resolution === "3-months") {
     return [startTime, addMonths(startTime, 3)];
+  }
+  if (resolution === "year") {
+    return [startTime, addQuarters(startTime, 4)];
   }
   if (resolution === "3-years") {
     return [startTime, addYears(startTime, 3)];

@@ -2,9 +2,11 @@ import { Box, Button, Divider, Typography, useTheme } from "@mui/material";
 import {
   StartOfWeekOptions,
   addDays,
+  addMilliseconds,
   addMinutes,
   areIntervalsOverlapping,
   differenceInCalendarDays,
+  differenceInMilliseconds,
   differenceInMinutes,
   endOfDay,
   endOfWeek,
@@ -13,6 +15,7 @@ import {
   isSameDay,
   max,
   min,
+  roundToNearestMinutes,
   startOfDay,
   subMinutes,
 } from "date-fns";
@@ -649,8 +652,19 @@ function WeekCalendarGrid<T>(props: { events: CalendarEvent<T>[] }) {
     useCalendar<T>();
   const daysInWeek = workWeek ? 5 : 7;
 
+  const snapFn = (start: Date, end: Date) => {
+    const delta = differenceInMilliseconds(end, start);
+    const newStart = roundToNearestMinutes(start, { nearestTo: 15 });
+    const newEnd = addMilliseconds(newStart, delta);
+    return {
+      start: newStart,
+      end: newEnd,
+    };
+  };
+
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
-    props.events
+    props.events,
+    snapFn
   );
 
   const options: StartOfWeekOptions = {
@@ -754,30 +768,22 @@ function WeekCalendarGrid<T>(props: { events: CalendarEvent<T>[] }) {
         maxAddedMinutes
       );
 
-      if (addedMin !== 0) {
+      if (state.hasDragged) {
         start = addMinutes(start, addedMin);
         end = addMinutes(end, addedMin);
       }
 
       if (dragged.type === "new") {
+        // when creating a new event by dragging, we must maintain an "anchor" which depends which is the end if dragging up or the start when dragging down
         if (!draggingUp) {
-          return {
-            start: dragged.event.start,
-            end,
-          };
+          return snapFn(dragged.event.start, end);
         } else {
-          return {
-            start,
-            end: dragged.event.end,
-          };
+          return snapFn(start, dragged.event.end);
         }
       }
 
-      if (addedMin !== 0 || addedDays !== 0) {
-        return {
-          start,
-          end,
-        };
+      if (state.hasDragged) {
+        return snapFn(start, end);
       }
     }
     return undefined;

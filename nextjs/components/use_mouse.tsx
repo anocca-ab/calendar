@@ -1,4 +1,11 @@
-import { addMinutes, max } from "date-fns";
+import {
+  addMinutes,
+  max,
+  roundToNearestMinutes,
+  startOfDay,
+  startOfHour,
+  startOfMinute,
+} from "date-fns";
 import React from "react";
 import { getEventEnd, getEventStart } from "./helpers";
 import { CalendarEvent, ScrollContainer } from "./types";
@@ -50,6 +57,11 @@ export type MouseState = {
    * initial position of the mouse at mouse down
    */
   pos0: MouseStatePos | undefined;
+
+  /**
+   * If the mouse, while the left button is down, has moved
+   */
+  hasDragged: boolean;
 };
 
 /**
@@ -134,6 +146,7 @@ export function useMouse<T>(
       down: false,
       pos: undefined,
       pos0: undefined,
+      hasDragged: false,
     };
     /**
      * Position data regarding the dragged event
@@ -188,6 +201,7 @@ export function useMouse<T>(
           state.down = true;
           state.pos0 = pos0;
           state.pos = pos0;
+          state.hasDragged = false;
         };
 
         if (clickedEvent) {
@@ -226,15 +240,7 @@ export function useMouse<T>(
       update();
     };
     const mouseMove = (ev: MouseEvent) => {
-      state.pos = {
-        x: ev.clientX,
-        y: ev.clientY,
-        ...getCurrentScroll(),
-      };
-      update();
-    };
-    const mouseUp = (ev: MouseEvent) => {
-      let mouseMoved =
+      const mouseMoved =
         state.pos0 &&
         state.pos &&
         (state.pos0.x !== state.pos.x ||
@@ -242,9 +248,23 @@ export function useMouse<T>(
           state.pos0.scrollX !== state.pos.scrollX ||
           state.pos0.scrollY !== state.pos.scrollY);
 
+      state.pos = {
+        x: ev.clientX,
+        y: ev.clientY,
+        ...getCurrentScroll(),
+      };
+      if (state.down && mouseMoved && !state.hasDragged) {
+        state.hasDragged = true;
+      }
+      update();
+    };
+    const mouseUp = (ev: MouseEvent) => {
+      const hasDragged = state.hasDragged;
+
       state.down = false;
       state.pos = undefined;
       state.pos0 = undefined;
+      state.hasDragged = false;
       if (draggedEvent) {
         if (draggedEvent.dragged) {
           if (
@@ -280,7 +300,7 @@ export function useMouse<T>(
         }
         if (
           effectRefs.current.onClickEvent &&
-          !mouseMoved &&
+          !hasDragged &&
           dragged?.type !== "new"
         ) {
           effectRefs.current.onClickEvent(draggedEvent.source, ev);
@@ -425,7 +445,12 @@ export function useMouse<T>(
   }, [daysInWeek, effectRefs, target]);
 }
 
-export function useDragableEvents<T>(events: CalendarEvent<T>[]) {
+export type SnapFn = (start: Date, end: Date) => { start: Date; end: Date };
+
+export function useDragableEvents<T>(
+  events: CalendarEvent<T>[],
+  snapEvent?: SnapFn
+) {
   const [draggedEvent, setDraggedEvent] = React.useState<
     DraggedEvent<ModifiableEvent<T>> | undefined
   >(undefined);
@@ -449,6 +474,13 @@ export function useDragableEvents<T>(events: CalendarEvent<T>[]) {
     };
     newDragged.start = getEventStart(newDragged);
     newDragged.end = getEventEnd(newDragged);
+
+    if (snapEvent) {
+      const snap = snapEvent(newDragged.start, newDragged.end);
+      newDragged.start = snap.start;
+      newDragged.end = snap.end;
+    }
+
     const index = allEvents.findIndex(
       (ev) => ev.sourceEvent === draggedEvent.source.sourceEvent
     );
