@@ -25,7 +25,7 @@ await Bun.write(
   path.join(baseDir, "package.json"),
   JSON.stringify(
     {
-      name: "@anocca/calendar",
+      name: packageJson.name,
       version: packageJson.version,
       license: "MIT",
       main: "dist/cjs/index.js",
