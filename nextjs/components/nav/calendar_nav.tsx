@@ -2,7 +2,7 @@ import { Button, Chip, IconButton, Typography } from "@mui/material";
 import { addMonths, addWeeks, format, subMonths, subWeeks } from "date-fns";
 import React from "react";
 import { FlexRow } from "../wrappers";
-import { ChevronLeft } from "./chevron_left";
+import { ChevronLeft, ChevronRight } from "./chevrons";
 import { parseProps } from "./parse_props";
 
 export function CalendarNav(props: {
@@ -63,7 +63,7 @@ export function CalendarNav(props: {
           <ChevronLeft />
         </IconButton>
         <IconButton onClick={onPressRight}>
-          <ChevronLeft style={{ transform: "rotate(180deg)" }} />
+          <ChevronRight />
         </IconButton>
       </FlexRow>
 

@@ -1,4 +1,11 @@
-import { Box, Button, Divider, Typography, useTheme } from "@mui/material";
+import {
+  Box,
+  Button,
+  Divider,
+  SxProps,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import {
   StartOfWeekOptions,
   addDays,
@@ -123,6 +130,16 @@ export type WeekCalendarProps<T> = {
    * @default [window]
    */
   scrollContainers?: ScrollContainer[];
+
+  /**
+   * Styling and configs for the header
+   */
+  stickyHeader?: boolean;
+
+  /**
+   * Auto scroll to the time indicator
+   */
+  autoScroll?: boolean;
 };
 
 function parseDefaultProps<T>(props: WeekCalendarProps<T>) {
@@ -208,16 +225,16 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
         scrollContainers,
       }}
     >
-      <FlexCol>
-        <FlexCol>
-          <Box sx={{ width: 64 }}></Box>
-          <WeekCalendarHeader events={allDayEvents} />
-        </FlexCol>
+      <WeekCalendarHeader events={allDayEvents} sticky={props.autoScroll} />
+      <FlexCol sx={{ zIndex: 0, position: "relative" }}>
         <FlexRow width="100%">
           <TimeSidebar />
           <Box width="100%">
             <FlexRow width="100%">
-              <WeekCalendarGrid events={gridEvents} />
+              <WeekCalendarGrid
+                events={gridEvents}
+                autoScroll={props.autoScroll}
+              />
             </FlexRow>
           </Box>
         </FlexRow>
@@ -265,7 +282,10 @@ const parseAllDayEnd = (end: Date) => {
   return end;
 };
 
-function WeekCalendarHeader<T>(props: { events: CalendarEvent<T>[] }) {
+function WeekCalendarHeader<T>(props: {
+  events: CalendarEvent<T>[];
+  sticky?: boolean;
+}) {
   const { workWeek, startOfWeek, now, onCreateEvent, ...calendarProps } =
     useCalendar();
   const daysInWeek = workWeek ? 5 : 7;
@@ -371,13 +391,32 @@ function WeekCalendarHeader<T>(props: { events: CalendarEvent<T>[] }) {
   const theme = useTheme();
 
   return (
-    <FlexCol width="100%">
+    <FlexCol
+      sx={mergeSx(
+        props.sticky && {
+          width: "100%",
+          position: "sticky",
+          top: 0,
+          zIndex: 1,
+          marginBottom: "-1px",
+          background: (theme) => theme.palette.background.paper,
+        }
+      )}
+    >
       <Box pl={8}>
         <Box
-          sx={{
-            display: "flex",
-            position: "relative",
-          }}
+          sx={mergeSx(
+            {
+              display: "flex",
+              position: "relative",
+            },
+            props.sticky && {
+              background: (theme) => theme.palette.background.paper,
+              borderBottomColor: (theme) => theme.palette.divider,
+              borderBottomStyle: "solid",
+              borderBottomWidth: "thin",
+            }
+          )}
           ref={eventContainerRef}
         >
           {weekDays}
@@ -648,7 +687,10 @@ function TimeSidebar() {
   );
 }
 
-function WeekCalendarGrid<T>(props: { events: CalendarEvent<T>[] }) {
+function WeekCalendarGrid<T>(props: {
+  events: CalendarEvent<T>[];
+  autoScroll?: boolean;
+}) {
   const { workWeek, now, startOfWeek, startDay, ...calendarProps } =
     useCalendar<T>();
   const daysInWeek = workWeek ? 5 : 7;
@@ -846,6 +888,15 @@ function WeekCalendarGrid<T>(props: { events: CalendarEvent<T>[] }) {
   useMouse("week-calendar-sub-day-event", effectRefs, workWeek);
 
   const theme = useTheme();
+
+  const [timeIndicator, setTimeIndicatorRef] =
+    React.useState<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    if (props.autoScroll && timeIndicator) {
+      timeIndicator.scrollIntoView();
+    }
+  }, [props.autoScroll, timeIndicator]);
 
   return (
     <Box
@@ -1064,6 +1115,7 @@ function WeekCalendarGrid<T>(props: { events: CalendarEvent<T>[] }) {
         {/* Time Indicator */}
         <Box
           className="time-indicator"
+          ref={setTimeIndicatorRef}
           sx={{
             position: "absolute",
             top: differenceInMinutes(now, startOfDay(now)),

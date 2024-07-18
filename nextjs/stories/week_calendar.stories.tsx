@@ -164,3 +164,23 @@ function ScrollDemo(
     </Box>
   );
 }
+
+export const WithStickyHeader: Story = {
+  args: {
+    events: manyEvents,
+    workWeek: true,
+  },
+  render: (props) => {
+    return <ScrollDemo {...props} stickyHeader />;
+  },
+};
+
+export const WithAutoScroll: Story = {
+  args: {
+    events: manyEvents,
+    workWeek: true,
+  },
+  render: (props) => {
+    return <ScrollDemo {...props} autoScroll />;
+  },
+};

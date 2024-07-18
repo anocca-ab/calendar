@@ -13,6 +13,10 @@ type SxArray = ArrayType<Sx>;
 export function mergeSx(...sxs: (Sx | null | undefined | boolean)[]): Sx {
   const sx: SxArray = [];
 
+  if (sxs.length === 1 && sxs[0])  {
+    return sxs[0] as Sx;
+  }
+
   sxs.forEach((passedSx) => {
     if (!passedSx) {
       return;

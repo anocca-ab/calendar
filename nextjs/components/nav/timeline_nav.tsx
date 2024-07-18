@@ -26,7 +26,7 @@ import { StartDay, TimelineResolution } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { TodayButton } from "./today_button";
 import { parseProps } from "./parse_props";
-import { ChevronLeft } from "./chevron_left";
+import { ChevronLeft, ChevronRight } from "./chevrons";
 
 type Speed =
   | "day"
@@ -236,7 +236,7 @@ export function TimelineNav(props: {
           </Select>
         </Box>
         <IconButton onClick={onPressRight}>
-          <ChevronLeft style={{ transform: "rotate(180deg)" }} />
+          <ChevronRight />
         </IconButton>
       </FlexRow>
 
