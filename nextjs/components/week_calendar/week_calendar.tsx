@@ -132,7 +132,7 @@ export type WeekCalendarProps<T> = {
   scrollContainers?: ScrollContainer[];
 
   /**
-   * Styling and configs for the header
+   * Make the header position sticky
    */
   stickyHeader?: boolean;
 
