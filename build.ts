@@ -153,6 +153,7 @@ await Bun.write(
     "export { Timeline } from './timeline/timeline';",
     "export { CalendarNav } from './nav/calendar_nav';",
     "export { TimelineNav } from './nav/timeline_nav';",
+    "export { calendarTheme } from './theme';",
   ].join("\n") + "\n",
 );
 

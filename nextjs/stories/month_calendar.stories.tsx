@@ -11,6 +11,9 @@ import {
   subMinutes,
   subWeeks,
 } from "date-fns";
+import { manyEvents } from "./many_events";
+import { CalendarEvent } from "@/components/types";
+import { Box } from "@mui/material";
 
 const meta = {
   title: "Calendar/Month",
@@ -53,79 +56,81 @@ export const EmptyCalendar: Story = {
   args: {},
 };
 
+const monthEvents: CalendarEvent<undefined>[] = [
+  {
+    title: "Task",
+    start: subMinutes(new Date(), 30),
+    color: "#EC407A",
+    canEdit: true,
+  },
+  {
+    title: "Full day event",
+    start: startOfDay(new Date()),
+    end: addMinutes(startOfDay(new Date()), 1339),
+    color: "#EC407A",
+    canEdit: true,
+  },
+  {
+    title: "2 days event",
+    start: startOfDay(addDays(new Date(), 2)),
+    end: endOfDay(addDays(addDays(new Date(), 2), 2)),
+    color: "#EC407A",
+    canEdit: true,
+  },
+  {
+    title: "4 week event",
+    start: subWeeks(startOfDay(addDays(new Date(), 1)), 4),
+    end: endOfDay(addWeeks(addDays(new Date(), 1), 4)),
+    color: "#EF5350",
+    canEdit: true,
+  },
+  {
+    title: "10min event",
+    start: subHours(new Date(), 3),
+    end: addMinutes(subHours(new Date(), 3), 10),
+    color: "#FF7043",
+    canEdit: true,
+  },
+  {
+    title: "15min event",
+    start: addDays(new Date(), 2),
+    end: addMinutes(addDays(new Date(), 2), 15),
+    color: "#EF5350",
+    canEdit: true,
+  },
+  {
+    title: "36 min event",
+    start: addMinutes(new Date(), 15),
+    end: addMinutes(addMinutes(new Date(), 15), 36),
+    color: "#26A69A",
+    canEdit: true,
+  },
+  {
+    title: "2 hours event",
+    start: new Date(),
+    end: addMinutes(new Date(), 120),
+    color: "#EC407A",
+    canEdit: true,
+  },
+  {
+    title: "3 hours event",
+    start: new Date(),
+    end: addMinutes(new Date(), 181),
+    color: "#5C6BC0",
+    canEdit: true,
+  },
+  {
+    title: "5 day event",
+    start: startOfDay(addDays(new Date(), 3)),
+    end: endOfDay(addDays(addDays(new Date(), 1), 6)),
+    color: "#EF5350",
+    canEdit: true,
+  },
+];
+
 export const FilledCalendar: Story = {
   args: {
-    events: [
-      {
-        title: "Task",
-        start: subMinutes(new Date(), 30),
-        color: "#EC407A",
-        canEdit: true,
-      },
-      {
-        title: "Full day event",
-        start: startOfDay(new Date()),
-        end: addMinutes(startOfDay(new Date()), 1339),
-        color: "#EC407A",
-        canEdit: true,
-      },
-      {
-        title: "2 days event",
-        start: startOfDay(addDays(new Date(), 2)),
-        end: endOfDay(addDays(addDays(new Date(), 2), 2)),
-        color: "#EC407A",
-        canEdit: true,
-      },
-      {
-        title: "4 week event",
-        start: subWeeks(startOfDay(addDays(new Date(), 1)), 4),
-        end: endOfDay(addWeeks(addDays(new Date(), 1), 4)),
-        color: "#EF5350",
-        canEdit: true,
-      },
-      {
-        title: "10min event",
-        start: subHours(new Date(), 3),
-        end: addMinutes(subHours(new Date(), 3), 10),
-        color: "#FF7043",
-        canEdit: true,
-      },
-      {
-        title: "15min event",
-        start: addDays(new Date(), 2),
-        end: addMinutes(addDays(new Date(), 2), 15),
-        color: "#EF5350",
-        canEdit: true,
-      },
-      {
-        title: "36 min event",
-        start: addMinutes(new Date(), 15),
-        end: addMinutes(addMinutes(new Date(), 15), 36),
-        color: "#26A69A",
-        canEdit: true,
-      },
-      {
-        title: "2 hours event",
-        start: new Date(),
-        end: addMinutes(new Date(), 120),
-        color: "#EC407A",
-        canEdit: true,
-      },
-      {
-        title: "3 hours event",
-        start: new Date(),
-        end: addMinutes(new Date(), 181),
-        color: "#5C6BC0",
-        canEdit: true,
-      },
-      {
-        title: "5 day event",
-        start: startOfDay(addDays(new Date(), 3)),
-        end: endOfDay(addDays(addDays(new Date(), 1), 6)),
-        color: "#EF5350",
-        canEdit: true,
-      },
-    ],
+    events: [...monthEvents],
   },
   render: (props) => {
     return <InteractiveDemo type="month" {...props} />;
@@ -159,5 +164,18 @@ export const WithBuggedEvents: Story = {
   },
   render: (props) => {
     return <InteractiveDemo type="month" {...props} />;
+  },
+};
+
+export const WithWeridBackground: Story = {
+  args: {
+    events: [...monthEvents, ...manyEvents],
+  },
+  render: (props) => {
+    return (
+      <Box sx={{ backgroundColor: "#c1c1c1" }}>
+        <InteractiveDemo type="month" {...props} />
+      </Box>
+    );
   },
 };

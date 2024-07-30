@@ -28,15 +28,13 @@ export function MonthCalendarEvent<T>({
         {
           display: "flex",
           position: "absolute",
-          width: allDayEvent ? widthToPct(110, daysInWeek) : undefined,
-          height: "16px",
           p: 0,
           alignItems: allDayEvent ? "stretch" : "initial",
           justifyContent: allDayEvent ? "stretch" : "flex-start",
           background: "none",
           minWidth: "auto",
           overflow: "hidden",
-          whiteSpace: 'nowrap',
+          whiteSpace: "nowrap",
           boxShadow:
             state === "selected"
               ? (theme) => theme.shadows[1]
@@ -45,7 +43,7 @@ export function MonthCalendarEvent<T>({
             pointerEvents: "none",
           },
         },
-        buttonProps.sx,
+        buttonProps.sx
       )}
     >
       {allDayEvent && (triangle === "left" || triangle === "both") && (
@@ -83,13 +81,11 @@ export function MonthCalendarEvent<T>({
                 : "white",
             alignItems: "center",
             gap: "6px",
-            flexShrink: 0,
             padding: "0px 0px 0px 3px",
             borderRadius: "4px",
             overflow: "hidden",
-            maxWidth: "110px",
-            minHeight: "15px",
             textWrap: "nowrap",
+            width: "100%",
           }}
         >
           <FlexCol justifyContent="center" width="8px">

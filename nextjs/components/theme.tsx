@@ -6,6 +6,54 @@ import {
 } from "@mui/material";
 import React from "react";
 
+/**
+ * Usage:
+ * ```tsx
+ * import { deepmerge } from '@mui/utils';
+ * import { calendarTheme } from '@anocca/calendar';
+ * <ThemeProvider theme={outerTheme => deepmerge(outerTheme, calendarTheme)}>
+ *   ...
+ * </ThemeProvider>
+ * ```
+ */
+export const calendarTheme = {
+  typography: {
+    event: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontSize: "10px",
+      fontStyle: "normal",
+      fontWeight: "500",
+      lineHeight: "14px",
+    },
+  },
+  components: {
+    MuiToggleButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+        },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+        },
+      },
+    },
+    MuiTooltip: {
+      defaultProps: { disableInteractive: true },
+    },
+  },
+};
+
 export function Theme({
   children,
   theme,
@@ -18,47 +66,13 @@ export function Theme({
   const origTheme = useTheme();
   const muiTheme = React.useMemo(
     () =>
-      createTheme({
+      createTheme(origTheme, {
         palette: {
           mode: theme ?? (prefersDarkMode ? "dark" : "light"),
         },
-        typography: {
-          event: {
-            fontFamily: origTheme.typography.fontFamily,
-            fontSize: "10px",
-            fontStyle: "normal",
-            fontWeight: "500",
-            lineHeight: "14px",
-          },
-        },
-        components: {
-          MuiToggleButton: {
-            styleOverrides: {
-              root: {
-                textTransform: "none",
-              },
-            },
-          },
-          MuiButton: {
-            styleOverrides: {
-              root: {
-                textTransform: "none",
-              },
-            },
-          },
-          MuiTab: {
-            styleOverrides: {
-              root: {
-                textTransform: "none",
-              },
-            },
-          },
-          MuiTooltip: {
-            defaultProps: { disableInteractive: true },
-          },
-        },
+        ...calendarTheme,
       }),
-    [origTheme.typography.fontFamily, prefersDarkMode, theme],
+    [prefersDarkMode, theme]
   );
 
   return <ThemeProvider theme={muiTheme}>{children}</ThemeProvider>;

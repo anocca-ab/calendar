@@ -644,8 +644,8 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                 > = {
                   event: event.sourceEvent,
                   sx: {
-                    width: widthToPct(width * 119 - 1, daysInWeek),
-                    left: `${widthToPct(day * 120 + 2, daysInWeek)}`,
+                    width: widthToPct(width * 119 - 4, daysInWeek),
+                    left: `${widthToPct(day * 119 + 4, daysInWeek)}`,
                     top: week * 120 + row * (16 + 1) + 1 + 32,
                     height: "16px",
                     position: "absolute",

@@ -194,7 +194,7 @@ export function eventGrid<T>(
     const { week, day, row, maxRow } = eventProperties[eventIndex];
     const key = `${week}-${day}`;
 
-    const moreButton = moreButtonsDict[key];
+    let moreButton = moreButtonsDict[key];
     if (moreButton) {
       moreButton.allEvents.push(eventIndex);
     } else {
@@ -206,6 +206,7 @@ export function eventGrid<T>(
         allEvents: [eventIndex],
         date,
       };
+      moreButton = moreButtonsDict[key];
     }
     if (maxRow <= 5 ? row >= 5 : row >= 4) {
       moreButton.events.push(eventIndex);
