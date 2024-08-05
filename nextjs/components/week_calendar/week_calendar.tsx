@@ -476,6 +476,9 @@ function WeekCalendarHeader<T>(props: {
               event.sourceEvent.color ?? calendarProps.defaultEventColor
             );
 
+            const disableInteractive =
+              !calendarProps.onClickEvent && !calendarProps.onMoveEvent;
+
             return (
               <Box
                 className="all-day-event"
@@ -489,8 +492,9 @@ function WeekCalendarHeader<T>(props: {
                   w: width,
                 })}
                 disableRipple={
-                  draggedEvent?.dragged &&
-                  draggedEvent?.source.sourceEvent === event.sourceEvent
+                  disableInteractive ||
+                  (draggedEvent?.dragged &&
+                    draggedEvent?.source.sourceEvent === event.sourceEvent)
                 }
                 sx={mergeSx(
                   {
@@ -511,14 +515,19 @@ function WeekCalendarHeader<T>(props: {
                       pointerEvents: "none",
                     },
                   },
-                  draggedEvent?.source.sourceEvent === event.sourceEvent && {
-                    opacity: 0.5,
-                  },
-                  draggedEvent?.dragged &&
+                  !disableInteractive &&
+                    draggedEvent?.source.sourceEvent === event.sourceEvent && {
+                      opacity: 0.5,
+                    },
+                  !disableInteractive &&
+                    draggedEvent?.dragged &&
                     draggedEvent?.source.sourceEvent === event.sourceEvent && {
                       opacity: 0.75,
                       boxShadow: theme.shadows[4],
-                    }
+                    },
+                  disableInteractive && {
+                    cursor: "auto",
+                  }
                 )}
               >
                 {rawX < 0 ? (
@@ -848,41 +857,39 @@ function WeekCalendarGrid<T>(props: {
     setDraggedEvent,
     calculateNewTime,
     calendarProps,
-    !onClickEvent
-      ? undefined
-      : (pos0, container) => {
-          const x = pos0.x - container.x;
-          const y = pos0.y - container.y;
-          const day = Math.floor(x / dayUnitToPx(120, daysInWeek, container));
-          const minute = y;
-          const start = addMinutes(
-            startOfDay(addDays(fnsStartOfWeek(startOfWeek, options), day)),
-            minute
-          );
-          const end = addMinutes(start, 15);
+    (pos0, container) => {
+      const x = pos0.x - container.x;
+      const y = pos0.y - container.y;
+      const day = Math.floor(x / dayUnitToPx(120, daysInWeek, container));
+      const minute = y;
+      const start = addMinutes(
+        startOfDay(addDays(fnsStartOfWeek(startOfWeek, options), day)),
+        minute
+      );
+      const end = addMinutes(start, 15);
 
-          const dragged: DragPosition<ModifiableEvent<T>> = {
-            type: "new",
-            colX: 0,
-            elX: 0,
-            elY: 0,
-            event: {
-              start,
-              end,
-              sourceEvent: {
-                canEdit: true,
-                color: calendarProps.defaultEventColor,
-                end,
-                start,
-                title: "(No title)",
-              } as CalendarEvent<T>,
-            },
-            w: 1,
-            x: day + 1,
-          };
+      const dragged: DragPosition<ModifiableEvent<T>> = {
+        type: "new",
+        colX: 0,
+        elX: 0,
+        elY: 0,
+        event: {
+          start,
+          end,
+          sourceEvent: {
+            canEdit: true,
+            color: calendarProps.defaultEventColor,
+            end,
+            start,
+            title: "(No title)",
+          } as CalendarEvent<T>,
+        },
+        w: 1,
+        x: day + 1,
+      };
 
-          return dragged;
-        }
+      return dragged;
+    }
   );
 
   useMouse("week-calendar-sub-day-event", effectRefs, workWeek);
@@ -1004,6 +1011,9 @@ function WeekCalendarGrid<T>(props: {
             event.sourceEvent.color ?? calendarProps.defaultEventColor
           );
 
+          const disableInteractive =
+            !calendarProps.onClickEvent && !calendarProps.onMoveEvent;
+
           return (
             <Box
               className={"grid-event"}
@@ -1017,8 +1027,9 @@ function WeekCalendarGrid<T>(props: {
                 colX,
               })}
               disableRipple={
-                draggedEvent?.dragged &&
-                draggedEvent.source.sourceEvent === event.sourceEvent
+                disableInteractive ||
+                (draggedEvent?.dragged &&
+                  draggedEvent.source.sourceEvent === event.sourceEvent)
               }
               sx={mergeSx(
                 {
@@ -1039,14 +1050,19 @@ function WeekCalendarGrid<T>(props: {
                   justifyContent: "stretch",
                   alignItems: "stretch",
                 },
-                draggedEvent?.source.sourceEvent === event.sourceEvent && {
-                  opacity: 0.5,
-                },
-                draggedEvent?.dragged &&
+                !disableInteractive &&
+                  draggedEvent?.source.sourceEvent === event.sourceEvent && {
+                    opacity: 0.5,
+                  },
+                !disableInteractive &&
+                  draggedEvent?.dragged &&
                   draggedEvent.source.sourceEvent === event.sourceEvent && {
                     opacity: 0.75,
                     boxShadow: theme.shadows[4],
-                  }
+                  },
+                disableInteractive && {
+                  cursor: "auto",
+                }
               )}
             >
               <Box

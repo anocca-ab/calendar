@@ -154,6 +154,10 @@ await Bun.write(
     "export { CalendarNav } from './nav/calendar_nav';",
     "export { TimelineNav } from './nav/timeline_nav';",
     "export { calendarTheme } from './theme';",
+    "export type { CalendarEvent, StartDay, TimelineResolution } from './types';",
+    "export type { WeekCalendarProps } from './week_calendar/week_calendar';",
+    "export type { MonthCalendarProps } from './month_calendar/month_calendar';",
+    "export type { TimelineProps } from './timeline/timeline';",
   ].join("\n") + "\n",
 );
 

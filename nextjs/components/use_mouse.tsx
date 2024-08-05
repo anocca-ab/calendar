@@ -225,6 +225,10 @@ export function useMouse<T>(
           };
           activateDrag();
         } else if (clickedContainer) {
+          if (!effectRefs.current.onCreateEvent) {
+            // can't create new events
+            return;
+          }
           if (effectRefs.current.createNewEvent && container) {
             const createNewEvent = effectRefs.current.createNewEvent(
               pos0,
@@ -383,12 +387,16 @@ export function useMouse<T>(
         } else {
           draggedEvent = {
             source: dragged.event,
-            dragged: newEventTime
-              ? {
-                  start: newEventTime.start,
-                  end: newEventTime.end,
-                }
-              : undefined,
+            dragged:
+              newEventTime &&
+              (dragged.type === "new" ||
+                // can't drag event if onMoveEvent is not defined
+                (dragged.type === "existing" && effectRefs.current.onMoveEvent))
+                ? {
+                    start: newEventTime.start,
+                    end: newEventTime.end,
+                  }
+                : undefined,
           };
         }
         effectRefs.current.setDraggedEvent(draggedEvent);

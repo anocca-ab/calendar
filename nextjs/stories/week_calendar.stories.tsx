@@ -1,4 +1,5 @@
 import { InteractiveDemo } from "@/components/interactive_demo";
+import { Box } from "@mui/material";
 import type { Meta, StoryObj } from "@storybook/react";
 import {
   addDays,
@@ -8,10 +9,9 @@ import {
   startOfWeek,
   subDays,
 } from "date-fns";
+import React from "react";
 import { WeekCalendar } from "../components/week_calendar/week_calendar";
 import { manyEvents } from "./many_events";
-import { Box } from "@mui/material";
-import React from "react";
 
 const meta = {
   title: "Calendar/Week",
@@ -70,6 +70,56 @@ export const EmptyCalendar: Story = {
 export const CanCreateEvents: Story = {
   render: (props) => {
     return <InteractiveDemo type="week" {...props} />;
+  },
+};
+
+export const CanNotCreateEvents: Story = {
+  args: {
+    events: manyEvents,
+    onCreateEvent: undefined,
+    onClickEvent: () => {
+      console.log("clicked events");
+    },
+    onMoveEvent: () => {
+      console.log("moved event");
+    },
+  },
+};
+
+export const CanNotClickEvents: Story = {
+  args: {
+    events: manyEvents,
+    onCreateEvent: () => {
+      console.log("created event");
+    },
+    onClickEvent: undefined,
+    onMoveEvent: () => {
+      console.log("moved event");
+    },
+  },
+};
+
+export const CanNotMoveEvents: Story = {
+  args: {
+    events: manyEvents,
+    onCreateEvent: () => {
+      console.log("created event");
+    },
+    onClickEvent: () => {
+      console.log("clicked events");
+    },
+    onMoveEvent: undefined,
+  },
+};
+
+export const CanNotInteractWithEvents: Story = {
+  args: {
+    events: manyEvents,
+    onCreateEvent: () => {
+      console.log("created event");
+    },
+    onClickEvent: undefined,
+    onMoveEvent: undefined,
   },
 };
 
