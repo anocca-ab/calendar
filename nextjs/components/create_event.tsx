@@ -88,7 +88,7 @@ export function CreateEvent<T>({
 
   const [title, setTitle] = React.useState(event.title ?? "");
 
-  const colors = ["#FF7043", "#5C6BC0", "#EC407A", "#26A69A", "#EF5350"];
+  const colors = [DEFAULT_COLOR, "#5C6BC0", "#EC407A", "#26A69A", "#EF5350"];
 
   const [eventColor, setEventColor] = React.useState(
     event.color ?? defaultEventColor ?? DEFAULT_COLOR

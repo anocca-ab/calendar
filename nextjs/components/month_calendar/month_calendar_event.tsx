@@ -99,6 +99,7 @@ export function MonthCalendarEvent<T>({
                   ? theme.palette.primary.contrastText
                   : theme.palette.text.primary
               }
+              sx={{ fontWeight: "400" }}
             >
               {`${format(start, "h:mm")}`}
             </Typography>
@@ -128,18 +129,15 @@ export function MonthCalendarEvent<T>({
   );
 }
 
-function EventDot({ color = "#FF7043" }: { color?: string }) {
+function EventDot({ color = DEFAULT_COLOR }: { color?: string }) {
   return (
-    <SvgIcon sx={{ width: "8px", height: "8px" }} fontSize="inherit">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="8"
-        height="8"
-        fill="none"
-        viewBox="0 0 8 8"
-      >
-        <circle cx="4" cy="4" r="4" fill={color}></circle>
-      </svg>
-    </SvgIcon>
+    <Box
+      sx={{
+        width: "8px",
+        height: "8px",
+        borderRadius: "8px",
+        backgroundColor: color,
+      }}
+    ></Box>
   );
 }

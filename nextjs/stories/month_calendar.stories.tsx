@@ -179,3 +179,12 @@ export const WithWeridBackground: Story = {
     );
   },
 };
+
+export const WithSubDayEvents: Story = {
+  args: {
+    events: manyEvents,
+  },
+  render: (props) => {
+    return <InteractiveDemo type="month" {...props} />;
+  },
+};
