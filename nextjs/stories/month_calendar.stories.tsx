@@ -188,3 +188,53 @@ export const WithSubDayEvents: Story = {
     return <InteractiveDemo type="month" {...props} />;
   },
 };
+
+export const CanNotCreateEvents: Story = {
+  args: {
+    events: manyEvents,
+    onCreateEvent: undefined,
+    onClickEvent: () => {
+      console.log("clicked events");
+    },
+    onMoveEvent: () => {
+      console.log("moved event");
+    },
+  },
+};
+
+export const CanNotClickEvents: Story = {
+  args: {
+    events: manyEvents,
+    onCreateEvent: () => {
+      console.log("created event");
+    },
+    onClickEvent: undefined,
+    onMoveEvent: () => {
+      console.log("moved event");
+    },
+  },
+};
+
+export const CanNotMoveEvents: Story = {
+  args: {
+    events: manyEvents,
+    onCreateEvent: () => {
+      console.log("created event");
+    },
+    onClickEvent: () => {
+      console.log("clicked events");
+    },
+    onMoveEvent: undefined,
+  },
+};
+
+export const CanNotInteractWithEvents: Story = {
+  args: {
+    events: manyEvents,
+    onCreateEvent: () => {
+      console.log("created event");
+    },
+    onClickEvent: undefined,
+    onMoveEvent: undefined,
+  },
+};

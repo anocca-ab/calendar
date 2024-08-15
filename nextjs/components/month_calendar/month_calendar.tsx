@@ -9,6 +9,7 @@ import {
   endOfDay,
   format,
   getDate,
+  getWeek,
   getWeeksInMonth,
   isSameDay,
   isSameMonth,
@@ -378,7 +379,9 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
             </FlexCol>
           </FlexCol>
           {[...Array(weeksOfMonth)].map((_, i) => {
-            return <WeekIndicator key={i} title={`${i + 1}`} />;
+            return (
+              <WeekIndicator key={i} title={`${getWeek(startOfMonth) + i}`} />
+            );
           })}
         </FlexCol>
 
@@ -465,10 +468,13 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
               const monthName = format(currentDate, "MMM");
               const active = isSameDay(now, currentDate);
 
+              const disableInteractive = !calendarProps.onCreateEvent;
+
               return (
-                <FlexCol
+                <Box
                   key={i}
                   component={Button}
+                  disableRipple={disableInteractive}
                   onClick={
                     onCreateEvent
                       ? () => {
@@ -478,21 +484,32 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         }
                       : undefined
                   }
-                  sx={{
-                    height: "120px",
-                    width: widthToPct(120, daysInWeek),
-                    minWidth: "auto",
-                    overflow: "hidden",
-                    p: 0,
-                    pt: "4px",
-                    m: 0,
-                    position: "absolute",
-                    left: `${left}`,
-                    top: `${top}px`,
-                    justifyContent: "flex-start",
-                    zIndex: 1,
-                    borderRadius: 0,
-                  }}
+                  id={`day-${dayNumber}`}
+                  sx={mergeSx(
+                    {
+                      height: "120px",
+                      width: widthToPct(120, daysInWeek),
+                      minWidth: "auto",
+                      overflow: "hidden",
+                      p: 0,
+                      pt: "4px",
+                      m: 0,
+                      position: "absolute",
+                      left: `${left}`,
+                      top: `${top}px`,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "flex-start",
+                      zIndex: 1,
+                      borderRadius: 0,
+                    },
+                    disableInteractive && {
+                      cursor: "auto",
+                      ":hover": {
+                        backgroundColor: "transparent",
+                      },
+                    }
+                  )}
                 >
                   <FlexRow
                     width="100px"
@@ -549,7 +566,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                       </FlexRow>
                     </Box>
                   </FlexRow>
-                </FlexCol>
+                </Box>
               );
             })}
           </Box>
@@ -639,10 +656,14 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                     ? "left"
                     : undefined;
 
+                const disableInteractive =
+                  !calendarProps.onClickEvent && !calendarProps.onMoveEvent;
                 const props: React.ComponentPropsWithoutRef<
                   typeof MonthCalendarEvent
                 > = {
                   event: event.sourceEvent,
+                  disableInteractive,
+                  disableRipple: disableInteractive,
                   sx: {
                     width: widthToPct(width * 119 - 4, daysInWeek),
                     left: `${widthToPct(day * 119 + 4, daysInWeek)}`,
@@ -650,6 +671,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                     height: "16px",
                     position: "absolute",
                     zIndex: 2,
+                    cursor: disableInteractive ? "auto" : "pointer",
                   },
                   allDayEvent: isAllDayEvent(event.sourceEvent),
                   state:
@@ -766,16 +788,22 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         w: Math.max(width, 1),
                       }),
                     };
+
+                    const disableInteractive =
+                      !calendarProps.onClickEvent && !calendarProps.onMoveEvent;
                     const props: React.ComponentPropsWithoutRef<
                       typeof MonthCalendarEvent
                     > = {
                       event: event.sourceEvent,
+                      disableInteractive,
                       sx: {
                         width: "100%",
                         top: index * (16 + 1),
                         height: "16px",
                         zIndex: 3,
+                        cursor: disableInteractive ? 'auto' : 'pionter',
                       },
+                      disableRipple: disableInteractive,
                       allDayEvent: isAllDayEvent(event.sourceEvent),
                       state:
                         draggedEvent &&
@@ -784,7 +812,6 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                           : "normal",
                       ...dataProps,
                     };
-
                     return <MonthCalendarEvent key={indexOfEvent} {...props} />;
                   })}
                 </FlexCol>

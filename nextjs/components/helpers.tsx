@@ -3,18 +3,20 @@ import { addMinutes, endOfDay, startOfDay } from "date-fns";
 import { CalendarEvent } from "./types";
 
 type Sx = SxProps<Theme>;
-type ArrayType<T> = T extends ReadonlyArray<infer U> ? U[] : never;
-type SxArray = ArrayType<Sx>;
 
 /**
  * Use this function to merge sx props
  * @public
  */
 export function mergeSx(...sxs: (Sx | null | undefined | boolean)[]): Sx {
-  const sx: SxArray = [];
+  const sx: any[] = [];
 
-  if (sxs.length === 1 && sxs[0])  {
-    return sxs[0] as Sx;
+  if (sxs.length === 1 && !sxs[0]) {
+    return undefined as any;
+  }
+
+  if (sxs.length === 1 && sxs[0]) {
+    return sxs[0] as any;
   }
 
   sxs.forEach((passedSx) => {
@@ -22,9 +24,11 @@ export function mergeSx(...sxs: (Sx | null | undefined | boolean)[]): Sx {
       return;
     }
     if (Array.isArray(passedSx)) {
-      sx.push(...passedSx);
+      sx.push(
+        ...passedSx.flat(Number.POSITIVE_INFINITY).filter((val) => !!val)
+      );
     } else {
-      sx.push(passedSx as any);
+      sx.push(passedSx);
     }
   });
 
@@ -157,8 +161,8 @@ export function parseColor(background: string): ParsedColor | undefined {
     const hsla = rgbaToHsla(rgba);
     const unsaturated: Hsla = {
       ...hsla,
-      s: Math.max(hsla.s - 10, 0),
-      l: Math.min(hsla.l + 5, 100),
+      s: Math.max(hsla.s * 0.75, 0),
+      l: Math.min(hsla.l * 1.25, 100),
     };
     unsaturated.cssString = `hsla(${unsaturated.h}, ${unsaturated.s}%, ${unsaturated.l}%, ${unsaturated.a})`;
     const contrastText = getContrastText(imageData);

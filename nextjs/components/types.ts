@@ -15,6 +15,7 @@ export type CalendarEvent<T> = {
   title?: string;
   color?: string;
   canEdit?: boolean;
+  selected?: boolean;
 } & (T extends { data: any } ? T : {});
 
 export type StartDay = "monday" | "sunday";

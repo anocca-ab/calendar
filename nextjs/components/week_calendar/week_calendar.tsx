@@ -1013,7 +1013,12 @@ function WeekCalendarGrid<T>(props: {
 
           const disableInteractive =
             !calendarProps.onClickEvent && !calendarProps.onMoveEvent;
-
+          const textOpacityStyle =
+            getEventEnd(event.sourceEvent).getTime() - now.getTime() < 0
+              ? {
+                  opacity: "0.75",
+                }
+              : {};
           return (
             <Box
               className={"grid-event"}
@@ -1062,6 +1067,10 @@ function WeekCalendarGrid<T>(props: {
                   },
                 disableInteractive && {
                   cursor: "auto",
+                },
+                event.sourceEvent.selected && {
+                  boxShadow: theme.shadows[6],
+                  border: `1px solid ${theme.palette.primary.main}`,
                 }
               )}
             >
@@ -1088,10 +1097,13 @@ function WeekCalendarGrid<T>(props: {
                   color={color}
                   variant="event"
                   component="div"
-                  sx={{
-                    pointerEvents: "none",
-                    whiteSpace: "nowrap",
-                  }}
+                  sx={mergeSx(
+                    {
+                      pointerEvents: "none",
+                      whiteSpace: "nowrap",
+                    },
+                    textOpacityStyle
+                  )}
                 >
                   {event.sourceEvent.title ?? "(No name)"}
                   {height < 30 ? (
@@ -1106,11 +1118,14 @@ function WeekCalendarGrid<T>(props: {
                     component="div"
                     color={color}
                     variant="event"
-                    sx={{
-                      pointerEvents: "none",
-                      whiteSpace: "nowrap",
-                      fontWeight: 400,
-                    }}
+                    sx={mergeSx(
+                      {
+                        pointerEvents: "none",
+                        whiteSpace: "nowrap",
+                        fontWeight: 400,
+                      },
+                      textOpacityStyle
+                    )}
                   >
                     {time}
                   </Typography>

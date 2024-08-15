@@ -6,6 +6,7 @@ import {
   addHours,
   endOfWeek,
   startOfDay,
+  startOfHour,
   startOfWeek,
   subDays,
 } from "date-fns";
@@ -159,6 +160,46 @@ export const WithHuuugeSubDayEvent: Story = {
         end: addDays(endOfWeek(new Date(), { weekStartsOn: 1 }), 5),
         title: "Huuuge event",
         canEdit: true,
+      },
+    ],
+
+    now: addHours(startOfDay(new Date()), 11),
+  },
+  render: (props) => {
+    return <InteractiveDemo type="week" {...props} />;
+  },
+};
+
+export const WithSelectedEvents: Story = {
+  args: {
+    events: [
+      ...manyEvents.slice(3),
+      {
+        start: startOfHour(new Date()),
+        end: startOfHour(new Date()),
+        title: "A task",
+        canEdit: true,
+        selected: true,
+      },
+      {
+        start: addHours(
+          startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
+          2
+        ),
+        title: "A full day task",
+        selected: true,
+      },
+      {
+        start: addHours(
+          startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
+          2
+        ),
+        end: addHours(
+          startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
+          2
+        ),
+        title: "A sub day task",
+        selected: true,
       },
     ],
 

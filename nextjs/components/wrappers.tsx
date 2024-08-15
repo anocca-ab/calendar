@@ -1,5 +1,6 @@
 import type { BoxProps } from "@mui/material";
 import { Box } from "@mui/material";
+import { mergeSx } from "./helpers";
 
 /**
  *
@@ -8,16 +9,14 @@ import { Box } from "@mui/material";
  */
 export function FlexCol(props: BoxProps) {
   const { sx, ...other } = props;
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        ...sx,
-      }}
-      {...other}
-    />
+  const style = mergeSx(
+    {
+      display: "flex",
+      flexDirection: "column",
+    },
+    sx
   );
+  return <Box sx={style} {...other} />;
 }
 
 /**
@@ -29,11 +28,13 @@ export function FlexRow(props: BoxProps) {
   const { sx, ...other } = props;
   return (
     <Box
-      sx={{
-        display: "flex",
-        flexDirection: "row",
-        ...sx,
-      }}
+      sx={mergeSx(
+        {
+          display: "flex",
+          flexDirection: "row",
+        },
+        sx
+      )}
       {...other}
     />
   );

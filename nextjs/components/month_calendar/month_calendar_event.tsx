@@ -10,12 +10,14 @@ export function MonthCalendarEvent<T>({
   state = "normal",
   triangle,
   allDayEvent,
+  disableInteractive,
   ...buttonProps
 }: {
   event: CalendarEvent<T>;
   allDayEvent?: boolean;
   state?: "normal" | "selected";
   triangle?: "right" | "left" | "both";
+  disableInteractive?: boolean;
 } & React.ComponentPropsWithRef<typeof Button>) {
   const daysInWeek = 7;
   const { start, title, color } = event;
@@ -35,13 +37,15 @@ export function MonthCalendarEvent<T>({
           minWidth: "auto",
           overflow: "hidden",
           whiteSpace: "nowrap",
+          "*": {
+            pointerEvents: "none",
+          },
+        },
+        !disableInteractive && {
           boxShadow:
             state === "selected"
               ? (theme) => theme.shadows[1]
               : (theme) => theme.shadows[0],
-          "*": {
-            pointerEvents: "none",
-          },
         },
         buttonProps.sx
       )}
