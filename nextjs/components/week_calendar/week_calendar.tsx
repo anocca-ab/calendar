@@ -225,7 +225,7 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
         scrollContainers,
       }}
     >
-      <WeekCalendarHeader events={allDayEvents} sticky={props.autoScroll} />
+      <WeekCalendarHeader events={allDayEvents} sticky={props.stickyHeader} />
       <FlexCol sx={{ zIndex: 0, position: "relative" }}>
         <FlexRow width="100%">
           <TimeSidebar />
@@ -1016,7 +1016,7 @@ function WeekCalendarGrid<T>(props: {
           const textOpacityStyle =
             getEventEnd(event.sourceEvent).getTime() - now.getTime() < 0
               ? {
-                  opacity: "0.75",
+                  opacity: "0.5",
                 }
               : {};
           return (
