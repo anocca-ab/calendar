@@ -223,7 +223,7 @@ export function getEventStart<T>(event: CalendarEvent<T>) {
 }
 
 export function getEventEnd<T>(event: CalendarEvent<T>) {
-  if (event.end && event.start.getTime() === event.end?.getTime()) {
+  if (event.end && event.start.getTime() === event.end.getTime()) {
     return addMinutes(event.start, 15);
   }
   return event.end ?? endOfDay(event.start);

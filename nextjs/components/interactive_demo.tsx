@@ -30,7 +30,7 @@ export function InteractiveDemo(props: {
   onClickEvent?: (event: CalendarEvent<any>, nativeEvent: MouseEvent) => void;
 }) {
   const { now, startDay, type, events: _events } = props;
-  const [__events, setEvents] = React.useState<CalEventWithKey[]>(
+  const [realEvents, setEvents] = React.useState<CalEventWithKey[]>(
     (_events ?? []).map((ev) => ({
       ...ev,
       data: { key: Math.random().toString() },
@@ -41,7 +41,7 @@ export function InteractiveDemo(props: {
     undefined
   );
 
-  let events = [...__events];
+  let events = [...realEvents];
   if (draft) {
     events.push(draft);
   }
@@ -58,7 +58,7 @@ export function InteractiveDemo(props: {
 
   if (editModalOpen) {
     events = events.map((ev) => {
-      if (ev.data.key === editModalOpen.key) {
+      if (ev.data.key && ev.data.key === editModalOpen.key) {
         return {
           ...ev,
           selected: true,
@@ -72,13 +72,21 @@ export function InteractiveDemo(props: {
   }
 
   const onMoveEvent = (
-    event: CalendarEvent<undefined>,
+    event: CalEventWithKey,
     newStart: Date,
     newEnd: Date | undefined
   ) => {
+    if (draft && event.data.key === draft.data.key) {
+      setDraft({
+        ...draft,
+        start: newStart,
+        end: newEnd,
+      });
+      return;
+    }
     setEvents((prev) => {
       return prev.map((ev) => {
-        if (ev === event) {
+        if (ev.data.key === event.data.key) {
           return {
             ...ev,
             start: newStart,
@@ -109,36 +117,49 @@ export function InteractiveDemo(props: {
         <CreateEvent
           sidebar={props.sidebar}
           onClose={() => {
-            if (editingDraft) {
-              setDraft(undefined);
-            }
+            setDraft(undefined);
+            setEditModalOpen(undefined);
           }}
           defaultEventColor={props.defaultEventColor}
           event={editedEvent}
           draft={editingDraft}
           onCloseModalRef={onCloseModal}
-          onSave={(event, originalEvent) => {
-            setDraft(undefined);
-            if (events.includes(originalEvent)) {
-              setEvents(
-                events.map((ev) =>
-                  ev === originalEvent
-                    ? { ...event, data: { key: originalEvent.data.key } }
-                    : ev
-                )
-              );
+          onEdit={(ev) => {
+            if (draft && ev.data.key === draft.data.key) {
+              setDraft(ev);
             } else {
+              setEvents(
+                realEvents.map((e) => (e.data.key === ev.data.key ? ev : e))
+              );
+            }
+          }}
+          onSave={(newEv, originalEvent) => {
+            if (draft && newEv.data.key === draft?.data.key) {
               // create
               setEvents([
-                ...events,
-                { ...event, data: { key: Math.random().toString() } },
+                ...realEvents,
+                {
+                  ...newEv,
+                  selected: false,
+                  start: draft.start,
+                  end: draft.end,
+                  data: { key: Math.random().toString() },
+                },
               ]);
+            } else {
+              setEvents(
+                realEvents.map((ev) =>
+                  ev.data.key === originalEvent.data.key ? newEv : ev
+                )
+              );
             }
           }}
           onDelete={(event) => {
-            if (events.includes(event)) {
-              const eventIndex = events.findIndex((ev) => ev === event);
-              const a = [...events];
+            const eventIndex = realEvents.findIndex(
+              (ev) => event.data.key === ev?.data.key
+            );
+            if (eventIndex !== -1) {
+              const a = [...realEvents];
               a.splice(eventIndex, 1);
               setEvents(a);
             }
@@ -176,7 +197,6 @@ export function InteractiveDemo(props: {
             end,
             start,
             title: "(No title)",
-            selected: true,
             data: {
               key: Math.random().toString(),
             },

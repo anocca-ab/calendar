@@ -886,6 +886,7 @@ function WeekCalendarGrid<T>(props: {
         },
         w: 1,
         x: day + 1,
+        resize: undefined,
       };
 
       return dragged;
@@ -1019,18 +1020,21 @@ function WeekCalendarGrid<T>(props: {
                   opacity: "0.5",
                 }
               : {};
+          const dataProps: any = {
+            "data-type": "week-calendar-sub-day-event",
+            "data-calendar-event": JSON.stringify({
+              x,
+              index,
+              w: 1,
+              colX,
+            }),
+          };
           return (
             <Box
               className={"grid-event"}
               component={Button}
               key={index}
-              data-type="week-calendar-sub-day-event"
-              data-calendar-event={JSON.stringify({
-                x,
-                index,
-                w: 1,
-                colX,
-              })}
+              {...dataProps}
               disableRipple={
                 disableInteractive ||
                 (draggedEvent?.dragged &&
@@ -1048,10 +1052,11 @@ function WeekCalendarGrid<T>(props: {
                   height: height - 1,
                   width: widthToPct(rect.w, daysInWeek),
                   zIndex: horPos,
-                  "*": {
+                  "*:not(.resize-event)": {
                     pointerEvents: "none",
                   },
                   display: "flex",
+                  flexDirection: "column",
                   justifyContent: "stretch",
                   alignItems: "stretch",
                 },
@@ -1131,6 +1136,33 @@ function WeekCalendarGrid<T>(props: {
                   </Typography>
                 )}
               </Box>
+              {(["north", "south"] as const).map((pos, i) => (
+                <Box
+                  key={i}
+                  className="resize-event"
+                  {...dataProps}
+                  data-drag-source="resize-event"
+                  data-resize-pos={pos}
+                  sx={mergeSx(
+                    {
+                      height: 4,
+                      flexShrink: 0,
+                      position: "absolute",
+                      zIndex: 1,
+                      left: 0,
+                      right: 0,
+                      cursor: "ns-resize",
+                    },
+                    pos === "north"
+                      ? {
+                          top: 0,
+                        }
+                      : {
+                          bottom: 0,
+                        }
+                  )}
+                ></Box>
+              ))}
             </Box>
           );
         })}

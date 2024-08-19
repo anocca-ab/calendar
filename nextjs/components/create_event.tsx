@@ -52,21 +52,26 @@ export function CreateEvent<T>({
   draft,
   onClose,
   sidebar,
+  onEdit,
 }: {
   event: CalendarEvent<T>;
   onCloseModalRef: { current?: (cb: () => void) => void };
-  onSave: (
-    event: CalendarEvent<undefined>,
-    originalEvent: CalendarEvent<T>
-  ) => void;
+  onSave: (event: CalendarEvent<T>, originalEvent: CalendarEvent<T>) => void;
   onDelete: (event: CalendarEvent<T>) => void;
   defaultEventColor?: string;
   onClose?: () => void;
   draft?: boolean;
   sidebar?: boolean;
+  onEdit: (event: CalendarEvent<T>) => void;
 }) {
-  const [start, setStart] = React.useState(event.start);
-  const [end, setEnd] = React.useState(event.end);
+  const start = event.start;
+  const end = event.end;
+  const setStart = (newStart: Date) => {
+    onEdit({ ...event, start: newStart });
+  };
+  const setEnd = (newEnd: Date | undefined) => {
+    onEdit({ ...event, end: newEnd });
+  };
 
   const allDay = isAllDayEvent({ start, end });
 
@@ -432,6 +437,7 @@ export function CreateEvent<T>({
             onClick={() => {
               onSave(
                 {
+                  ...event,
                   start,
                   end,
                   title,

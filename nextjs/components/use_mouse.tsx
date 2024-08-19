@@ -11,6 +11,9 @@ import { getEventEnd, getEventStart } from "./helpers";
 import { CalendarEvent, ScrollContainer } from "./types";
 import { ModifiableEvent } from "./week_calendar/types";
 
+/**
+ * The dragged event
+ */
 export type DraggedEvent<T extends { start: Date; end?: Date | undefined }> = {
   /**
    * The new event that is being dragged (source event with new start/end)
@@ -103,6 +106,11 @@ export type DragPosition<T extends { start: Date; end?: Date | undefined }> = {
    * the column x position (in px)
    */
   colX: number;
+
+  /**
+   * If the event is being resized
+   */
+  resize: "north" | "south" | undefined;
 };
 
 export function useMouse<T>(
@@ -205,12 +213,13 @@ export function useMouse<T>(
         };
 
         if (clickedEvent) {
+          const ds = ev.target.dataset;
           const data: {
             index: number;
             x: number;
             w: number;
             colX: number;
-          } = JSON.parse(ev.target.dataset.calendarEvent!);
+          } = JSON.parse(ds.calendarEvent!);
           const event = effectRefs.current.events[data.index];
 
           const rect = ev.target.getBoundingClientRect();
@@ -222,6 +231,10 @@ export function useMouse<T>(
             elX: rect.x,
             elY: rect.y,
             colX: data.colX,
+            resize:
+              ds.dragSource === "resize-event" && ds.resizePos
+                ? (ds.resizePos as "north" | "south")
+                : undefined,
           };
           activateDrag();
         } else if (clickedContainer) {
@@ -392,10 +405,20 @@ export function useMouse<T>(
               (dragged.type === "new" ||
                 // can't drag event if onMoveEvent is not defined
                 (dragged.type === "existing" && effectRefs.current.onMoveEvent))
-                ? {
-                    start: newEventTime.start,
-                    end: newEventTime.end,
-                  }
+                ? dragged.resize
+                  ? dragged.resize === "north"
+                    ? {
+                        start: newEventTime.start,
+                        end: getEventEnd(dragged.event.sourceEvent),
+                      }
+                    : {
+                        start: getEventStart(dragged.event.sourceEvent),
+                        end: newEventTime.end,
+                      }
+                  : {
+                      start: newEventTime.start,
+                      end: newEventTime.end,
+                    }
                 : undefined,
           };
         }
