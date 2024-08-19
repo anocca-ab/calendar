@@ -9,6 +9,8 @@ import { Box } from "@mui/material";
 import { TimelineNav } from "./nav/timeline_nav";
 import { DEFAULT_COLOR } from "./helpers";
 
+type CalEventWithKey = CalendarEvent<{ data: { key: string } }>;
+
 export function InteractiveDemo(props: {
   events?: CalendarEvent<undefined>[];
   now?: Date;
@@ -16,27 +18,58 @@ export function InteractiveDemo(props: {
   type: "month" | "week" | "timeline";
   timelineResolution?: TimelineResolution;
   defaultEventColor?: string;
+  sidebar?: boolean;
+  workWeek?: boolean;
+  startOfWeek?: Date;
+  onCreateEvent?: (start: Date, end: Date | undefined) => void;
+  onMoveEvent?: (
+    event: CalendarEvent<undefined>,
+    newStart: Date,
+    newEnd: Date | undefined
+  ) => void;
+  onClickEvent?: (event: CalendarEvent<any>, nativeEvent: MouseEvent) => void;
 }) {
   const { now, startDay, type, events: _events } = props;
-  const [events, setEvents] = React.useState<CalendarEvent<undefined>[]>(
-    _events ?? []
+  const [__events, setEvents] = React.useState<CalEventWithKey[]>(
+    (_events ?? []).map((ev) => ({
+      ...ev,
+      data: { key: Math.random().toString() },
+    }))
   );
 
+  const [draft, setDraft] = React.useState<CalEventWithKey | undefined>(
+    undefined
+  );
+
+  let events = [...__events];
+  if (draft) {
+    events.push(draft);
+  }
+
   const [editModalOpen, setEditModalOpen] = React.useState<
-    undefined | { event: CalendarEvent<undefined>; key: number }
+    undefined | { key: string }
   >();
 
   const onCloseModal = React.useRef<undefined | ((cb: () => void) => void)>();
 
-  const onClickEvent = (event: CalendarEvent<any>) => {
-    if (onCloseModal.current) {
-      onCloseModal.current(() => {
-        setEditModalOpen({ event, key: Math.random() });
-      });
-    } else {
-      setEditModalOpen({ event, key: Math.random() });
-    }
+  const onClickEvent = (event: CalEventWithKey) => {
+    setEditModalOpen({ key: event.data.key });
   };
+
+  if (editModalOpen) {
+    events = events.map((ev) => {
+      if (ev.data.key === editModalOpen.key) {
+        return {
+          ...ev,
+          selected: true,
+        };
+      }
+      return {
+        ...ev,
+        selected: false,
+      };
+    });
+  }
 
   const onMoveEvent = (
     event: CalendarEvent<undefined>,
@@ -65,21 +98,41 @@ export function InteractiveDemo(props: {
       ? WeekCalendar
       : Timeline;
 
+  const editingDraft = draft && editModalOpen?.key === draft.data.key;
+  const editedEvent =
+    editModalOpen &&
+    editModalOpen.key &&
+    events.find((ev) => ev.data.key === editModalOpen.key);
   return (
     <Box p={2}>
-      {editModalOpen && (
+      {editedEvent && (
         <CreateEvent
+          sidebar={props.sidebar}
+          onClose={() => {
+            if (editingDraft) {
+              setDraft(undefined);
+            }
+          }}
           defaultEventColor={props.defaultEventColor}
-          event={editModalOpen.event}
+          event={editedEvent}
+          draft={editingDraft}
           onCloseModalRef={onCloseModal}
           onSave={(event, originalEvent) => {
+            setDraft(undefined);
             if (events.includes(originalEvent)) {
               setEvents(
-                events.map((ev) => (ev === originalEvent ? event : ev))
+                events.map((ev) =>
+                  ev === originalEvent
+                    ? { ...event, data: { key: originalEvent.data.key } }
+                    : ev
+                )
               );
             } else {
               // create
-              setEvents([...events, event]);
+              setEvents([
+                ...events,
+                { ...event, data: { key: Math.random().toString() } },
+              ]);
             }
           }}
           onDelete={(event) => {
@@ -117,16 +170,18 @@ export function InteractiveDemo(props: {
         startOfMonth={startTime} // month calendar
         events={events}
         onCreateEvent={(start, end) => {
-          const ev: CalendarEvent<undefined> = {
+          const ev: CalEventWithKey = {
             canEdit: true,
             color: props.defaultEventColor ?? DEFAULT_COLOR,
             end,
             start,
             title: "(No title)",
+            selected: true,
+            data: {
+              key: Math.random().toString(),
+            },
           };
-          setEvents((prev) => {
-            return [...prev, ev];
-          });
+          setDraft(ev);
           onClickEvent(ev);
         }}
         onClickEvent={(ev) => {

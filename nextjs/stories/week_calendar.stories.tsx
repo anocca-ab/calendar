@@ -51,15 +51,19 @@ const meta = {
     now: {
       control: "date",
     },
+    sidebar: {
+      control: "boolean",
+    },
   },
   args: {
     workWeek: false,
     startDay: "monday",
     startOfWeek: new Date(),
     now: new Date(),
+    sidebar: false,
   },
   decorators: [],
-} satisfies Meta<typeof WeekCalendar>;
+} satisfies Meta<typeof InteractiveDemo>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -273,5 +277,14 @@ export const WithAutoScroll: Story = {
   },
   render: (props) => {
     return <ScrollDemo {...props} autoScroll />;
+  },
+};
+
+export const OnlyHeader: Story = {
+  args: {
+    events: [],
+  },
+  render: (props) => {
+    return <WeekCalendarHeader {...props} />;
   },
 };
