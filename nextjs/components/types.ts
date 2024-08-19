@@ -20,7 +20,30 @@ export type CalendarEvent<T> = {
 
 export type StartDay = "monday" | "sunday";
 
+/**
+ * How many days the timeline span
+ * 
+ * e.g.\
+ * month = 30 days\
+ * 3-months = 90 days
+ */
 export type TimelineResolution = "month" | "3-months" | "year" | "3-years";
+
+/**
+ * The speed that you navigate left / right using the timeline nav
+ * 
+ * e.g. speed = 1 day / click\
+ * e.g. speed = 7 day / click (week)\
+ * e.g. speed = 30 days / click (month)
+ */
+export type TimelineSpeed =
+  | "day"
+  | "week"
+  | "month"
+  | "3-months"
+  | "quarter"
+  | "year"
+  | "3-years";
 
 export type ScrollContainer =
   | (El & {

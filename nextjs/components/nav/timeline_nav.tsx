@@ -22,22 +22,26 @@ import {
   subYears,
 } from "date-fns";
 import React from "react";
-import { StartDay, TimelineResolution } from "../types";
+import { StartDay, TimelineResolution, TimelineSpeed } from "../types";
 import { FlexCol, FlexRow } from "../wrappers";
 import { TodayButton } from "./today_button";
 import { parseProps } from "./parse_props";
 import { ChevronLeft, ChevronRight } from "./chevrons";
 
-type Speed =
-  | "day"
-  | "week"
-  | "month"
-  | "3-months"
-  | "quarter"
-  | "year"
-  | "3-years";
+/**
+ * A list of all resolutions that can be selected for the timeline
+ */
+export const allResolutions: TimelineResolution[] = [
+  "month",
+  "3-months",
+  "year",
+  "3-years",
+];
 
-const allSpeeds: Speed[] = [
+/**
+ * A list of all speeds that can be selected for the timeline
+ */
+const allSpeeds: TimelineSpeed[] = [
   "day",
   "week",
   "month",
@@ -46,33 +50,77 @@ const allSpeeds: Speed[] = [
   "year",
   "3-years",
 ];
+
+/**
+ * A list of speeds for each resolution
+ */
+export const speeds: Record<TimelineResolution, TimelineSpeed[]> = {
+  month: ["week", "month"],
+  "3-months": ["week", "month", "3-months"],
+  year: ["quarter", "year"],
+  "3-years": ["year", "3-years"],
+};
+
 export function TimelineNav(props: {
+  /**
+   * When clicking the Today button, this is the date that will be set
+   */
   now?: Date;
-  time?: Date;
-  setTime?: (newTime: Date) => void;
-  resolution?: TimelineResolution;
+
+  /**
+   * For week views, is the week starting on Sunday or Monday
+   */
   startDay?: StartDay;
+
+  /**
+   * The starting date in the timeline
+   */
+  time?: Date;
+  /**
+   * Update the starting date in the timeline. When navigating the timeline, this will be called
+   */
+  setTime?: (newTime: Date) => void;
+
+  /**
+   * Control the resolution of the timeline
+   */
+  resolution?: TimelineResolution;
   setResolution?: (newResolution: TimelineResolution) => void;
+
+  /**
+   * Control the speed of the timeline
+   */
+  speed?: TimelineSpeed;
+  setSpeed?: (newSpeed: TimelineSpeed) => void;
 }) {
   const parsedProps = parseProps(props);
   const { now, time: currentDate, setTime } = parsedProps;
-  const { resolution = "month", startDay = "monday" } = props;
-
-  const speeds: Record<TimelineResolution, Speed[]> = {
-    month: ["week", "month"],
-    "3-months": ["week", "month", "3-months"],
-    year: ["quarter", "year"],
-    "3-years": ["year", "3-years"],
-  };
+  const { startDay = "monday" } = props;
 
   const options: StartOfWeekOptions = {
     weekStartsOn: startDay === "monday" ? 1 : 0,
   };
 
-  const [speed, setSpeed] = React.useState<Speed>(speeds[resolution][0]);
+  const [localResolution, setLocalResolution] =
+    React.useState<TimelineResolution>(props.resolution ?? "month");
+
+  const resolution = props.resolution ?? localResolution;
+  const setResolution = props.setResolution ?? setLocalResolution;
+
+  const [localSpeed, setLocalSpeed] = React.useState<TimelineSpeed>(
+    props.speed ?? speeds[resolution][0]
+  );
+
+  let speed = props.speed ?? localSpeed;
+
+  if (!speeds[resolution].includes(speed)) {
+    speed = speeds[resolution][0];
+  }
+
+  const setSpeed = props.setSpeed ?? setLocalSpeed;
 
   const functions: Record<
-    Speed,
+    TimelineSpeed,
     Record<"left" | "right", (val: Date) => Date>
   > = {
     day: {
@@ -133,10 +181,10 @@ export function TimelineNav(props: {
     : undefined;
 
   const handleChange = (event: SelectChangeEvent) => {
-    setSpeed(event.target.value as Speed);
+    setSpeed(event.target.value as TimelineSpeed);
   };
 
-  const timeFormats: Record<Speed, string | (() => string)> = {
+  const timeFormats: Record<TimelineSpeed, string | (() => string)> = {
     day: "do",
     week: () => "W" + format(currentDate, "I"),
     month: () => {
@@ -159,13 +207,12 @@ export function TimelineNav(props: {
       )}`,
   };
 
-  const getTimeLabel = (s: Speed) => {
+  const getTimeLabel = (s: TimelineSpeed) => {
     const timeFormat = timeFormats[s];
     return typeof timeFormat === "function"
       ? timeFormat()
       : format(currentDate, timeFormat);
   };
-  const setResolution = props.setResolution;
 
   return (
     <FlexRow
@@ -217,25 +264,23 @@ export function TimelineNav(props: {
                   width: 160,
                 }}
               >
-                {(["month", "3-months", "year", "3-years"] as const).map(
-                  (value) => {
-                    let title: string = value;
-                    if (value === "3-months") {
-                      title = "Quarter";
-                    } else if (value === "3-years") {
-                      title = "Three years";
-                    } else if (value === "year") {
-                      title = "Year";
-                    } else if (value === "month") {
-                      title = "Month";
-                    }
-                    return (
-                      <MenuItem key={value} value={value}>
-                        {title}
-                      </MenuItem>
-                    );
+                {allResolutions.map((value) => {
+                  let title: string = value;
+                  if (value === "3-months") {
+                    title = "Quarter";
+                  } else if (value === "3-years") {
+                    title = "Three years";
+                  } else if (value === "year") {
+                    title = "Year";
+                  } else if (value === "month") {
+                    title = "Month";
                   }
-                )}
+                  return (
+                    <MenuItem key={value} value={value}>
+                      {title}
+                    </MenuItem>
+                  );
+                })}
               </Select>
             </Box>
           </>
