@@ -52,6 +52,7 @@ export function TimelineNav(props: {
   setTime?: (newTime: Date) => void;
   resolution?: TimelineResolution;
   startDay?: StartDay;
+  setResolution?: (newResolution: TimelineResolution) => void;
 }) {
   const parsedProps = parseProps(props);
   const { now, time: currentDate, setTime } = parsedProps;
@@ -164,6 +165,7 @@ export function TimelineNav(props: {
       ? timeFormat()
       : format(currentDate, timeFormat);
   };
+  const setResolution = props.setResolution;
 
   return (
     <FlexRow
@@ -182,6 +184,62 @@ export function TimelineNav(props: {
       }}
     >
       <FlexRow gap={1}>
+        {setResolution && (
+          <>
+            <Box
+              sx={{
+                background: (theme) => theme.palette.background.default,
+                borderRadius: 1,
+                display: "flex",
+              }}
+            >
+              <Select
+                value={resolution}
+                onChange={(ev) => {
+                  const newRes = ev.target.value as TimelineResolution;
+                  setResolution(newRes);
+                  if (
+                    resolution !== newRes &&
+                    !speeds[newRes].includes(speed)
+                  ) {
+                    // quarter and 3-months are similar, so we can switch between them
+                    if (speed === "quarter" && newRes === "3-months") {
+                      setSpeed("3-months");
+                    } else if (speed === "3-months" && newRes === "year") {
+                      setSpeed("quarter");
+                    } else {
+                      setSpeed(speeds[newRes][0]);
+                    }
+                  }
+                }}
+                size="small"
+                sx={{
+                  width: 160,
+                }}
+              >
+                {(["month", "3-months", "year", "3-years"] as const).map(
+                  (value) => {
+                    let title: string = value;
+                    if (value === "3-months") {
+                      title = "Quarter";
+                    } else if (value === "3-years") {
+                      title = "Three years";
+                    } else if (value === "year") {
+                      title = "Year";
+                    } else if (value === "month") {
+                      title = "Month";
+                    }
+                    return (
+                      <MenuItem key={value} value={value}>
+                        {title}
+                      </MenuItem>
+                    );
+                  }
+                )}
+              </Select>
+            </Box>
+          </>
+        )}
         <IconButton onClick={onPressLeft}>
           <ChevronLeft />
         </IconButton>

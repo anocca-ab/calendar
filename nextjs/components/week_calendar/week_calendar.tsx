@@ -100,7 +100,7 @@ export type WeekCalendarProps<T> = {
   onCreateEvent?: (start: Date, end?: Date) => void;
 
   /**
-   * Triggered when an event is moved
+   * Triggered when an event is moved or resized
    * @param event a calendar event
    * @param newStart new start date for the event
    * @param newEnd new end date for the event

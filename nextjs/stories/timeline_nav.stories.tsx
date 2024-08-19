@@ -3,6 +3,7 @@ import React from "react";
 import { format, startOfMonth, startOfWeek } from "date-fns";
 import { Box, Typography } from "@mui/material";
 import { TimelineNav } from "@/components/nav/timeline_nav";
+import { TimelineResolution } from "@/components/types";
 
 const meta = {
   title: "Timeline/Nav",
@@ -70,13 +71,35 @@ export const ThreeYears: Story = {
   },
 };
 
+export const CanChangeResolution: Story = {
+  args: {
+    resolution: "month",
+    startDay: "monday",
+  },
+  render: (props) => {
+    return <InteractiveDemo {...props} canChangeResolution />;
+  },
+};
+
 function InteractiveDemo(
-  props: React.ComponentPropsWithRef<typeof TimelineNav>
+  props: React.ComponentPropsWithRef<typeof TimelineNav> & {
+    canChangeResolution?: boolean;
+  }
 ) {
   const [currentDate, setCurrentDate] = React.useState(new Date());
+  const [resolution, setResolution] = React.useState<TimelineResolution>(
+    props.resolution ?? "month"
+  );
+
   return (
     <Box sx={{ p: 2 }}>
-      <TimelineNav {...props} time={currentDate} setTime={setCurrentDate} />
+      <TimelineNav
+        {...props}
+        time={currentDate}
+        setTime={setCurrentDate}
+        resolution={resolution}
+        setResolution={props.canChangeResolution ? setResolution : undefined}
+      />
       <Typography
         sx={{ textAlign: "center", p: 2 }}
         color={(theme) => theme.palette.text.primary}
