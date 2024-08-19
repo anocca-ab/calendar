@@ -348,6 +348,7 @@ export function TimelineNav(props: {
         sx={{
           width: "140px",
           alignItems: "flex-end",
+          whiteSpace: "nowrap",
         }}
       >
         <Typography

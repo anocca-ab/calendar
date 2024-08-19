@@ -59,6 +59,7 @@ import { getPositions } from "../week_calendar/clique_grid";
 import { Header } from "./header";
 import { Grid } from "./grid";
 import { widthToPct } from "./to_pct";
+import { timelineHeaderHeight, timelineGridHeight } from "./timeline_height";
 
 export type TimelineProps<T> = {
   /**
@@ -229,6 +230,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
       };
     };
 
+    // doesn't feel that good, but could be used
     const snapToWeek = () => {
       const delta = differenceInMilliseconds(end, start);
       const middleOfTheWeek = addMinutes(
@@ -339,139 +341,130 @@ export function Timeline<T>(props: TimelineProps<T>) {
 
   const maxHeightRef = React.useRef(currentMaxHeight);
   maxHeightRef.current = Math.max(currentMaxHeight, maxHeightRef.current);
-  const height = maxHeightRef.current * (16 + 1);
+
+  const headerHeight = timelineHeaderHeight({
+    resolution,
+  });
+  const gridHeight = timelineGridHeight({
+    height: maxHeightRef.current * (16 + 1),
+    empty: events.length === 0,
+    resolution,
+  });
 
   return (
-    <Box sx={{ position: "relative", overflow: 'hidden' }}>
-      <Grid {...p} height={height} empty={events.length === 0} />
-      <Header {...p} />
-      <Box
-        sx={{
-          position: "relative",
-          height: height + 9,
-        }}
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 1,
-          }}
-          ref={eventContainerRef}
-        >
-          {events.map((event, index) => {
-            const dragged =
-              draggedEvent?.source.sourceEvent === event.sourceEvent;
+    <Box
+      sx={{
+        position: "relative",
+        height: `${gridHeight + headerHeight}px`,
+      }}
+      ref={eventContainerRef}
+    >
+      <Grid {...p} height={gridHeight} empty={events.length === 0} />
+      <Header {...p} height={gridHeight} empty={events.length === 0} />
 
-            const x = widthToPct(
-              (720 * (event.start.getTime() - start)) / totalSecondsOfMonth
-            );
-            const w = widthToPct(
-              (720 * (event.end.getTime() - event.start.getTime())) /
-                totalSecondsOfMonth
-            );
+      {events.map((event, index) => {
+        const dragged = draggedEvent?.source.sourceEvent === event.sourceEvent;
 
-            let width = differenceInCalendarDays(event.end, event.start);
-            if (event.end.getTime() === endOfDay(event.end).getTime()) {
-              width += 1;
-            }
+        const x = widthToPct(
+          (720 * (event.start.getTime() - start)) / totalSecondsOfMonth
+        );
+        const w = widthToPct(
+          (720 * (event.end.getTime() - event.start.getTime())) /
+            totalSecondsOfMonth
+        );
 
-            const y = verticalPositions[index];
+        let width = differenceInCalendarDays(event.end, event.start);
+        if (event.end.getTime() === endOfDay(event.end).getTime()) {
+          width += 1;
+        }
 
-            return (
-              <React.Fragment key={index}>
+        const y = verticalPositions[index];
+
+        return (
+          <React.Fragment key={index}>
+            <Box
+              zIndex={2}
+              component={Button}
+              data-type={"timeline-event"}
+              data-calendar-event={JSON.stringify({
+                x: 0,
+                colX: 0,
+                index,
+                w: Math.max(width, 1),
+              })}
+              sx={{
+                minWidth: "auto",
+                width: dragged ? `calc(${w} + 2px)` : w,
+                left: dragged ? `calc(${x} - 1px)` : x,
+                top: y * (16 + 1) + headerHeight,
+                height: "16px",
+                position: "absolute",
+                borderRadius: "4px",
+                padding: 0,
+                margin: 0,
+                zIndex: dragged ? 2 : 1,
+                paddingX: dragged ? "1px" : 0,
+                background: "white",
+              }}
+            >
+              <Box
+                sx={{
+                  borderRadius: "4px",
+                  height: "16px",
+                  overflow: "hidden",
+                  boxShadow: (theme) => (dragged ? theme.shadows[4] : "none"),
+                  backgroundColor: event.sourceEvent.color ?? DEFAULT_COLOR,
+                  display: "flex",
+                  justifyContent: "center",
+                  flex: 1,
+                  alignItems: "center",
+                  flexShrink: 1,
+                  whiteSpace: "nowrap",
+                  padding: 0,
+                  pointerEvents: "none",
+                  "*": {
+                    pointerEvents: "none",
+                  },
+                }}
+              >
                 <Box
-                  zIndex={2}
-                  component={Button}
-                  data-type={"timeline-event"}
-                  data-calendar-event={JSON.stringify({
-                    x: 0,
-                    colX: 0,
-                    index,
-                    w: Math.max(width, 1),
-                  })}
                   sx={{
-                    minWidth: "auto",
-                    width: dragged ? `calc(${w} + 2px)` : w,
-                    left: dragged ? `calc(${x} - 1px)` : x,
-                    top: y * (16 + 1) + 11,
+                    paddingLeft: "8px",
+                    paddingRight: "8px",
+                    flexShrink: 1,
                     height: "16px",
-                    position: "absolute",
-                    borderRadius: "4px",
-                    padding: 0,
-                    margin: 0,
-                    zIndex: dragged ? 2 : 1,
-                    paddingX: dragged ? "1px" : 0,
-                    background: "white",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-start",
+                    width: "100%",
                   }}
                 >
-                  <Box
-                    sx={{
-                      borderRadius: "4px",
-                      height: "16px",
-                      overflow: "hidden",
-                      boxShadow: (theme) =>
-                        dragged ? theme.shadows[4] : "none",
-                      backgroundColor: event.sourceEvent.color ?? DEFAULT_COLOR,
-                      display: "flex",
-                      justifyContent: "center",
-                      flex: 1,
-                      alignItems: "center",
-                      flexShrink: 1,
-                      whiteSpace: "nowrap",
-                      padding: 0,
-                      pointerEvents: "none",
-                      "*": {
-                        pointerEvents: "none",
-                      },
-                    }}
+                  <Typography
+                    variant="event"
+                    color={(theme) => theme.palette.primary.contrastText}
                   >
-                    <Box
-                      sx={{
-                        paddingLeft: "8px",
-                        paddingRight: "8px",
-                        flexShrink: 1,
-                        height: "16px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "flex-start",
-                        width: "100%",
-                      }}
-                    >
-                      <Typography
-                        variant="event"
-                        color={(theme) => theme.palette.primary.contrastText}
-                      >
-                        {event.sourceEvent.title ?? "(No title)"}
-                      </Typography>
-                    </Box>
-                  </Box>
+                    {event.sourceEvent.title ?? "(No title)"}
+                  </Typography>
                 </Box>
-              </React.Fragment>
-            );
-          })}
-        </Box>
-        {events.length > 0 && (
-          <Box
-            sx={{
-              position: "absolute",
-              inset: 0,
-              pointerEvents: "none",
-              zIndex: 2,
-            }}
-          >
-            <TimeIndicator
-              sx={{
-                height: "100%",
-                left: widthToPct(
-                  (720 * (calendarProps.now.getTime() - start)) /
-                    totalSecondsOfMonth
-                ),
-              }}
-            />
-          </Box>
-        )}
-      </Box>
+              </Box>
+            </Box>
+          </React.Fragment>
+        );
+      })}
+      {events.length > 0 && (
+        <TimeIndicator
+          sx={{
+            top: `${headerHeight}px`,
+            pointerEvents: "none",
+            zIndex: 2,
+            height: `${gridHeight}px`,
+            left: widthToPct(
+              (720 * (calendarProps.now.getTime() - start)) /
+                totalSecondsOfMonth
+            ),
+          }}
+        />
+      )}
     </Box>
   );
 }
@@ -561,8 +554,8 @@ function TimeIndicator(boxProps: BoxProps) {
       className="time-indicator"
       {...boxProps}
       sx={mergeSx(boxProps.sx, {
-        width: "13px",
-        marginLeft: "-6.5px",
+        width: "3px",
+        marginLeft: "-1.5px",
         marginTop: "0px",
         position: "absolute",
         overflow: "hidden",
@@ -572,43 +565,10 @@ function TimeIndicator(boxProps: BoxProps) {
         sx={{
           position: "absolute",
           backgroundColor: (theme) => theme.palette.background.default,
-          width: "11px",
-          height: "11px",
-          borderRadius: "11px",
-          left: "1px",
-          top: "1px",
-        }}
-      ></Box>
-      <Box
-        sx={{
-          position: "absolute",
-          backgroundColor: (theme) => theme.palette.background.default,
-          width: "11px",
-          height: "11px",
-          borderRadius: "11px",
-          left: "1px",
-          top: "1px",
-        }}
-      ></Box>
-      <Box
-        sx={{
-          position: "absolute",
-          background: "#FFA000",
-          width: "9px",
-          height: "9px",
-          borderRadius: "9px",
-          left: "2px",
-          top: "2px",
-        }}
-      ></Box>
-      <Box
-        sx={{
-          position: "absolute",
-          backgroundColor: (theme) => theme.palette.background.default,
           width: "3px",
           height: "100%",
-          left: "5px",
-          top: "11px",
+          left: 0,
+          top: "0px",
         }}
       ></Box>
       <Box
@@ -617,8 +577,9 @@ function TimeIndicator(boxProps: BoxProps) {
           background: "#FFA000",
           width: "1px",
           height: "100%",
-          left: "6px",
-          top: "2px",
+          left: "1px",
+          top: "0px",
+          borderRadius: '1px',
         }}
       ></Box>
     </Box>

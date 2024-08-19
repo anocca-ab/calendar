@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import {
   addDays,
   isSameWeek,
@@ -19,8 +19,17 @@ import {
 import { TimelineResolution, StartDay } from "../types";
 import { FlexRow, FlexCol } from "../wrappers";
 import { widthToPct } from "./to_pct";
+import { timelineGridHeight } from "./timeline_height";
 
-function MonthHeader({ startTime, now }: { startTime: Date; now: Date }) {
+function MonthHeader({
+  startTime,
+  now,
+  height,
+}: {
+  startTime: Date;
+  now: Date;
+  height: number;
+}) {
   const weeks: Date[] = [];
   const days: Date[] = [];
   for (let i = 0; i < 6; i += 1) {
@@ -43,8 +52,7 @@ function MonthHeader({ startTime, now }: { startTime: Date; now: Date }) {
         }}
         width={119}
       />
-      <Box sx={{ height: "16px" }} />
-      <FlexRow>
+      <FlexRow sx={{ position: "relative" }}>
         {days.map((day, index) => {
           let w = 17;
           if (index === 0) {
@@ -52,68 +60,82 @@ function MonthHeader({ startTime, now }: { startTime: Date; now: Date }) {
           }
           w += 1 / 7;
           return (
-            <Box
-              key={index}
-              sx={{
-                display: "flex",
-                width: widthToPct(w),
-                alignItems: "center",
-                height: "16px",
-                position: "relative",
-                justifyContent: "center",
-              }}
-            >
+            <FlexRow key={index} sx={{ width: widthToPct(w) }}>
               {index !== 0 && (
                 <Box
                   sx={{
                     width: "1px",
-                    borderRadius: "1px",
-                    height: "18px",
-                    backgroundColor: "none",
-                    marginTop: "-1px",
+                    flexShrink: 0,
                   }}
                 ></Box>
               )}
-              <FlexRow
+              <Box
+                component={Button}
                 sx={{
-                  width: `calc(100% - 1px)`,
-                  height: "16px",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  overflow: "hidden",
+                  display: "flex",
+                  flex: 1,
+                  alignItems: "flex-start",
+                  justifyContent: "flex-start",
+                  flexDirection: "row",
+                  position: "relative",
+                  minWidth: "auto",
+                  p: 0,
+                  m: 0,
+                  pt: "4px",
+                  // height: '16px',
+                  height: `calc(${height + 18}px)`,
                 }}
               >
-                <FlexCol
-                  alignItems="center"
-                  justifyContent="center"
-                  sx={{ width: "100%" }}
+                <Box
+                  sx={{
+                    flex: 1,
+                    height: "16px",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    overflow: "hidden",
+                  }}
                 >
-                  <Typography
-                    variant="event"
-                    sx={{ fontSize: "8px", lineHeight: "8px" }}
-                    color={(theme) => {
-                      return theme.palette.text[
-                        isSameDay(day, now) ? "primary" : "secondary"
-                      ];
-                    }}
+                  <FlexCol
+                    alignItems="center"
+                    justifyContent="flex-start"
+                    sx={{ width: "100%", height: "16px" }}
                   >
-                    {format(day, "d")}
-                  </Typography>
-                  {isSameDay(day, now) && (
-                    <Box
-                      sx={{
-                        background: (theme) => theme.palette.primary.main,
-                        height: "1px",
-                        width: `min(${(100 * 8) / w}%, 12px)`,
-                        borderRadius: "1px",
-                        position: "absolute",
-                        bottom: "2px",
+                    <Typography
+                      variant="event"
+                      sx={{ fontSize: "8px", lineHeight: "8px" }}
+                      color={(theme) => {
+                        return theme.palette.text[
+                          isSameDay(day, now) ? "primary" : "secondary"
+                        ];
                       }}
-                    ></Box>
-                  )}
-                </FlexCol>
-              </FlexRow>
-            </Box>
+                    >
+                      {format(day, "d")}
+                    </Typography>
+                    {isSameDay(day, now) && (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "flex-end",
+                          alignItems: "center",
+                          width: "100%",
+                          pt: "1px",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            background: (theme) => theme.palette.primary.main,
+                            height: "1px",
+                            width: `min(${(100 * 8) / w}%, 12px)`,
+                            borderRadius: "1px",
+                          }}
+                        ></Box>
+                      </Box>
+                    )}
+                  </FlexCol>
+                </Box>
+              </Box>
+            </FlexRow>
           );
         })}
       </FlexRow>
@@ -125,10 +147,12 @@ function ThreeMonthHeader({
   startTime,
   now,
   startDay,
+  height,
 }: {
   startTime: Date;
   now: Date;
   startDay: StartDay;
+  height: number;
 }) {
   const monthMap = new Map<number, Date>();
   const weeks: Date[] = [];
@@ -149,7 +173,7 @@ function ThreeMonthHeader({
 
   return (
     <Box>
-      <Box sx={{ position: "relative", height: "44px", width: "100%" }}>
+      <Box sx={{ position: "relative", height: "60px", width: "100%" }}>
         <>
           {months.flatMap((month, index) => {
             const xStart = month.getTime() - startTime.getTime();
@@ -159,14 +183,22 @@ function ThreeMonthHeader({
             );
 
             return (
-              <FlexRow
+              <Box
                 key={index}
+                component={Button}
                 sx={{
                   width: widthToPct((720 * xWidth) / totalWidth),
-                  height: "44px",
+                  height: "60px",
                   overflow: "hidden",
                   left: widthToPct((720 * xStart) / totalWidth),
                   position: "absolute",
+                  display: "flex",
+                  alignItems: "stretch",
+                  borderTopLeftRadius: 0,
+                  borderTopRightRadius: 0,
+                  minWidth: "auto",
+                  p: 0,
+                  m: 0,
                 }}
                 justifyContent={"center"}
               >
@@ -192,13 +224,13 @@ function ThreeMonthHeader({
                     ></Box>
                   )}
                 </Box>
-              </FlexRow>
+              </Box>
             );
           })}
         </>
       </Box>
-      <Box sx={{ height: "16px" }} />
       <SmallTime
+        height={height + 6}
         formatDate={(date) => "W" + format(date, "I")}
         times={weeks}
         noBorderMod={4}
@@ -217,10 +249,12 @@ function YearHeader({
   startTime,
   now,
   startDay,
+  height,
 }: {
   startTime: Date;
   now: Date;
   startDay: StartDay;
+  height: number;
 }) {
   const quarters: Date[] = [];
   const months: Date[] = [];
@@ -246,8 +280,8 @@ function YearHeader({
         }}
         width={179}
       />
-      <Box sx={{ height: "16px" }} />
       <SmallTime
+        height={height + 6}
         formatDate={(date) => format(date, "MMM")}
         times={months}
         noBorderMod={3}
@@ -261,10 +295,12 @@ function ThreeYearHeader({
   startTime,
   now,
   startDay,
+  height,
 }: {
   startTime: Date;
   now: Date;
   startDay: StartDay;
+  height: number;
 }) {
   const years: Date[] = [];
   const quarters: Date[] = [];
@@ -289,8 +325,8 @@ function ThreeYearHeader({
         }}
         width={239}
       />
-      <Box sx={{ height: "16px" }} />
       <SmallTime
+        height={height + 6}
         formatDate={(date) => format(date, "qqq")}
         times={quarters}
         noBorderMod={4}
@@ -300,15 +336,16 @@ function ThreeYearHeader({
   );
 }
 
-export function Header({
-  resolution,
-  ...props
-}: {
+export function Header(props: {
   startTime: Date;
   resolution: TimelineResolution;
   now: Date;
   startDay: StartDay;
+  height: number;
+  empty: boolean;
 }) {
+  const { resolution } = props;
+
   if (resolution === "month") {
     return <MonthHeader {...props} />;
   }
@@ -342,10 +379,15 @@ function BigTime({
         const els = [
           <FlexRow
             key={index}
+            component={Button}
             sx={{
               width: widthToPct(width),
-              height: "44px",
               overflow: "hidden",
+              p: 0,
+              m: 0,
+              height: "56px",
+              display: "flex",
+              alignItems: "flex-start",
             }}
             justifyContent={"center"}
           >
@@ -404,23 +446,34 @@ function SmallTime({
   formatDate,
   noBorderMod,
   isActive,
+  height,
 }: {
   times: Date[];
   formatDate: (date: Date) => string;
   noBorderMod: number;
   isActive: (date: Date) => boolean;
+  height: number;
 }) {
   return (
     <FlexRow justifyContent="space-between">
       {times.flatMap((week, index) => {
         const els = [
-          <FlexRow
+          <Box
             key={index}
-            justifyContent="center"
-            flex="1"
-            sx={{ overflow: "hidden" }}
+            component={Button}
+            sx={{
+              overflow: "hidden",
+              p: 0,
+              m: 0,
+              display: "flex",
+              minWidth: "auto",
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "stretch",
+              height: `calc(${height + 20}px)`,
+            }}
           >
-            <Box>
+            <Box sx={{ height: "20px" }}>
               <Typography
                 variant="body2"
                 color={(theme) => theme.palette.text.secondary}
@@ -438,7 +491,7 @@ function SmallTime({
                 ></Box>
               ) : null}
             </Box>
-          </FlexRow>,
+          </Box>,
         ];
         if (index !== 0) {
           els.unshift(

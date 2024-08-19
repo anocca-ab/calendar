@@ -20,6 +20,7 @@ import {
 import { TimelineResolution, StartDay } from "../types";
 import { FlexRow, FlexCol } from "../wrappers";
 import { widthToPct } from "./to_pct";
+import { timelineGridHeight } from "./timeline_height";
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return <Box sx={{ position: "absolute", inset: 0 }}>{children}</Box>;
@@ -44,13 +45,14 @@ function MonthHeader({
     }
   }
   return (
-    <Wrapper>
-      <BigTime times={weeks} width={119} height={height} />
+    <>
+      <BigTime times={weeks} width={119} height={height} smallHeight={18} />
       <Box sx={{ position: "absolute", inset: 0 }}>
         <FlexRow
+          className="grid-line"
           sx={{
             position: "absolute",
-            top: "60px",
+            top: "56px",
             left: 0,
             right: 0,
             bottom: 0,
@@ -69,7 +71,7 @@ function MonthHeader({
                   display: "flex",
                   width: widthToPct(w),
                   alignItems: "center",
-                  height: "16px",
+                  height: "18px",
                   position: "relative",
                 }}
               >
@@ -78,7 +80,7 @@ function MonthHeader({
                     sx={{
                       width: "1px",
                       borderRadius: "1px",
-                      height: "24px",
+                      height: "18px",
                       backgroundColor:
                         index % 7 === 0
                           ? "none"
@@ -97,7 +99,7 @@ function MonthHeader({
           })}
         </FlexRow>
       </Box>
-    </Wrapper>
+    </>
   );
 }
 
@@ -159,7 +161,7 @@ function ThreeMonthHeader({
         </>
       </Box>
 
-      <SmallTime times={weeks} noBorderMod={0} height={height} />
+      <SmallTime top={60} times={weeks} noBorderMod={0} height={height + 10} />
     </Wrapper>
   );
 }
@@ -186,8 +188,13 @@ function YearHeader({
   }
   return (
     <Wrapper>
-      <BigTime times={quarters} width={179} height={height} />
-      <SmallTime times={months} noBorderMod={3} height={height} />
+      <BigTime
+        times={quarters}
+        width={179}
+        height={height}
+        smallHeight={22 + 4}
+      />
+      <SmallTime times={months} noBorderMod={3} height={height + 10} top={56} />
     </Wrapper>
   );
 }
@@ -213,16 +220,18 @@ function ThreeYearHeader({
   }
   return (
     <Wrapper>
-      <BigTime times={years} width={239} height={height} />
-      <SmallTime times={quarters} noBorderMod={4} height={height} />
+      <BigTime times={years} width={239} height={height} smallHeight={22 + 4} />
+      <SmallTime
+        times={quarters}
+        noBorderMod={4}
+        height={height + 10}
+        top={56}
+      />
     </Wrapper>
   );
 }
 
-export function Grid({
-  resolution,
-  ...props
-}: {
+export function Grid(props: {
   startTime: Date;
   resolution: TimelineResolution;
   now: Date;
@@ -230,27 +239,19 @@ export function Grid({
   height: number;
   empty: boolean;
 }) {
-  let height = props.height;
-  if (!props.empty) {
-    height += 11; // for the time indicator
-  }
+  const { resolution } = props;
+
   if (resolution === "month") {
-    // month is a little special
-    if (!props.empty) {
-      height -= 6;
-    }
-  }
-  if (resolution === "month") {
-    return <MonthHeader {...props} height={height} />;
+    return <MonthHeader {...props} />;
   }
   if (resolution === "3-months") {
-    return <ThreeMonthHeader {...props} height={height} />;
+    return <ThreeMonthHeader {...props} />;
   }
   if (resolution === "year") {
-    return <YearHeader {...props} height={height} />;
+    return <YearHeader {...props} />;
   }
   if (resolution === "3-years") {
-    return <ThreeYearHeader {...props} height={height} />;
+    return <ThreeYearHeader {...props} />;
   }
   throw new Error("Invalid resolution");
 }
@@ -258,10 +259,12 @@ function BigTime({
   times,
   width,
   height,
+  smallHeight,
 }: {
   times: Date[];
   width: number;
   height: number;
+  smallHeight: number;
 }) {
   return (
     <Box sx={{ position: "absolute", inset: 0 }}>
@@ -280,7 +283,7 @@ function BigTime({
                 key={index + "divider"}
                 sx={{
                   width: "1px",
-                  height: height + 64 + 16,
+                  height: height + 56 + smallHeight,
                 }}
               >
                 <Box
@@ -305,16 +308,24 @@ function SmallTime({
   times,
   noBorderMod,
   height,
+  top,
 }: {
   times: Date[];
   noBorderMod: number;
   height: number;
+  top: number;
 }) {
   return (
     <Box sx={{ position: "absolute", inset: 0 }}>
       <FlexRow
         justifyContent="space-between"
-        sx={{ top: "64px", position: "absolute", left: 0, right: 0, bottom: 0 }}
+        sx={{
+          top: `${top}px`,
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
       >
         {times.flatMap((week, index) => {
           const els = [
@@ -336,8 +347,7 @@ function SmallTime({
                     index % noBorderMod === 0
                       ? "none"
                       : (theme) => theme.palette.divider,
-                  borderTopLeftRadius: "1px",
-                  borderTopRightRadius: "1px",
+                  borderRadius: "1px",
                 }}
               ></Box>
             </Box>
