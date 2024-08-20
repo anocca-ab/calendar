@@ -26,6 +26,7 @@ import {
   getEventEnd,
   getEventStart,
   isAllDayEvent,
+  isTask,
   mergeSx,
   widthToPct,
 } from "../helpers";
@@ -1122,33 +1123,34 @@ function WeekCalendarGrid<T>(props: {
                   </Typography>
                 )}
               </Box>
-              {(["start", "end"] as const).map((pos, i) => (
-                <Box
-                  key={i}
-                  className="resize-event"
-                  {...dataProps}
-                  data-drag-source="resize-event"
-                  data-resize-pos={pos}
-                  sx={mergeSx(
-                    {
-                      height: 4,
-                      flexShrink: 0,
-                      position: "absolute",
-                      zIndex: 1,
-                      left: 0,
-                      right: 0,
-                      cursor: "ns-resize",
-                    },
-                    pos === "start"
-                      ? {
-                          top: 0,
-                        }
-                      : {
-                          bottom: 0,
-                        }
-                  )}
-                ></Box>
-              ))}
+              {!isTask(event.sourceEvent) &&
+                (["start", "end"] as const).map((pos, i) => (
+                  <Box
+                    key={i}
+                    className="resize-event"
+                    {...dataProps}
+                    data-drag-source="resize-event"
+                    data-resize-pos={pos}
+                    sx={mergeSx(
+                      {
+                        height: 4,
+                        flexShrink: 0,
+                        position: "absolute",
+                        zIndex: 1,
+                        left: 0,
+                        right: 0,
+                        cursor: "ns-resize",
+                      },
+                      pos === "start"
+                        ? {
+                            top: 0,
+                          }
+                        : {
+                            bottom: 0,
+                          }
+                    )}
+                  ></Box>
+                ))}
             </Box>
           );
         })}

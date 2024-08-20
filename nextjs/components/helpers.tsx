@@ -1,5 +1,5 @@
 import type { SxProps, Theme } from "@mui/material";
-import { addMinutes, endOfDay, startOfDay } from "date-fns";
+import { addMinutes, endOfDay, startOfDay, subMinutes } from "date-fns";
 import { CalendarEvent } from "./types";
 
 type Sx = SxProps<Theme>;
@@ -36,15 +36,26 @@ export function mergeSx(...sxs: (Sx | null | undefined | boolean)[]): Sx {
 }
 
 export function isAllDayEvent<T>(event: CalendarEvent<T>) {
+  const inRange = (date: Date, start: Date, end: Date) =>
+    date.getTime() >= start.getTime() && date.getTime() <= end.getTime();
+
   return (
     // task
     !event.end ||
     // all day event, it is more than 24h
     (event.end &&
       event.end.getTime() - event.start.getTime() >= 24 * 60 * 60 * 1000) ||
-    // all day event that is exactly 24h
-    (event.start.getTime() === startOfDay(event.start).getTime() &&
-      event.end.getTime() === endOfDay(event.start).getTime())
+    // all day event that is exactly 24h (plus minus 1 minute)
+    (inRange(
+      event.start,
+      startOfDay(event.start),
+      addMinutes(startOfDay(event.start), 1)
+    ) &&
+      inRange(
+        event.end,
+        endOfDay(event.start),
+        subMinutes(endOfDay(event.start), 1)
+      ))
   );
 }
 
@@ -233,4 +244,8 @@ export const DEFAULT_COLOR = "#FF7043";
 
 export function widthToPct(width: number, daysInWeek: number): string {
   return String((width / (120 * daysInWeek)) * 100) + "%";
+}
+
+export function isTask(event: { start: Date; end?: Date }) {
+  return !event.end || event.start.getTime() === event.end.getTime();
 }

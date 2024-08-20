@@ -1,10 +1,12 @@
 import {
   addMinutes,
   max,
+  min,
   roundToNearestMinutes,
   startOfDay,
   startOfHour,
   startOfMinute,
+  subMinutes,
 } from "date-fns";
 import React from "react";
 import { getEventEnd, getEventStart } from "./helpers";
@@ -414,6 +416,23 @@ export function useMouse<T>(
             dragged: undefined,
           };
         } else {
+          const resize = (
+            resize: "start" | "end",
+            newEventTime: { start: Date; end: Date },
+            dragged: DragPosition<ModifiableEvent<T>>
+          ) => {
+            const origStart = getEventStart(dragged.event.sourceEvent);
+            const origEnd = getEventEnd(dragged.event.sourceEvent);
+            return resize === "start"
+              ? {
+                  start: min([newEventTime.start, subMinutes(origEnd, 15)]),
+                  end: origEnd,
+                }
+              : {
+                  start: origStart,
+                  end: max([newEventTime.end, addMinutes(origStart, 15)]),
+                };
+          };
           draggedEvent = {
             source: dragged.event,
             dragged:
@@ -422,15 +441,7 @@ export function useMouse<T>(
                 // can't drag event if onMoveEvent is not defined
                 (dragged.type === "existing" && effectRefs.current.onMoveEvent))
                 ? dragged.resize
-                  ? dragged.resize === "start"
-                    ? {
-                        start: newEventTime.start,
-                        end: getEventEnd(dragged.event.sourceEvent),
-                      }
-                    : {
-                        start: getEventStart(dragged.event.sourceEvent),
-                        end: newEventTime.end,
-                      }
+                  ? resize(dragged.resize, newEventTime, dragged)
                   : {
                       start: newEventTime.start,
                       end: newEventTime.end,
