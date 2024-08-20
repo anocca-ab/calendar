@@ -9,10 +9,7 @@ import {
 import {
   addDays,
   addWeeks,
-  areIntervalsOverlapping,
   differenceInCalendarDays,
-  differenceInDays,
-  differenceInWeeks,
   endOfDay,
   format,
   getDate,

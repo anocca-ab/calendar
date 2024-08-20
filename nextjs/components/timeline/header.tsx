@@ -1,30 +1,29 @@
 import { Box, Button, Typography } from "@mui/material";
 import {
   addDays,
-  isSameWeek,
-  format,
-  isSameDay,
   addMonths,
-  addWeeks,
-  isSameMonth,
-  StartOfWeekOptions,
-  isSameQuarter,
-  addYears,
   addQuarters,
-  isSameYear,
-  getMonth,
-  startOfMonth,
+  addWeeks,
+  addYears,
   differenceInMilliseconds,
   endOfDay,
-  endOfWeek,
   endOfMonth,
   endOfQuarter,
+  endOfWeek,
   endOfYear,
+  format,
+  getMonth,
+  isSameDay,
+  isSameMonth,
+  isSameQuarter,
+  isSameWeek,
+  isSameYear,
+  startOfMonth,
+  StartOfWeekOptions,
 } from "date-fns";
-import { TimelineResolution, StartDay } from "../types";
-import { FlexRow, FlexCol } from "../wrappers";
+import { StartDay, TimelineResolution } from "../types";
+import { FlexCol, FlexRow } from "../wrappers";
 import { widthToPct } from "./to_pct";
-import { timelineGridHeight } from "./timeline_height";
 
 function MonthHeader({
   startTime,
@@ -194,7 +193,7 @@ function ThreeMonthHeader({
 
   const totalWidth = differenceInMilliseconds(
     addWeeks(startTime, 15),
-    startTime
+    startTime,
   );
 
   const options: StartOfWeekOptions = {
@@ -209,7 +208,7 @@ function ThreeMonthHeader({
             const xStart = month.getTime() - startTime.getTime();
             const xWidth = differenceInMilliseconds(
               startOfMonth(addMonths(month, 1)),
-              month
+              month,
             );
 
             return (
@@ -510,7 +509,7 @@ function BigTime({
                   borderRadius: "1px",
                 }}
               ></Box>
-            </Box>
+            </Box>,
           );
         }
         return els;
@@ -593,7 +592,7 @@ function SmallTime({
                   borderTopRightRadius: "1px",
                 }}
               ></Box>
-            </Box>
+            </Box>,
           );
         }
         return els;
