@@ -50,7 +50,7 @@ export function MonthCalendarEvent<T>({
               : (theme) => theme.shadows[0],
         },
 
-        buttonProps.sx
+        buttonProps.sx,
       )}
     >
       {allDayEvent && (triangle === "left" || triangle === "both") && (
@@ -155,7 +155,7 @@ export function MonthCalendarEvent<T>({
                 }
               : {
                   right: 0,
-                }
+                },
           )}
         ></Box>
       ))}
