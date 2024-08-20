@@ -50,7 +50,7 @@ export function MonthCalendarEvent<T>({
               : (theme) => theme.shadows[0],
         },
 
-        buttonProps.sx,
+        buttonProps.sx
       )}
     >
       {allDayEvent && (triangle === "left" || triangle === "both") && (
@@ -141,21 +141,21 @@ export function MonthCalendarEvent<T>({
           data-resize-pos={pos}
           sx={mergeSx(
             {
-              height: 4,
+              width: 4,
               flexShrink: 0,
               position: "absolute",
               zIndex: 1,
-              left: 0,
-              right: 0,
+              top: 0,
+              bottom: 0,
               cursor: "ew-resize",
             },
             pos === "start"
               ? {
-                  top: 0,
+                  left: 0,
                 }
               : {
-                  bottom: 0,
-                },
+                  right: 0,
+                }
           )}
         ></Box>
       ))}

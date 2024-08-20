@@ -188,7 +188,7 @@ export const WithSelectedEvents: Story = {
       {
         start: addHours(
           startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
-          2,
+          2
         ),
         title: "A full day task",
         selected: true,
@@ -196,11 +196,11 @@ export const WithSelectedEvents: Story = {
       {
         start: addHours(
           startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
-          2,
+          2
         ),
         end: addHours(
           startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
-          2,
+          2
         ),
         title: "A sub day task",
         selected: true,
@@ -244,7 +244,7 @@ export const WithScrollableContainers: Story = {
   },
 };
 function ScrollDemo(
-  props: React.ComponentPropsWithoutRef<typeof WeekCalendar>,
+  props: React.ComponentPropsWithoutRef<typeof WeekCalendar>
 ) {
   const scrollableContainer = React.useRef<HTMLDivElement>(null);
   return (
@@ -279,16 +279,3 @@ export const WithAutoScroll: Story = {
     return <ScrollDemo {...props} autoScroll />;
   },
 };
-
-/**
- * No WeekCalendarHeader export
- */
-
-// export const OnlyHeader: Story = {
-//   args: {
-//     events: [],
-//   },
-//   render: (props) => {
-//     return <WeekCalendarHeader {...props} />;
-//   },
-// };
