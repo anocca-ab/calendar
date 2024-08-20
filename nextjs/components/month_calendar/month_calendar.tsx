@@ -1,4 +1,11 @@
-import { Box, Button, ButtonProps, Divider, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  ButtonProps,
+  Divider,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import {
   addDays,
   addWeeks,
@@ -61,7 +68,7 @@ type RawContext<T> =
       onMoveEvent?: (
         event: CalendarEvent<T>,
         newStart: Date,
-        newEnd: Date | undefined
+        newEnd: Date | undefined,
       ) => void;
     };
 export const MonthCalendarConfigContext =
@@ -114,7 +121,7 @@ export type MonthCalendarProps<T> = {
   onMoveEvent?: (
     event: CalendarEvent<T>,
     newStart: Date,
-    newEnd: Date | undefined
+    newEnd: Date | undefined,
   ) => void;
 
   /**
@@ -159,7 +166,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
     parseDefaultProps(props);
 
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
-    calendarProps.events
+    calendarProps.events,
   );
 
   const [moreButtonClicked, setMoreButtonClicked] = useState<
@@ -196,7 +203,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
   const eventsInMonth: ModifiableEvent<T>[] = filterEventsInMonth(
     allEvents,
     startDay,
-    startOfMonth
+    startOfMonth,
   );
 
   // step 1.
@@ -208,19 +215,19 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
   const splitEvents = splitMultiWeekEvents(
     eventsInMonth,
     startDay,
-    startOfMonth
+    startOfMonth,
   );
 
   const { startOfMonthCalendar, endOfMonthCalendar } = monthCalendarRange(
     startDay,
-    startOfMonth
+    startOfMonth,
   );
 
   const { eventProperties, events, moreButtons } = eventGrid(
     splitEvents,
     startDay,
     startOfMonthCalendar,
-    endOfMonthCalendar
+    endOfMonthCalendar,
   );
 
   const weeksOfMonth = getWeeksInMonth(startOfMonth, {
@@ -234,7 +241,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
   function calculateNewTime(
     state: MouseState,
     dragged: DragPosition<ModifiableEvent<T>>,
-    container: EventContainer
+    container: EventContainer,
   ) {
     if (state.pos && state.pos0) {
       const addedDays = dayDiff(
@@ -242,18 +249,18 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
         state.pos0,
         dragged,
         daysInWeek,
-        container
+        container,
       );
 
       // for how many weeks minus/plus did we drag the event
       const rawDelta = Math.round(
         (state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY) /
-          120
+          120,
       );
 
       // how many weeks plus we can drag
       const maxVal = Math.abs(
-        Math.floor((container.height - state.pos0.y) / 120) + 1
+        Math.floor((container.height - state.pos0.y) / 120) + 1,
       );
 
       // how many weeks minus we can drag
@@ -292,10 +299,12 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
     events,
     setDraggedEvent,
     calculateNewTime,
-    calendarProps
+    calendarProps,
   );
 
   useMouse("month-calendar-event", effectRefs, false);
+
+  const theme = useTheme();
 
   const { onCreateEvent } = calendarProps;
 
@@ -459,7 +468,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                 startOfWeek(startOfMonth, {
                   weekStartsOn: startDay === "monday" ? 1 : 0,
                 }),
-                Math.floor(i / 7)
+                Math.floor(i / 7),
               );
 
               const currentDate = addDays(beginningOfCurrentWeek, i % 7);
@@ -508,7 +517,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                       ":hover": {
                         backgroundColor: "transparent",
                       },
-                    }
+                    },
                   )}
                 >
                   <FlexRow
@@ -557,8 +566,8 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                             active
                               ? (theme) => theme.palette.primary.contrastText
                               : isInCurrentMonth
-                              ? (theme) => theme.palette.text.primary
-                              : (theme) => theme.palette.text.secondary
+                                ? (theme) => theme.palette.text.primary
+                                : (theme) => theme.palette.text.secondary
                           }
                         >
                           {dayNumber}
@@ -651,19 +660,23 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                   triangleLeft && triangleRight
                     ? "both"
                     : triangleRight
-                    ? "right"
-                    : triangleLeft
-                    ? "left"
-                    : undefined;
+                      ? "right"
+                      : triangleLeft
+                        ? "left"
+                        : undefined;
 
                 const disableInteractive =
                   !calendarProps.onClickEvent && !calendarProps.onMoveEvent;
+                const disableRipple =
+                  disableInteractive ||
+                  (draggedEvent?.dragged &&
+                    draggedEvent.source.sourceEvent === event.sourceEvent);
                 const props: React.ComponentPropsWithoutRef<
                   typeof MonthCalendarEvent
                 > = {
                   event: event.sourceEvent,
                   disableInteractive,
-                  disableRipple: disableInteractive,
+                  disableRipple,
                   sx: {
                     width: widthToPct(width * 119 - 4, daysInWeek),
                     left: `${widthToPct(day * 119 + 4, daysInWeek)}`,
@@ -672,6 +685,22 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                     position: "absolute",
                     zIndex: 2,
                     cursor: disableInteractive ? "auto" : "pointer",
+                    boxShadow:
+                      !disableInteractive &&
+                      draggedEvent?.dragged &&
+                      draggedEvent.source.sourceEvent === event.sourceEvent
+                        ? theme.shadows[4]
+                        : theme.shadows[0],
+                    opacity:
+                      !disableInteractive &&
+                      draggedEvent?.source.sourceEvent === event.sourceEvent
+                        ? 0.5
+                        : !disableInteractive &&
+                            draggedEvent?.dragged &&
+                            draggedEvent.source.sourceEvent ===
+                              event.sourceEvent
+                          ? 0.75
+                          : 1,
                   },
                   allDayEvent: isAllDayEvent(event.sourceEvent),
                   state:
@@ -680,7 +709,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                       ? "selected"
                       : "normal",
                   triangle,
-                  ...dataProps,
+                  dataProps,
                 };
 
                 return (
@@ -731,8 +760,8 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         isSameDay(modal.date, startOfMonth)
                           ? (theme) => theme.palette.primary.contrastText
                           : isSameMonth(modal.date, startOfMonth)
-                          ? (theme) => theme.palette.text.primary
-                          : (theme) => theme.palette.text.secondary
+                            ? (theme) => theme.palette.text.primary
+                            : (theme) => theme.palette.text.secondary
                       }
                     >
                       {format(modal.date, "EEE")}
@@ -750,8 +779,8 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         isSameDay(modal.date, startOfMonth)
                           ? (theme) => theme.palette.primary.contrastText
                           : isSameMonth(modal.date, startOfMonth)
-                          ? (theme) => theme.palette.text.primary
-                          : (theme) => theme.palette.text.secondary
+                            ? (theme) => theme.palette.text.primary
+                            : (theme) => theme.palette.text.secondary
                       }
                     >
                       {format(modal.date, "d")}
@@ -773,7 +802,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
 
                     let width = differenceInCalendarDays(
                       event.end,
-                      event.start
+                      event.start,
                     );
                     if (event.end.getTime() === endOfDay(event.end).getTime()) {
                       width += 1;
@@ -801,7 +830,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         top: index * (16 + 1),
                         height: "16px",
                         zIndex: 3,
-                        cursor: disableInteractive ? 'auto' : 'pionter',
+                        cursor: disableInteractive ? "auto" : "pionter",
                       },
                       disableRipple: disableInteractive,
                       allDayEvent: isAllDayEvent(event.sourceEvent),
@@ -882,7 +911,7 @@ function MoreEventsButton({
           minWidth: "auto",
           whiteSpace: "nowrap",
         },
-        buttonProps.sx
+        buttonProps.sx,
       )}
     >
       <Typography
@@ -911,9 +940,9 @@ function MonthCalendarWeekdayBar() {
         startOfWeek(startOfMonth, {
           weekStartsOn: startDay === "monday" ? 1 : 0,
         }),
-        index
+        index,
       ),
-      "EEE"
+      "EEE",
     );
 
     weekDays.push(
@@ -942,7 +971,7 @@ function MonthCalendarWeekdayBar() {
             sx={{ width: "25px", height: "1px" }}
           />
         )}
-      </FlexCol>
+      </FlexCol>,
     );
   });
 
