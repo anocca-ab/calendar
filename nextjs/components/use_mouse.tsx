@@ -336,9 +336,25 @@ export function useMouse<T>(
       };
       update();
     };
+    const cancel = () => {
+      state.down = false;
+      state.pos = undefined;
+      state.pos0 = undefined;
+      state.hasDragged = false;
+      draggedEvent = undefined;
+      effectRefs.current.setDraggedEvent(undefined);
+    };
+    const clickEsc = (ev: KeyboardEvent) => {
+      if (ev.code === "Escape") {
+        cancel();
+      }
+    };
     window.addEventListener("mouseup", mouseUp);
     window.addEventListener("mousemove", mouseMove);
     window.addEventListener("mousedown", mouseDown);
+
+    window.addEventListener("blur", cancel);
+    window.addEventListener("keydown", clickEsc);
 
     const cbs = effectRefs.current.scrollContainers.map((el) => {
       let addEventListener =
@@ -466,6 +482,8 @@ export function useMouse<T>(
       window.removeEventListener("mouseup", mouseUp);
       window.removeEventListener("mousemove", mouseMove);
       window.removeEventListener("mousedown", mouseDown);
+      window.removeEventListener("blur", cancel);
+      window.removeEventListener("keydown", clickEsc);
       if (cleanupContainerListener) {
         cleanupContainerListener();
       }
