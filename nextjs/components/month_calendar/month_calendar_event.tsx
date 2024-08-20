@@ -147,7 +147,7 @@ export function MonthCalendarEvent<T>({
               zIndex: 1,
               left: 0,
               right: 0,
-              cursor: "ns-resize",
+              cursor: "ew-resize",
             },
             pos === "start"
               ? {
