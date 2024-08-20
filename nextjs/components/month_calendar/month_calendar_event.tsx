@@ -1,6 +1,6 @@
 import { Box, Button, Typography } from "@mui/material";
 import { format } from "date-fns";
-import { DEFAULT_COLOR, mergeSx } from "../helpers";
+import { DEFAULT_COLOR, isTask, mergeSx } from "../helpers";
 import type { CalendarEvent } from "../types";
 import { Triangle } from "../week_calendar/week_calendar";
 import { FlexCol, FlexRow } from "../wrappers";
@@ -50,7 +50,7 @@ export function MonthCalendarEvent<T>({
               : (theme) => theme.shadows[0],
         },
 
-        buttonProps.sx,
+        buttonProps.sx
       )}
     >
       {allDayEvent && (triangle === "left" || triangle === "both") && (
@@ -132,33 +132,34 @@ export function MonthCalendarEvent<T>({
           color={color ?? DEFAULT_COLOR}
         />
       )}
-      {(["start", "end"] as const).map((pos, i) => (
-        <Box
-          key={i}
-          className="resize-event"
-          {...dataProps}
-          data-drag-source="resize-event"
-          data-resize-pos={pos}
-          sx={mergeSx(
-            {
-              width: 4,
-              flexShrink: 0,
-              position: "absolute",
-              zIndex: 1,
-              top: 0,
-              bottom: 0,
-              cursor: "ew-resize",
-            },
-            pos === "start"
-              ? {
-                  left: 0,
-                }
-              : {
-                  right: 0,
-                },
-          )}
-        ></Box>
-      ))}
+      {!isTask(event) &&
+        (["start", "end"] as const).map((pos, i) => (
+          <Box
+            key={i}
+            className="resize-event"
+            {...dataProps}
+            data-drag-source="resize-event"
+            data-resize-pos={pos}
+            sx={mergeSx(
+              {
+                width: 4,
+                flexShrink: 0,
+                position: "absolute",
+                zIndex: 1,
+                top: 0,
+                bottom: 0,
+                cursor: "ew-resize",
+              },
+              pos === "start"
+                ? {
+                    left: 0,
+                  }
+                : {
+                    right: 0,
+                  }
+            )}
+          ></Box>
+        ))}
     </Box>
   );
 }
