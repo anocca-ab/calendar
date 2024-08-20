@@ -7,16 +7,16 @@ import { ModifiableEvent } from "../week_calendar/types";
 export function filterEventsInMonth<T>(
   events: ModifiableEvent<T>[],
   startDay: StartDay,
-  startOfMonth: Date,
+  startOfMonth: Date
 ) {
   const { startOfMonthCalendar, endOfMonthCalendar } = monthCalendarRange(
     startDay,
-    startOfMonth,
+    startOfMonth
   );
   const eventsInMonth: ModifiableEvent<T>[] = events.filter((event) => {
     return areIntervalsOverlapping(
       { start: startOfMonthCalendar, end: endOfMonthCalendar },
-      { start: getEventStart(event), end: getEventEnd(event) },
+      { start: getEventStart(event), end: getEventEnd(event) }
     );
   });
   return eventsInMonth;
