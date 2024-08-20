@@ -360,7 +360,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
       ref={eventContainerRef}
     >
       <Grid {...p} height={gridHeight} empty={events.length === 0} />
-      <Header {...p} height={gridHeight} empty={events.length === 0} />
+      <Header {...p} height={gridHeight} empty={events.length === 0} onCreateEvent={props.onCreateEvent} />
 
       {events.map((event, index) => {
         const dragged = draggedEvent?.source.sourceEvent === event.sourceEvent;

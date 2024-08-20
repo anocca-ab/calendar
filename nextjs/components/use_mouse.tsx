@@ -110,7 +110,7 @@ export type DragPosition<T extends { start: Date; end?: Date | undefined }> = {
   /**
    * If the event is being resized
    */
-  resize: "north" | "south" | undefined;
+  resize: "start" | "end" | undefined;
 };
 
 export function useMouse<T>(
@@ -233,7 +233,7 @@ export function useMouse<T>(
             colX: data.colX,
             resize:
               ds.dragSource === "resize-event" && ds.resizePos
-                ? (ds.resizePos as "north" | "south")
+                ? (ds.resizePos as "start" | "end")
                 : undefined,
           };
           activateDrag();
@@ -406,7 +406,7 @@ export function useMouse<T>(
                 // can't drag event if onMoveEvent is not defined
                 (dragged.type === "existing" && effectRefs.current.onMoveEvent))
                 ? dragged.resize
-                  ? dragged.resize === "north"
+                  ? dragged.resize === "start"
                     ? {
                         start: newEventTime.start,
                         end: getEventEnd(dragged.event.sourceEvent),

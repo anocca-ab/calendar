@@ -1136,7 +1136,7 @@ function WeekCalendarGrid<T>(props: {
                   </Typography>
                 )}
               </Box>
-              {(["north", "south"] as const).map((pos, i) => (
+              {(["start", "end"] as const).map((pos, i) => (
                 <Box
                   key={i}
                   className="resize-event"
@@ -1153,7 +1153,7 @@ function WeekCalendarGrid<T>(props: {
                       right: 0,
                       cursor: "ns-resize",
                     },
-                    pos === "north"
+                    pos === "start"
                       ? {
                           top: 0,
                         }

@@ -15,6 +15,11 @@ import {
   getMonth,
   startOfMonth,
   differenceInMilliseconds,
+  endOfDay,
+  endOfWeek,
+  endOfMonth,
+  endOfQuarter,
+  endOfYear,
 } from "date-fns";
 import { TimelineResolution, StartDay } from "../types";
 import { FlexRow, FlexCol } from "../wrappers";
@@ -25,11 +30,18 @@ function MonthHeader({
   startTime,
   now,
   height,
+  onCreateEvent,
+  startDay,
 }: {
   startTime: Date;
   now: Date;
   height: number;
+  onCreateEvent?: (start: Date, end?: Date | undefined) => void;
+  startDay: StartDay;
 }) {
+  const options: StartOfWeekOptions = {
+    weekStartsOn: startDay === "monday" ? 1 : 0,
+  };
   const weeks: Date[] = [];
   const days: Date[] = [];
   for (let i = 0; i < 6; i += 1) {
@@ -51,6 +63,13 @@ function MonthHeader({
           return `W${format(date, "I")}`;
         }}
         width={119}
+        onCreateEvent={
+          onCreateEvent
+            ? (start) => {
+                onCreateEvent(start, endOfWeek(start, options));
+              }
+            : undefined
+        }
       />
       <FlexRow sx={{ position: "relative" }}>
         {days.map((day, index) => {
@@ -70,7 +89,12 @@ function MonthHeader({
                 ></Box>
               )}
               <Box
-                component={Button}
+                component={onCreateEvent ? Button : "div"}
+                onClick={
+                  onCreateEvent
+                    ? () => onCreateEvent(day, endOfDay(day))
+                    : undefined
+                }
                 sx={{
                   display: "flex",
                   flex: 1,
@@ -148,11 +172,13 @@ function ThreeMonthHeader({
   now,
   startDay,
   height,
+  onCreateEvent,
 }: {
   startTime: Date;
   now: Date;
   startDay: StartDay;
   height: number;
+  onCreateEvent?: (start: Date, end?: Date | undefined) => void;
 }) {
   const monthMap = new Map<number, Date>();
   const weeks: Date[] = [];
@@ -171,6 +197,10 @@ function ThreeMonthHeader({
     startTime
   );
 
+  const options: StartOfWeekOptions = {
+    weekStartsOn: startDay === "monday" ? 1 : 0,
+  };
+
   return (
     <Box>
       <Box sx={{ position: "relative", height: "60px", width: "100%" }}>
@@ -185,7 +215,12 @@ function ThreeMonthHeader({
             return (
               <Box
                 key={index}
-                component={Button}
+                component={onCreateEvent ? Button : undefined}
+                onClick={
+                  onCreateEvent
+                    ? () => onCreateEvent(month, endOfMonth(month))
+                    : undefined
+                }
                 sx={{
                   width: widthToPct((720 * xWidth) / totalWidth),
                   height: "60px",
@@ -240,6 +275,13 @@ function ThreeMonthHeader({
           };
           return isSameWeek(d, now, options);
         }}
+        onCreateEvent={
+          onCreateEvent
+            ? (start) => {
+                onCreateEvent(start, endOfWeek(start, options));
+              }
+            : undefined
+        }
       />
     </Box>
   );
@@ -250,11 +292,13 @@ function YearHeader({
   now,
   startDay,
   height,
+  onCreateEvent,
 }: {
   startTime: Date;
   now: Date;
   startDay: StartDay;
   height: number;
+  onCreateEvent?: (start: Date, end?: Date | undefined) => void;
 }) {
   const quarters: Date[] = [];
   const months: Date[] = [];
@@ -279,6 +323,13 @@ function YearHeader({
           return format(date, "qqq");
         }}
         width={179}
+        onCreateEvent={
+          onCreateEvent
+            ? (start) => {
+                onCreateEvent(start, endOfQuarter(start));
+              }
+            : undefined
+        }
       />
       <SmallTime
         height={height + 6}
@@ -286,6 +337,13 @@ function YearHeader({
         times={months}
         noBorderMod={3}
         isActive={(d) => isSameMonth(d, now)}
+        onCreateEvent={
+          onCreateEvent
+            ? (start) => {
+                onCreateEvent(start, endOfMonth(start));
+              }
+            : undefined
+        }
       />
     </Box>
   );
@@ -296,11 +354,13 @@ function ThreeYearHeader({
   now,
   startDay,
   height,
+  onCreateEvent,
 }: {
   startTime: Date;
   now: Date;
   startDay: StartDay;
   height: number;
+  onCreateEvent?: (start: Date, end?: Date | undefined) => void;
 }) {
   const years: Date[] = [];
   const quarters: Date[] = [];
@@ -324,6 +384,13 @@ function ThreeYearHeader({
           return format(date, "yyyy");
         }}
         width={239}
+        onCreateEvent={
+          onCreateEvent
+            ? (start) => {
+                onCreateEvent(start, endOfYear(start));
+              }
+            : undefined
+        }
       />
       <SmallTime
         height={height + 6}
@@ -331,6 +398,13 @@ function ThreeYearHeader({
         times={quarters}
         noBorderMod={4}
         isActive={(d) => isSameQuarter(d, now)}
+        onCreateEvent={
+          onCreateEvent
+            ? (start) => {
+                onCreateEvent(start, endOfQuarter(start));
+              }
+            : undefined
+        }
       />
     </Box>
   );
@@ -343,6 +417,7 @@ export function Header(props: {
   startDay: StartDay;
   height: number;
   empty: boolean;
+  onCreateEvent?: (start: Date, end?: Date | undefined) => void;
 }) {
   const { resolution } = props;
 
@@ -366,20 +441,23 @@ function BigTime({
   isActive,
   formatDate,
   width,
+  onCreateEvent,
 }: {
   now: Date;
   times: Date[];
   isActive: (a: Date, now: Date) => boolean;
   formatDate: (date: Date) => string;
   width: number;
+  onCreateEvent?: (start: Date) => void;
 }) {
   return (
     <FlexRow>
-      {times.flatMap((month, index) => {
+      {times.flatMap((time, index) => {
         const els = [
           <FlexRow
             key={index}
-            component={Button}
+            component={onCreateEvent ? Button : undefined}
+            onClick={onCreateEvent ? () => onCreateEvent(time) : undefined}
             sx={{
               width: widthToPct(width),
               overflow: "hidden",
@@ -396,13 +474,13 @@ function BigTime({
                 variant="h4"
                 color={(theme) =>
                   theme.palette.text[
-                    isActive(month, now) ? "primary" : "secondary"
+                    isActive(time, now) ? "primary" : "secondary"
                   ]
                 }
               >
-                {formatDate(month)}
+                {formatDate(time)}
               </Typography>
-              {isActive(month, now) && (
+              {isActive(time, now) && (
                 <Box
                   sx={{
                     background: (theme) => theme.palette.primary.main,
@@ -447,12 +525,14 @@ function SmallTime({
   noBorderMod,
   isActive,
   height,
+  onCreateEvent,
 }: {
   times: Date[];
   formatDate: (date: Date) => string;
   noBorderMod: number;
   isActive: (date: Date) => boolean;
   height: number;
+  onCreateEvent?: (start: Date) => void;
 }) {
   return (
     <FlexRow justifyContent="space-between">
@@ -460,7 +540,8 @@ function SmallTime({
         const els = [
           <Box
             key={index}
-            component={Button}
+            component={onCreateEvent ? Button : undefined}
+            onClick={onCreateEvent ? () => onCreateEvent(week) : undefined}
             sx={{
               overflow: "hidden",
               p: 0,
