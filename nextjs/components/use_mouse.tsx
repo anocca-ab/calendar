@@ -189,6 +189,9 @@ export function useMouse<T>(
           .reduce((a, b) => a + b, 0),
       };
     };
+    const preventDefault = (ev: Event) => {
+      ev.preventDefault();
+    };
 
     /**
      * Same as the React.state draggedEvent, but outside the context of react state
@@ -212,6 +215,7 @@ export function useMouse<T>(
           state.pos0 = pos0;
           state.pos = pos0;
           state.hasDragged = false;
+          window.addEventListener("selectstart", preventDefault);
         };
 
         if (clickedEvent) {
@@ -327,6 +331,7 @@ export function useMouse<T>(
       }
       draggedEvent = undefined;
       effectRefs.current.setDraggedEvent(undefined);
+      window.removeEventListener("selectstart", preventDefault);
     };
     const scroll = () => {
       if (!state.pos) {
@@ -345,6 +350,7 @@ export function useMouse<T>(
       state.hasDragged = false;
       draggedEvent = undefined;
       effectRefs.current.setDraggedEvent(undefined);
+      window.removeEventListener("selectstart", preventDefault);
     };
     const clickEsc = (ev: KeyboardEvent) => {
       if (ev.code === "Escape") {
@@ -495,6 +501,8 @@ export function useMouse<T>(
       window.removeEventListener("mousedown", mouseDown);
       window.removeEventListener("blur", cancel);
       window.removeEventListener("keydown", clickEsc);
+
+      window.removeEventListener("selectstart", preventDefault);
       if (cleanupContainerListener) {
         cleanupContainerListener();
       }

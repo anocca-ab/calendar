@@ -451,7 +451,7 @@ function WeekCalendarHeader<T>(props: {
 
             const style = {
               height: 16,
-              width: widthToPct(119 * width - 8, daysInWeek),
+              width: widthToPct(119 * Math.max(width, 1) - 8, daysInWeek),
             };
 
             const dayOverflowRight = differenceInCalendarDays(end, endOfWeek);

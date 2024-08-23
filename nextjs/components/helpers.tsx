@@ -53,8 +53,8 @@ export function isAllDayEvent<T>(event: CalendarEvent<T>) {
     ) &&
       inRange(
         event.end,
+        subMinutes(endOfDay(event.start), 1),
         endOfDay(event.start),
-        subMinutes(endOfDay(event.start), 1)
       ))
   );
 }
