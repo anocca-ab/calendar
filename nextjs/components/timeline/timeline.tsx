@@ -13,27 +13,16 @@ import {
   differenceInCalendarDays,
   differenceInMilliseconds,
   endOfDay,
-  endOfMonth,
-  endOfYear,
-  format,
-  isSameDay,
-  isSameMonth,
-  isSameQuarter,
-  isSameWeek,
-  isSameYear,
   max,
   min,
-  roundToNearestHours,
   startOfDay,
   startOfMonth,
   startOfQuarter,
-  startOfTomorrow,
   startOfWeek,
   startOfYear,
   subMilliseconds,
 } from "date-fns";
 import React from "react";
-import { eventGrid } from "../event_grid";
 import { DEFAULT_COLOR, getEventEnd, getEventStart, mergeSx } from "../helpers";
 import {
   CalendarEvent,
@@ -41,25 +30,13 @@ import {
   StartDay,
   TimelineResolution,
 } from "../types";
-import { ModifiableEvent } from "../week_calendar/types";
-import {
-  dayDiff,
-  useDragableEvents,
-  useEffectRefs,
-  useMouse,
-} from "../use_mouse";
-import { FlexCol, FlexRow } from "../wrappers";
-import {
-  Clique,
-  findAllCliques,
-  findConnectedComponents,
-  findEventOverlaps,
-} from "../week_calendar/event_overlap_functions";
+import { useDragableEvents, useEffectRefs, useMouse } from "../use_mouse";
 import { getPositions } from "../week_calendar/clique_grid";
-import { Header } from "./header";
+import { ModifiableEvent } from "../week_calendar/types";
 import { Grid } from "./grid";
+import { Header } from "./header";
+import { timelineHeaderHeight } from "./timeline_height";
 import { widthToPct } from "./to_pct";
-import { timelineHeaderHeight, timelineGridHeight } from "./timeline_height";
 
 export type TimelineProps<T> = {
   /**
@@ -122,6 +99,11 @@ export type TimelineProps<T> = {
    * @default [window]
    */
   scrollContainers?: ScrollContainer[];
+
+  /**
+   * If you remove the header it will not render the week / month / year / 3 years header
+   */
+  noHeader?: boolean;
 };
 
 function getStartTime(
@@ -174,6 +156,7 @@ function parseDefaultProps<T>(props: TimelineProps<T>) {
     onMoveEvent: props.onMoveEvent,
     onClickEvent: props.onClickEvent,
     scrollContainers,
+    noHeader: props.noHeader,
   };
 }
 
@@ -184,6 +167,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
     events: sourceEvents,
     startDay,
     resolution,
+    noHeader,
     ...calendarProps
   } = p;
 
@@ -345,22 +329,31 @@ export function Timeline<T>(props: TimelineProps<T>) {
   const headerHeight = timelineHeaderHeight({
     resolution,
   });
-  const gridHeight = timelineGridHeight({
-    height: maxHeightRef.current * (16 + 1),
-    empty: events.length === 0,
-    resolution,
-  });
+
+  const gridHeight = maxHeightRef.current * (16 + 1);
 
   return (
     <Box
       sx={{
         position: "relative",
-        height: `${gridHeight + headerHeight}px`,
+        height: `${gridHeight + (noHeader ? 0 : headerHeight)}px`,
       }}
       ref={eventContainerRef}
     >
-      <Grid {...p} height={gridHeight} empty={events.length === 0} />
-      <Header {...p} height={gridHeight} empty={events.length === 0} onCreateEvent={props.onCreateEvent} />
+      <Grid
+        {...p}
+        height={gridHeight}
+        empty={events.length === 0}
+        noHeader={noHeader}
+      />
+      {!noHeader && (
+        <Header
+          {...p}
+          height={gridHeight}
+          empty={events.length === 0}
+          onCreateEvent={props.onCreateEvent}
+        />
+      )}
 
       {events.map((event, index) => {
         const dragged = draggedEvent?.source.sourceEvent === event.sourceEvent;
@@ -396,7 +389,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
                 minWidth: "auto",
                 width: dragged ? `calc(${w} + 2px)` : w,
                 left: dragged ? `calc(${x} - 1px)` : x,
-                top: y * (16 + 1) + headerHeight,
+                top: y * (16 + 1) + (noHeader ? 0 : headerHeight),
                 height: "16px",
                 position: "absolute",
                 borderRadius: "4px",
@@ -454,7 +447,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
       {events.length > 0 && (
         <TimeIndicator
           sx={{
-            top: `${headerHeight}px`,
+            top: `${noHeader ? 0 : headerHeight}px`,
             pointerEvents: "none",
             zIndex: 2,
             height: `${gridHeight}px`,
@@ -579,7 +572,7 @@ function TimeIndicator(boxProps: BoxProps) {
           height: "100%",
           left: "1px",
           top: "0px",
-          borderRadius: '1px',
+          borderRadius: "1px",
         }}
       ></Box>
     </Box>

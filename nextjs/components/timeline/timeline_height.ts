@@ -1,14 +1,5 @@
 import { TimelineResolution } from "../types";
 
-export const timelineGridHeight = (props: {
-  resolution: TimelineResolution;
-  empty: boolean;
-  height: number;
-}) => {
-  let height = props.height;
-  return height;
-};
-
 export const timelineHeaderHeight = (props: {
   resolution: TimelineResolution;
 }) => {

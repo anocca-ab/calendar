@@ -28,6 +28,7 @@ export function InteractiveDemo(props: {
     newEnd: Date | undefined
   ) => void;
   onClickEvent?: (event: CalendarEvent<any>, nativeEvent: MouseEvent) => void;
+  noHeader?: boolean;
 }) {
   const { now, startDay, type, events: _events } = props;
   const [realEvents, setEvents] = React.useState<CalEventWithKey[]>(

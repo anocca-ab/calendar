@@ -13,6 +13,7 @@ import {
   subWeeks,
 } from "date-fns";
 import { InteractiveDemo } from "@/components/interactive_demo";
+import { Box } from "@mui/material";
 
 const meta = {
   title: "Timeline/Timeline",
@@ -296,6 +297,34 @@ export const ThreeYearsInteractive: Story = {
         {...props}
         timelineResolution={props.resolution}
       />
+    );
+  },
+};
+
+export const NoHeader: Story = {
+  args: {
+    startDay: "monday",
+    events: manyEvents,
+    resolution: "3-years",
+  },
+
+  render: (props) => {
+    return (
+      <Box display="flex" flexDirection="column" gap={0}>
+        <Timeline {...props} resolution={props.resolution} />
+        <Timeline
+          {...props}
+          resolution={props.resolution}
+          noHeader
+          events={props.events?.map((e) => ({ ...e, color: '#4985f5' }))}
+        />
+        <Timeline
+          {...props}
+          resolution={props.resolution}
+          noHeader
+          events={props.events?.map((e) => ({ ...e, color: '#718059' }))}
+        />
+      </Box>
     );
   },
 };

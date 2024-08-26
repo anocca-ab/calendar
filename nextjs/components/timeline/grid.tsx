@@ -20,7 +20,6 @@ import {
 import { TimelineResolution, StartDay } from "../types";
 import { FlexRow, FlexCol } from "../wrappers";
 import { widthToPct } from "./to_pct";
-import { timelineGridHeight } from "./timeline_height";
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return <Box sx={{ position: "absolute", inset: 0 }}>{children}</Box>;
@@ -29,9 +28,11 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 function MonthHeader({
   startTime,
   height,
+  noHeader,
 }: {
   height: number;
   startTime: Date;
+  noHeader?: boolean;
 }) {
   const weeks: Date[] = [];
   const days: Date[] = [];
@@ -46,59 +47,67 @@ function MonthHeader({
   }
   return (
     <>
-      <BigTime times={weeks} width={119} height={height} smallHeight={18} />
-      <Box sx={{ position: "absolute", inset: 0 }}>
-        <FlexRow
-          className="grid-line"
-          sx={{
-            position: "absolute",
-            top: "56px",
-            left: 0,
-            right: 0,
-            bottom: 0,
-          }}
-        >
-          {days.map((day, index) => {
-            let w = 17;
-            if (index === 0) {
-              w = 16;
-            }
-            w += 1 / 7;
-            return (
-              <Box
-                key={index}
-                sx={{
-                  display: "flex",
-                  width: widthToPct(w),
-                  alignItems: "center",
-                  height: "18px",
-                  position: "relative",
-                }}
-              >
-                {index !== 0 && (
-                  <Box
-                    sx={{
-                      width: "1px",
-                      borderRadius: "1px",
-                      height: "18px",
-                      backgroundColor:
-                        index % 7 === 0
-                          ? "none"
-                          : (theme) => theme.palette.divider,
-                      marginTop: "0px",
-                    }}
-                  ></Box>
-                )}
-                <FlexRow
-                  justifyContent="center"
-                  alignItems={"center"}
-                  sx={{ width: widthToPct(w - 1), height: "16px" }}
-                ></FlexRow>
-              </Box>
-            );
-          })}
-        </FlexRow>
-      </Box>
+      <BigTime
+        times={weeks}
+        width={119}
+        height={height}
+        smallHeight={18}
+        noHeader={noHeader}
+      />
+      {!noHeader && (
+        <Box sx={{ position: "absolute", inset: 0 }}>
+          <FlexRow
+            className="grid-line"
+            sx={{
+              position: "absolute",
+              top: "56px",
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          >
+            {days.map((day, index) => {
+              let w = 17;
+              if (index === 0) {
+                w = 16;
+              }
+              w += 1 / 7;
+              return (
+                <Box
+                  key={index}
+                  sx={{
+                    display: "flex",
+                    width: widthToPct(w),
+                    alignItems: "center",
+                    height: "18px",
+                    position: "relative",
+                  }}
+                >
+                  {index !== 0 && (
+                    <Box
+                      sx={{
+                        width: "1px",
+                        borderRadius: "1px",
+                        height: "18px",
+                        backgroundColor:
+                          index % 7 === 0
+                            ? "none"
+                            : (theme) => theme.palette.divider,
+                        marginTop: "0px",
+                      }}
+                    ></Box>
+                  )}
+                  <FlexRow
+                    justifyContent="center"
+                    alignItems={"center"}
+                    sx={{ width: widthToPct(w - 1), height: "16px" }}
+                  ></FlexRow>
+                </Box>
+              );
+            })}
+          </FlexRow>
+        </Box>
+      )}
     </>
   );
 }
@@ -106,9 +115,11 @@ function MonthHeader({
 function ThreeMonthHeader({
   startTime,
   height,
+  noHeader,
 }: {
   height: number;
   startTime: Date;
+  noHeader?: boolean;
 }) {
   const monthMap = new Map<number, Date>();
   const weeks: Date[] = [];
@@ -129,39 +140,46 @@ function ThreeMonthHeader({
 
   return (
     <Wrapper>
-      <Box sx={{ position: "absolute", inset: 0 }}>
-        <>
-          {months.flatMap((month, index) => {
-            const xStart = month.getTime() - startTime.getTime();
-            const xWidth = differenceInMilliseconds(
-              startOfMonth(addMonths(month, 1)),
-              month
-            );
-            return (
-              <Box
-                key={index + "divider"}
-                sx={{
-                  width: "1px",
-                  height: 44,
-                  position: "absolute",
-                  left: widthToPct((720 * xStart) / totalWidth),
-                }}
-              >
+      {!noHeader && (
+        <Box sx={{ position: "absolute", inset: 0 }}>
+          <>
+            {months.flatMap((month, index) => {
+              const xStart = month.getTime() - startTime.getTime();
+              const xWidth = differenceInMilliseconds(
+                startOfMonth(addMonths(month, 1)),
+                month
+              );
+              return (
                 <Box
+                  key={index + "divider"}
                   sx={{
                     width: "1px",
-                    height: "100%",
-                    background: (theme) => theme.palette.divider,
-                    borderRadius: "1px",
+                    height: 44,
+                    position: "absolute",
+                    left: widthToPct((720 * xStart) / totalWidth),
                   }}
-                ></Box>
-              </Box>
-            );
-          })}
-        </>
-      </Box>
+                >
+                  <Box
+                    sx={{
+                      width: "1px",
+                      height: "100%",
+                      background: (theme) => theme.palette.divider,
+                      borderRadius: "1px",
+                    }}
+                  ></Box>
+                </Box>
+              );
+            })}
+          </>
+        </Box>
+      )}
 
-      <SmallTime top={60} times={weeks} noBorderMod={0} height={height + 10} />
+      <SmallTime
+        top={noHeader ? 0 : 60}
+        times={weeks}
+        noBorderMod={0}
+        height={height + (noHeader ? -16 : 10)}
+      />
     </Wrapper>
   );
 }
@@ -169,9 +187,11 @@ function ThreeMonthHeader({
 function YearHeader({
   startTime,
   height,
+  noHeader,
 }: {
   height: number;
   startTime: Date;
+  noHeader?: boolean;
 }) {
   const quarters: Date[] = [];
   const months: Date[] = [];
@@ -191,10 +211,15 @@ function YearHeader({
       <BigTime
         times={quarters}
         width={179}
-        height={height}
-        smallHeight={22 + 4}
+        height={height + (noHeader ? -56 : 0)}
+        smallHeight={noHeader ? 0 : 22 + 4}
       />
-      <SmallTime times={months} noBorderMod={3} height={height + 10} top={56} />
+      <SmallTime
+        times={months}
+        noBorderMod={3}
+        height={height + (noHeader ? -16 : 10)}
+        top={noHeader ? 0 : 56}
+      />
     </Wrapper>
   );
 }
@@ -202,9 +227,11 @@ function YearHeader({
 function ThreeYearHeader({
   startTime,
   height,
+  noHeader,
 }: {
   height: number;
   startTime: Date;
+  noHeader?: boolean;
 }) {
   const years: Date[] = [];
   const quarters: Date[] = [];
@@ -220,12 +247,17 @@ function ThreeYearHeader({
   }
   return (
     <Wrapper>
-      <BigTime times={years} width={239} height={height} smallHeight={22 + 4} />
+      <BigTime
+        times={years}
+        width={239}
+        height={height + (noHeader ? -56 : 0)}
+        smallHeight={noHeader ? 0 : 22 + 4}
+      />
       <SmallTime
         times={quarters}
         noBorderMod={4}
-        height={height + 10}
-        top={56}
+        height={height + (noHeader ? -16 : 10)}
+        top={noHeader ? 0 : 56}
       />
     </Wrapper>
   );
@@ -238,6 +270,7 @@ export function Grid(props: {
   startDay: StartDay;
   height: number;
   empty: boolean;
+  noHeader?: boolean;
 }) {
   const { resolution } = props;
 
@@ -260,11 +293,13 @@ function BigTime({
   width,
   height,
   smallHeight,
+  noHeader,
 }: {
   times: Date[];
   width: number;
   height: number;
   smallHeight: number;
+  noHeader?: boolean;
 }) {
   return (
     <Box sx={{ position: "absolute", inset: 0 }}>
@@ -283,7 +318,7 @@ function BigTime({
                 key={index + "divider"}
                 sx={{
                   width: "1px",
-                  height: height + 56 + smallHeight,
+                  height: noHeader ? height : height + 56 + smallHeight,
                 }}
               >
                 <Box
@@ -311,7 +346,7 @@ function SmallTime({
   top,
 }: {
   times: Date[];
-  noBorderMod: number;
+  noBorderMod?: number;
   height: number;
   top: number;
 }) {
@@ -344,8 +379,10 @@ function SmallTime({
                   width: "1px",
                   height: height + 16,
                   background:
-                    index % noBorderMod === 0
-                      ? "none"
+                    noBorderMod !== undefined
+                      ? index % noBorderMod === 0
+                        ? "none"
+                        : (theme) => theme.palette.divider
                       : (theme) => theme.palette.divider,
                   borderRadius: "1px",
                 }}
