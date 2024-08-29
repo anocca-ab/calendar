@@ -238,3 +238,16 @@ export const CanNotInteractWithEvents: Story = {
     onMoveEvent: undefined,
   },
 };
+
+export const DynamicHeight: Story = {
+  args: {
+    events: [...monthEvents],
+  },
+  render: (props) => {
+    return (
+      <Box sx={{ height: "100vh" }}>
+        <InteractiveDemo type="month" {...props} />
+      </Box>
+    );
+  },
+};

@@ -7,9 +7,11 @@ import {
   useTheme,
 } from "@mui/material";
 import {
+  StartOfWeekOptions,
   addDays,
   addWeeks,
   differenceInCalendarDays,
+  differenceInCalendarWeeks,
   endOfDay,
   format,
   getDate,
@@ -34,6 +36,7 @@ import { MoreButton, eventGrid, monthCalendarRange } from "../event_grid";
 import {
   getEventEnd,
   getEventStart,
+  heightToPct,
   isAllDayEvent,
   mergeSx,
   widthToPct,
@@ -47,6 +50,7 @@ import {
   useDragableEvents,
   useEffectRefs,
   useMouse,
+  yUnitToPx,
 } from "../use_mouse";
 import { ModifiableEvent } from "../week_calendar/types";
 import { FlexCol, FlexRow } from "../wrappers";
@@ -65,7 +69,7 @@ type RawContext<T> =
       onMoveEvent?: (
         event: CalendarEvent<T>,
         newStart: Date,
-        newEnd: Date | undefined,
+        newEnd: Date | undefined
       ) => void;
     };
 export const MonthCalendarConfigContext =
@@ -118,7 +122,7 @@ export type MonthCalendarProps<T> = {
   onMoveEvent?: (
     event: CalendarEvent<T>,
     newStart: Date,
-    newEnd: Date | undefined,
+    newEnd: Date | undefined
   ) => void;
 
   /**
@@ -163,7 +167,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
     parseDefaultProps(props);
 
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
-    calendarProps.events,
+    calendarProps.events
   );
 
   const [moreButtonClicked, setMoreButtonClicked] = useState<
@@ -200,7 +204,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
   const eventsInMonth: ModifiableEvent<T>[] = filterEventsInMonth(
     allEvents,
     startDay,
-    startOfMonth,
+    startOfMonth
   );
 
   // step 1.
@@ -212,12 +216,49 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
   const splitEvents = splitMultiWeekEvents(
     eventsInMonth,
     startDay,
-    startOfMonth,
+    startOfMonth
   );
 
   const { startOfMonthCalendar, endOfMonthCalendar } = monthCalendarRange(
     startDay,
-    startOfMonth,
+    startOfMonth
+  );
+
+  const weeksInMonth = getWeeksInMonth(startOfMonth, {
+    weekStartsOn: startDay === "monday" ? 1 : 0,
+  });
+
+  const [wrapperRef, setWrapperRef] = useState<HTMLDivElement | null>(null);
+
+  const [hasMeasuredHeight, setHasMeasuredHeight] = useState(false);
+  const [height, setHeight] = useState<number>(120 * weeksInMonth);
+
+  React.useEffect(() => {
+    if (!wrapperRef) {
+      return;
+    }
+    let t: number;
+    const updateHeight = (h: number) => {
+      cancelAnimationFrame(t);
+      t = requestAnimationFrame(() => {
+        setHeight(h);
+        setHasMeasuredHeight(true);
+      });
+    };
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        updateHeight(entry.contentRect.height);
+      }
+    });
+    observer.observe(wrapperRef);
+    return () => {
+      observer.disconnect();
+    };
+  }, [wrapperRef]);
+
+  const maxEventsPerDay = Math.max(
+    Math.floor((height / weeksInMonth - 35) / 17),
+    1
   );
 
   const { eventProperties, events, moreButtons } = eventGrid(
@@ -225,11 +266,11 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
     startDay,
     startOfMonthCalendar,
     endOfMonthCalendar,
+    maxEventsPerDay
   );
 
-  const weeksOfMonth = getWeeksInMonth(startOfMonth, {
-    weekStartsOn: startDay === "monday" ? 1 : 0,
-  });
+  const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
+    startDay === "monday" ? 1 : 0;
 
   // handle drag and drop
   /**
@@ -238,7 +279,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
   function calculateNewTime(
     state: MouseState,
     dragged: DragPosition<ModifiableEvent<T>>,
-    container: EventContainer,
+    container: EventContainer
   ) {
     if (state.pos && state.pos0) {
       const addedDays = dayDiff(
@@ -246,40 +287,35 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
         state.pos0,
         dragged,
         daysInWeek,
-        container,
+        container
       );
 
-      // for how many weeks minus/plus did we drag the event
-      const rawDelta = Math.round(
-        (state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY) /
-          120,
-      );
-
-      // how many weeks plus we can drag
-      const maxVal = Math.abs(
-        Math.floor((container.height - state.pos0.y) / 120) + 1,
-      );
-
-      // how many weeks minus we can drag
-      const minVal = -(weeksOfMonth - 1 - maxVal);
-
-      // depending on the rawDelta sign we get the max/min added weeks
-      const addedWeeks =
-        Math.sign(rawDelta) > 0
-          ? Math.min(rawDelta, maxVal)
-          : Math.max(rawDelta, minVal);
+      const height = yUnitToPx(120, weeksInMonth, container);
+      const startWeek = getWeek(startOfMonth, { weekStartsOn });
 
       let start = getEventStart(dragged.event.sourceEvent);
       let end = getEventEnd(dragged.event.sourceEvent);
+      if (addedDays !== 0) {
+        start = addDays(start, addedDays);
+        end = addDays(end, addedDays);
+      }
+
+      const y0 = Math.floor((state.pos0.y - container.y) / height);
+      const y = Math.floor((state.pos.y - container.y) / height);
+
+      const yMin = getWeek(startOfMonthCalendar, { weekStartsOn });
+      const yMax = getWeek(endOfMonthCalendar, { weekStartsOn });
+      const yStart = getWeek(start, { weekStartsOn });
+      const yEnd = getWeek(end, { weekStartsOn });
+
+      const deltaYMin = yMin - yEnd;
+      const deltaYMax = yMax - yStart;
+
+      const addedWeeks = Math.max(Math.min(y - y0, deltaYMax), deltaYMin);
 
       if (addedWeeks !== 0) {
         start = addWeeks(start, addedWeeks);
         end = addWeeks(end, addedWeeks);
-      }
-
-      if (addedDays !== 0) {
-        start = addDays(start, addedDays);
-        end = addDays(end, addedDays);
       }
 
       if (addedWeeks !== 0 || addedDays !== 0) {
@@ -296,7 +332,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
     events,
     setDraggedEvent,
     calculateNewTime,
-    calendarProps,
+    calendarProps
   );
 
   useMouse("month-calendar-event", effectRefs, false);
@@ -343,7 +379,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
 
     modal = {
       ...moreButtonClicked,
-      top: `${week * 120 - 20}px`,
+      top: `calc(${heightToPct(week * 120, weeksInMonth)} - 35px)`,
       left: `${widthToPct(day * 120 - 10, daysInWeek)}`,
     };
   }
@@ -357,22 +393,24 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
         startOfMonth: startOfMonth,
       }}
     >
-      <FlexRow width="100%">
-        {/* Week Indicator */}
-        <FlexCol
-          gap="1px"
-          sx={{
-            width: "20px",
-            height: `${weeksOfMonth * 120 + 20}px`,
-            alignItems: "stretch",
-          }}
-        >
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "flex-start",
+          alignItems: "stretch",
+          width: "100%",
+          height: "100%",
+        }}
+      >
+        <FlexRow width="100%" height="20px">
           <FlexCol
             sx={{
               bgcolor: "rgba(236,239,241,1)",
               height: "20px",
               alignItems: "center",
               borderRadius: "4px",
+              width: "20px",
             }}
           >
             <FlexCol
@@ -384,501 +422,555 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
               <Typography variant="body2">W</Typography>
             </FlexCol>
           </FlexCol>
-          {[...Array(weeksOfMonth)].map((_, i) => {
-            return (
-              <WeekIndicator key={i} title={`${getWeek(startOfMonth) + i}`} />
-            );
-          })}
-        </FlexCol>
-
-        {/* Grid */}
-        <Box
-          sx={{
-            position: "relative",
-            height: `${weeksOfMonth * 120 + 20}px`,
-            flex: 1,
-          }}
-        >
-          {/* Horizontal lines */}
+          <MonthCalendarWeekdayBar />
+        </FlexRow>
+        <FlexRow sx={{ height: "1px" }}></FlexRow>
+        <FlexRow width="100%" sx={{ flex: 1 }} ref={setWrapperRef}>
+          {/* Week Indicator */}
           <FlexCol
+            gap="1px"
             sx={{
-              gap: "119px",
-              position: "absolute",
+              width: "20px",
+              height: `100%`,
               alignItems: "stretch",
-              inset: 0,
-              top: "20px",
+              minHeight: "360px",
             }}
           >
-            {[...Array(weeksOfMonth)].map((_, i) => {
+            {[...Array(weeksInMonth)].map((_, i) => {
               return (
-                <Divider
+                <WeekIndicator
                   key={i}
-                  sx={{
-                    opacity: i === 0 || i === weeksOfMonth ? 0 : 1,
-                  }}
+                  title={`${getWeek(startOfMonth) + i}`}
+                  weeksInMonth={weeksInMonth}
                 />
               );
             })}
           </FlexCol>
 
-          {/* Vertical lines */}
-          <FlexRow
-            sx={{
-              position: "absolute",
-              alignItems: "stretch",
-              justifyContent: "space-between",
-              inset: 0,
-            }}
-          >
-            {[...Array(8)].map((_, i) => {
-              return (
-                <Divider
-                  key={i}
-                  orientation="vertical"
-                  sx={{
-                    opacity: i === 0 ? 0 : 1,
-                    width: "1px",
-                  }}
-                />
-              );
-            })}
-          </FlexRow>
-
-          <MonthCalendarWeekdayBar />
-
-          {/* Clickable days */}
+          {/* Grid */}
           <Box
             sx={{
-              position: "absolute",
-              inset: 0,
-              top: "20px",
+              position: "relative",
+              height: `100%`,
+              flex: 1,
+              minHeight: "360px",
             }}
           >
-            {[...Array(weeksOfMonth * 7)].map((_, i) => {
-              // Calculate the left position
-              const left = widthToPct((i % 7) * 120, daysInWeek);
-
-              // Calculate the top position
-              const top = Math.floor(i / 7) * 120;
-
-              const beginningOfCurrentWeek = addWeeks(
-                startOfWeek(startOfMonth, {
-                  weekStartsOn: startDay === "monday" ? 1 : 0,
-                }),
-                Math.floor(i / 7),
-              );
-
-              const currentDate = addDays(beginningOfCurrentWeek, i % 7);
-              const isInCurrentMonth = isSameMonth(currentDate, startOfMonth);
-              const dayNumber = getDate(currentDate);
-              const monthName = format(currentDate, "MMM");
-              const active = isSameDay(now, currentDate);
-
-              const disableInteractive = !calendarProps.onCreateEvent;
-
-              return (
-                <Box
-                  key={i}
-                  component={Button}
-                  disableRipple={disableInteractive}
-                  onClick={
-                    onCreateEvent
-                      ? () => {
-                          const start = startOfDay(currentDate);
-                          const end = endOfDay(currentDate);
-                          onCreateEvent(start, end);
-                        }
-                      : undefined
-                  }
-                  id={`day-${dayNumber}`}
-                  sx={mergeSx(
-                    {
-                      height: "120px",
-                      width: widthToPct(120, daysInWeek),
-                      minWidth: "auto",
-                      overflow: "hidden",
-                      p: 0,
-                      pt: "4px",
-                      m: 0,
-                      position: "absolute",
-                      left: `${left}`,
-                      top: `${top}px`,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "flex-start",
-                      zIndex: 1,
-                      borderRadius: 0,
-                    },
-                    disableInteractive && {
-                      cursor: "auto",
-                      ":hover": {
-                        backgroundColor: "transparent",
-                      },
-                    },
-                  )}
-                >
-                  <FlexRow
-                    width="100px"
-                    height="24px"
-                    justifyContent="center"
-                    alignItems="center"
-                    gap="4px"
-                  >
-                    {dayNumber === 1 && !active && (
-                      <Typography
-                        variant="body2"
-                        color={
-                          isInCurrentMonth
-                            ? (theme) => theme.palette.text.primary
-                            : (theme) => theme.palette.text.secondary
-                        }
-                      >
-                        {monthName}
-                      </Typography>
-                    )}
-                    <Box
-                      sx={{
-                        width: 24,
-                        height: 24,
-                        position: "relative",
-                      }}
-                    >
-                      <FlexRow
-                        sx={{
-                          height: 24,
-                          width: 24,
-                          justifyContent: "center",
-                          alignItems: "center",
-                          position: "absolute",
-                          borderRadius: 24,
-                          backgroundColor: active
-                            ? (theme) => theme.palette.primary.main
-                            : "inherit",
-                        }}
-                      >
-                        <Typography
-                          zIndex={1}
-                          variant="body2"
-                          color={
-                            active
-                              ? (theme) => theme.palette.primary.contrastText
-                              : isInCurrentMonth
-                                ? (theme) => theme.palette.text.primary
-                                : (theme) => theme.palette.text.secondary
-                          }
-                        >
-                          {dayNumber}
-                        </Typography>
-                      </FlexRow>
-                    </Box>
-                  </FlexRow>
-                </Box>
-              );
-            })}
-          </Box>
-
-          {/* Events */}
-          <Box
-            sx={{
-              position: "absolute",
-              inset: 0,
-              top: "20px",
-            }}
-            ref={eventContainerRef}
-          >
-            <>
-              {moreButtons.map((moreButton, index) => {
-                const { week, day, events: moreButtonEvents } = moreButton;
-                const row = 4;
+            {/* Horizontal lines */}
+            <FlexCol
+              sx={{
+                position: "absolute",
+                alignItems: "stretch",
+                justifyContent: "space-between",
+                inset: 0,
+              }}
+            >
+              {[...Array(weeksInMonth + 1)].map((_, i) => {
                 return (
-                  <MoreEventsButton
-                    onClick={(ev) => {
-                      ev.stopPropagation();
-                      setMoreButtonClicked(moreButton);
-                    }}
-                    className="more-events-button"
-                    numHiddenEvents={moreButtonEvents.length}
-                    key={index}
+                  <Divider
+                    key={i}
                     sx={{
-                      width: widthToPct(119 - 1, daysInWeek),
-                      left: `${widthToPct(day * 120 + 2, daysInWeek)}`,
-                      top: week * 120 + row * (16 + 1) + 1 + 32,
-                      height: "16px",
-                      position: "absolute",
-                      zIndex: 2,
+                      opacity: i === 0 || i === weeksInMonth ? 0 : 1,
                     }}
                   />
                 );
               })}
-            </>
-            <>
-              {events.map((event, index) => {
-                const { week, day, row, maxRow } = eventProperties[`${index}`];
+            </FlexCol>
 
-                const eventStart = max([
-                  getEventStart(event),
-                  startOfMonthCalendar,
-                ]);
-                const eventEnd = min([getEventEnd(event), endOfMonthCalendar]);
+            {/* Vertical lines */}
+            <FlexRow
+              sx={{
+                position: "absolute",
+                alignItems: "stretch",
+                justifyContent: "space-between",
+                inset: 0,
+              }}
+            >
+              {[...Array(8)].map((_, i) => {
+                return (
+                  <Divider
+                    key={i}
+                    orientation="vertical"
+                    sx={{
+                      opacity: i === 0 ? 0 : 1,
+                      width: "1px",
+                    }}
+                  />
+                );
+              })}
+            </FlexRow>
 
-                let width = differenceInCalendarDays(eventEnd, eventStart);
-                if (eventEnd.getTime() === endOfDay(eventEnd).getTime()) {
-                  width += 1;
-                }
-                width = Math.max(width, 1);
-                const dataProps: any = {
-                  "data-type": "month-calendar-event",
-                  "data-calendar-event": JSON.stringify({
-                    x: day,
-                    colX: 0,
-                    index,
-                    w: Math.max(width, 1),
+            {/* Clickable days */}
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+              }}
+            >
+              {[...Array(weeksInMonth * 7)].map((_, i) => {
+                // Calculate the left position
+                const left = widthToPct((i % 7) * 120, daysInWeek);
+
+                // Calculate the top position
+                const top = Math.floor(i / 7) * 120;
+
+                const beginningOfCurrentWeek = addWeeks(
+                  startOfWeek(startOfMonth, {
+                    weekStartsOn: startDay === "monday" ? 1 : 0,
                   }),
-                };
-                let triangleLeft = false;
-                let triangleRight = false;
+                  Math.floor(i / 7)
+                );
 
-                // only if we are dealing with the first event of the "splitted events"
-                if (eventParts[index].indexOf(event) === 0) {
-                  triangleLeft =
-                    event.start.getTime() < startOfMonthCalendar.getTime();
-                }
+                const currentDate = addDays(beginningOfCurrentWeek, i % 7);
+                const isInCurrentMonth = isSameMonth(currentDate, startOfMonth);
+                const dayNumber = getDate(currentDate);
+                const monthName = format(currentDate, "MMM");
+                const active = isSameDay(now, currentDate);
 
-                // only if we are dealing with the last event of the "splitted events"
-                if (
-                  eventParts[index].indexOf(event) ===
-                  eventParts[index].length - 1
-                ) {
-                  triangleRight =
-                    event.end.getTime() > endOfMonthCalendar.getTime();
-                }
+                const disableInteractive = !calendarProps.onCreateEvent;
 
-                const triangle =
-                  triangleLeft && triangleRight
-                    ? "both"
-                    : triangleRight
-                      ? "right"
-                      : triangleLeft
-                        ? "left"
-                        : undefined;
+                return (
+                  <Box
+                    key={i}
+                    component={Button}
+                    disableRipple={disableInteractive}
+                    onClick={
+                      onCreateEvent
+                        ? () => {
+                            const start = startOfDay(currentDate);
+                            const end = endOfDay(currentDate);
+                            onCreateEvent(start, end);
+                          }
+                        : undefined
+                    }
+                    id={`day-${dayNumber}`}
+                    sx={mergeSx(
+                      {
+                        height: heightToPct(120, weeksInMonth),
+                        width: widthToPct(120, daysInWeek),
+                        minWidth: "auto",
+                        overflow: "hidden",
+                        p: 0,
+                        pt: "4px",
+                        m: 0,
+                        position: "absolute",
+                        left: `${left}`,
+                        top: `${heightToPct(top, weeksInMonth)}`,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "flex-start",
+                        zIndex: 1,
+                        borderRadius: 0,
+                      },
+                      disableInteractive && {
+                        cursor: "auto",
+                        ":hover": {
+                          backgroundColor: "transparent",
+                        },
+                      }
+                    )}
+                  >
+                    <FlexRow
+                      width="100px"
+                      height="24px"
+                      justifyContent="center"
+                      alignItems="center"
+                      gap="4px"
+                    >
+                      {dayNumber === 1 && !active && (
+                        <Typography
+                          variant="body2"
+                          color={
+                            isInCurrentMonth
+                              ? (theme) => theme.palette.text.primary
+                              : (theme) => theme.palette.text.secondary
+                          }
+                        >
+                          {monthName}
+                        </Typography>
+                      )}
+                      <Box
+                        sx={{
+                          width: 24,
+                          height: 24,
+                          position: "relative",
+                        }}
+                      >
+                        <FlexRow
+                          sx={{
+                            height: 24,
+                            width: 24,
+                            justifyContent: "center",
+                            alignItems: "center",
+                            position: "absolute",
+                            borderRadius: 24,
+                            backgroundColor: active
+                              ? (theme) => theme.palette.primary.main
+                              : "inherit",
+                          }}
+                        >
+                          <Typography
+                            zIndex={1}
+                            variant="body2"
+                            color={
+                              active
+                                ? (theme) => theme.palette.primary.contrastText
+                                : isInCurrentMonth
+                                ? (theme) => theme.palette.text.primary
+                                : (theme) => theme.palette.text.secondary
+                            }
+                          >
+                            {dayNumber}
+                          </Typography>
+                        </FlexRow>
+                      </Box>
+                    </FlexRow>
+                  </Box>
+                );
+              })}
+            </Box>
 
-                const disableInteractive =
-                  !calendarProps.onClickEvent && !calendarProps.onMoveEvent;
-                const disableRipple =
-                  disableInteractive ||
-                  (draggedEvent?.dragged &&
-                    draggedEvent.source.sourceEvent === event.sourceEvent);
-                const props: React.ComponentPropsWithoutRef<
-                  typeof MonthCalendarEvent
-                > = {
-                  event: event.sourceEvent,
-                  disableInteractive,
-                  disableRipple,
-                  sx: {
-                    width: widthToPct(width * 119 - 4, daysInWeek),
-                    left: `${widthToPct(day * 119 + 4, daysInWeek)}`,
-                    top: week * 120 + row * (16 + 1) + 1 + 32,
-                    height: "16px",
-                    position: "absolute",
-                    zIndex: 2,
-                    cursor: disableInteractive ? "auto" : "pointer",
-                    boxShadow:
-                      !disableInteractive &&
-                      draggedEvent?.dragged &&
-                      draggedEvent.source.sourceEvent === event.sourceEvent
-                        ? theme.shadows[4]
-                        : theme.shadows[0],
-                    opacity:
-                      !disableInteractive &&
-                      draggedEvent?.source.sourceEvent === event.sourceEvent
-                        ? 0.5
-                        : !disableInteractive &&
+            {/* Events */}
+            {
+              <Box
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  opacity: hasMeasuredHeight ? 1 : 0,
+                  transition: "opacity 0.2s ease-in-out",
+                }}
+                ref={eventContainerRef}
+              >
+                <>
+                  {moreButtons.map((moreButton, index) => {
+                    const { week, day, events: moreButtonEvents } = moreButton;
+                    const row = maxEventsPerDay - 1;
+                    return (
+                      <MoreEventsButton
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          setMoreButtonClicked(moreButton);
+                        }}
+                        className="more-events-button"
+                        numHiddenEvents={moreButtonEvents.length}
+                        key={index}
+                        sx={{
+                          width: widthToPct(119 - 1, daysInWeek),
+                          left: `${widthToPct(day * 120 + 2, daysInWeek)}`,
+                          top: `calc(${heightToPct(
+                            week * 120,
+                            weeksInMonth
+                          )} + ${row * (16 + 1) + 1 + 32}px)`,
+                          height: "16px",
+                          position: "absolute",
+                          zIndex: 2,
+                        }}
+                      />
+                    );
+                  })}
+                </>
+                <>
+                  {events
+                    .map((event, index) => {
+                      return { event, index };
+                    })
+                    .filter(({ event, index }) => {
+                      const { week, day, row, inMoreButton } =
+                        eventProperties[`${index}`];
+
+                      return !inMoreButton;
+                    })
+                    .map(({ event, index }) => {
+                      const { week, day, row } = eventProperties[`${index}`];
+
+                      const eventStart = max([
+                        getEventStart(event),
+                        startOfMonthCalendar,
+                      ]);
+                      const eventEnd = min([
+                        getEventEnd(event),
+                        endOfMonthCalendar,
+                      ]);
+
+                      let width = differenceInCalendarDays(
+                        eventEnd,
+                        eventStart
+                      );
+                      if (eventEnd.getTime() === endOfDay(eventEnd).getTime()) {
+                        width += 1;
+                      }
+                      width = Math.max(width, 1);
+                      const dataProps: any = {
+                        "data-type": "month-calendar-event",
+                        "data-calendar-event": JSON.stringify({
+                          x: day,
+                          colX: 0,
+                          index,
+                          w: Math.max(width, 1),
+                        }),
+                      };
+                      let triangleLeft = false;
+                      let triangleRight = false;
+
+                      // only if we are dealing with the first event of the "splitted events"
+                      if (eventParts[index].indexOf(event) === 0) {
+                        triangleLeft =
+                          event.start.getTime() <
+                          startOfMonthCalendar.getTime();
+                      }
+
+                      // only if we are dealing with the last event of the "splitted events"
+                      if (
+                        eventParts[index].indexOf(event) ===
+                        eventParts[index].length - 1
+                      ) {
+                        triangleRight =
+                          event.end.getTime() > endOfMonthCalendar.getTime();
+                      }
+
+                      const triangle =
+                        triangleLeft && triangleRight
+                          ? "both"
+                          : triangleRight
+                          ? "right"
+                          : triangleLeft
+                          ? "left"
+                          : undefined;
+
+                      const disableInteractive =
+                        !calendarProps.onClickEvent &&
+                        !calendarProps.onMoveEvent;
+                      const disableRipple =
+                        disableInteractive ||
+                        (draggedEvent?.dragged &&
+                          draggedEvent.source.sourceEvent ===
+                            event.sourceEvent);
+                      const props: React.ComponentPropsWithoutRef<
+                        typeof MonthCalendarEvent
+                      > = {
+                        event: event.sourceEvent,
+                        disableInteractive,
+                        disableRipple,
+                        sx: {
+                          width: widthToPct(width * 119 - 4, daysInWeek),
+                          left: `${widthToPct(day * 119 + 4, daysInWeek)}`,
+                          top: `calc(${heightToPct(
+                            week * 120,
+                            weeksInMonth
+                          )} + ${row * (16 + 1) + 1 + 32}px)`,
+                          height: "16px",
+                          position: "absolute",
+                          zIndex: 2,
+                          cursor: disableInteractive ? "auto" : "pointer",
+                          boxShadow:
+                            !disableInteractive &&
                             draggedEvent?.dragged &&
                             draggedEvent.source.sourceEvent ===
                               event.sourceEvent
-                          ? 0.75
-                          : 1,
-                  },
-                  allDayEvent: isAllDayEvent(event.sourceEvent),
-                  state:
-                    draggedEvent &&
-                    event.sourceEvent === draggedEvent?.source.sourceEvent
-                      ? "selected"
-                      : "normal",
-                  triangle,
-                  dataProps,
-                };
+                              ? theme.shadows[4]
+                              : theme.shadows[0],
+                          opacity:
+                            !disableInteractive &&
+                            draggedEvent?.source.sourceEvent ===
+                              event.sourceEvent
+                              ? 0.5
+                              : !disableInteractive &&
+                                draggedEvent?.dragged &&
+                                draggedEvent.source.sourceEvent ===
+                                  event.sourceEvent
+                              ? 0.75
+                              : 1,
+                        },
+                        allDayEvent: isAllDayEvent(event.sourceEvent),
+                        state:
+                          draggedEvent &&
+                          event.sourceEvent === draggedEvent?.source.sourceEvent
+                            ? "selected"
+                            : "normal",
+                        triangle,
+                        dataProps,
+                      };
 
-                return (
-                  <React.Fragment key={index}>
-                    {(maxRow <= 5 ? row < 5 : row < 4) ? (
-                      <MonthCalendarEvent key={index} {...props} />
-                    ) : null}
-                  </React.Fragment>
-                );
-              })}
-            </>
+                      return <MonthCalendarEvent key={index} {...props} />;
+                    })}
+                </>
+              </Box>
+            }
+
+            {/** More events modal */}
+            {modal && (
+              <Box
+                ref={setMoreEventsModalEl}
+                id="more-event-modal"
+                sx={{
+                  px: "4px",
+                  py: "2px",
+                  height: "fit-content",
+                  width: widthToPct(140, daysInWeek),
+                  position: "absolute",
+                  inset: 0,
+                  top: modal.top,
+                  left: modal.left,
+                  zIndex: 3,
+                  bgcolor: (theme) =>
+                    theme.palette.mode === "light"
+                      ? theme.palette.background.default
+                      : "white",
+                  boxShadow: (theme) => theme.shadows[1],
+                  borderRadius: "4px",
+                }}
+              >
+                <FlexCol width="100%">
+                  <FlexCol height="66px">
+                    <FlexRow
+                      height="40px"
+                      width="100%"
+                      justifyContent="center"
+                      alignItems="center"
+                    >
+                      <Typography
+                        variant="body2"
+                        color={
+                          isSameDay(modal.date, startOfMonth)
+                            ? (theme) => theme.palette.primary.contrastText
+                            : isSameMonth(modal.date, startOfMonth)
+                            ? (theme) => theme.palette.text.primary
+                            : (theme) => theme.palette.text.secondary
+                        }
+                      >
+                        {format(modal.date, "EEE")}
+                      </Typography>
+                    </FlexRow>
+                    <FlexRow
+                      height="40px"
+                      width="100%"
+                      justifyContent="center"
+                      alignItems="center"
+                    >
+                      <Typography
+                        variant="body2"
+                        color={
+                          isSameDay(modal.date, startOfMonth)
+                            ? (theme) => theme.palette.primary.contrastText
+                            : isSameMonth(modal.date, startOfMonth)
+                            ? (theme) => theme.palette.text.primary
+                            : (theme) => theme.palette.text.secondary
+                        }
+                      >
+                        {format(modal.date, "d")}
+                      </Typography>
+                    </FlexRow>
+                  </FlexCol>
+                  <FlexCol
+                    gap="1px"
+                    position="relative"
+                    sx={{
+                      height: `${modal.allEvents.length * 18}px`,
+                    }}
+                  >
+                    {modal.allEvents.map((indexOfEvent, index) => {
+                      const event = events[indexOfEvent];
+
+                      const { week, day, row } =
+                        eventProperties[`${indexOfEvent}`];
+
+                      let width = differenceInCalendarDays(
+                        event.end,
+                        event.start
+                      );
+                      if (
+                        event.end.getTime() === endOfDay(event.end).getTime()
+                      ) {
+                        width += 1;
+                      }
+                      width = Math.max(width, 1);
+                      const dataProps: any = {
+                        "data-type": "month-calendar-event",
+                        "data-calendar-event": JSON.stringify({
+                          x: day,
+                          colX: 0,
+                          index: indexOfEvent,
+                          w: Math.max(width, 1),
+                        }),
+                      };
+
+                      const disableInteractive =
+                        !calendarProps.onClickEvent &&
+                        !calendarProps.onMoveEvent;
+                      const disableRipple =
+                        disableInteractive ||
+                        (draggedEvent?.dragged &&
+                          draggedEvent.source.sourceEvent ===
+                            event.sourceEvent);
+                      const props: React.ComponentPropsWithoutRef<
+                        typeof MonthCalendarEvent
+                      > = {
+                        event: event.sourceEvent,
+                        disableInteractive,
+                        sx: {
+                          width: "100%",
+                          top: index * (16 + 1),
+                          height: "16px",
+                          zIndex: 3,
+                          cursor: disableInteractive ? "auto" : "pionter",
+                        },
+                        disableRipple,
+                        allDayEvent: isAllDayEvent(event.sourceEvent),
+                        state:
+                          draggedEvent &&
+                          event.sourceEvent === draggedEvent?.source.sourceEvent
+                            ? "selected"
+                            : "normal",
+                        dataProps,
+                      };
+                      return (
+                        <MonthCalendarEvent key={indexOfEvent} {...props} />
+                      );
+                    })}
+                  </FlexCol>
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={() => {
+                      setMoreButtonClicked(undefined);
+                    }}
+                  >
+                    Close
+                  </Button>
+                </FlexCol>
+              </Box>
+            )}
           </Box>
-
-          {/** More events modal */}
-          {modal && (
-            <Box
-              ref={setMoreEventsModalEl}
-              id="more-event-modal"
-              sx={{
-                px: "4px",
-                py: "2px",
-                height: "fit-content",
-                width: widthToPct(140, daysInWeek),
-                position: "absolute",
-                inset: 0,
-                top: modal.top,
-                left: modal.left,
-                zIndex: 3,
-                bgcolor: (theme) =>
-                  theme.palette.mode === "light"
-                    ? theme.palette.background.default
-                    : "white",
-                boxShadow: (theme) => theme.shadows[1],
-                borderRadius: "4px",
-              }}
-            >
-              <FlexCol width="100%">
-                <FlexCol height="66px">
-                  <FlexRow
-                    height="40px"
-                    width="100%"
-                    justifyContent="center"
-                    alignItems="center"
-                  >
-                    <Typography
-                      variant="body2"
-                      color={
-                        isSameDay(modal.date, startOfMonth)
-                          ? (theme) => theme.palette.primary.contrastText
-                          : isSameMonth(modal.date, startOfMonth)
-                            ? (theme) => theme.palette.text.primary
-                            : (theme) => theme.palette.text.secondary
-                      }
-                    >
-                      {format(modal.date, "EEE")}
-                    </Typography>
-                  </FlexRow>
-                  <FlexRow
-                    height="40px"
-                    width="100%"
-                    justifyContent="center"
-                    alignItems="center"
-                  >
-                    <Typography
-                      variant="body2"
-                      color={
-                        isSameDay(modal.date, startOfMonth)
-                          ? (theme) => theme.palette.primary.contrastText
-                          : isSameMonth(modal.date, startOfMonth)
-                            ? (theme) => theme.palette.text.primary
-                            : (theme) => theme.palette.text.secondary
-                      }
-                    >
-                      {format(modal.date, "d")}
-                    </Typography>
-                  </FlexRow>
-                </FlexCol>
-                <FlexCol
-                  gap="1px"
-                  position="relative"
-                  sx={{
-                    height: `${modal.allEvents.length * 18}px`,
-                  }}
-                >
-                  {modal.allEvents.map((indexOfEvent, index) => {
-                    const event = events[indexOfEvent];
-
-                    const { week, day, row } =
-                      eventProperties[`${indexOfEvent}`];
-
-                    let width = differenceInCalendarDays(
-                      event.end,
-                      event.start,
-                    );
-                    if (event.end.getTime() === endOfDay(event.end).getTime()) {
-                      width += 1;
-                    }
-                    width = Math.max(width, 1);
-                    const dataProps: any = {
-                      "data-type": "month-calendar-event",
-                      "data-calendar-event": JSON.stringify({
-                        x: day,
-                        colX: 0,
-                        index: indexOfEvent,
-                        w: Math.max(width, 1),
-                      }),
-                    };
-
-                    const disableInteractive =
-                      !calendarProps.onClickEvent && !calendarProps.onMoveEvent;
-                    const disableRipple =
-                      disableInteractive ||
-                      (draggedEvent?.dragged &&
-                        draggedEvent.source.sourceEvent === event.sourceEvent);
-                    const props: React.ComponentPropsWithoutRef<
-                      typeof MonthCalendarEvent
-                    > = {
-                      event: event.sourceEvent,
-                      disableInteractive,
-                      sx: {
-                        width: "100%",
-                        top: index * (16 + 1),
-                        height: "16px",
-                        zIndex: 3,
-                        cursor: disableInteractive ? "auto" : "pionter",
-                      },
-                      disableRipple,
-                      allDayEvent: isAllDayEvent(event.sourceEvent),
-                      state:
-                        draggedEvent &&
-                        event.sourceEvent === draggedEvent?.source.sourceEvent
-                          ? "selected"
-                          : "normal",
-                      dataProps,
-                    };
-                    return <MonthCalendarEvent key={indexOfEvent} {...props} />;
-                  })}
-                </FlexCol>
-                <Button
-                  variant="text"
-                  size="small"
-                  onClick={() => {
-                    setMoreButtonClicked(undefined);
-                  }}
-                >
-                  Close
-                </Button>
-              </FlexCol>
-            </Box>
-          )}
-        </Box>
-      </FlexRow>
+        </FlexRow>
+      </Box>
     </MonthCalendarConfigContext.Provider>
   );
 }
 
-function WeekIndicator({ title }: { title: string }) {
+function WeekIndicator({
+  title,
+  weeksInMonth,
+}: {
+  title: string;
+  weeksInMonth: number;
+}) {
   return (
     <FlexCol
       sx={{
         bgcolor: "rgba(236,239,241,1)",
-        height: "119px",
+        height: heightToPct(120, weeksInMonth),
         padding: "4px 0px",
         alignItems: "center",
         gap: "10px",
         borderRadius: "4px",
+        flex: 1,
       }}
     >
       <FlexCol
         sx={{
           justifyContent: "center",
           alignItems: "center",
+          height: "24px",
         }}
       >
         <Typography variant="body2">{title}</Typography>
@@ -912,7 +1004,7 @@ function MoreEventsButton({
           minWidth: "auto",
           whiteSpace: "nowrap",
         },
-        buttonProps.sx,
+        buttonProps.sx
       )}
     >
       <Typography
@@ -941,9 +1033,9 @@ function MonthCalendarWeekdayBar() {
         startOfWeek(startOfMonth, {
           weekStartsOn: startDay === "monday" ? 1 : 0,
         }),
-        index,
+        index
       ),
-      "EEE",
+      "EEE"
     );
 
     weekDays.push(
@@ -972,7 +1064,7 @@ function MonthCalendarWeekdayBar() {
             sx={{ width: "25px", height: "1px" }}
           />
         )}
-      </FlexCol>,
+      </FlexCol>
     );
   });
 

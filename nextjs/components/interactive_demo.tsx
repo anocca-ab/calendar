@@ -113,7 +113,7 @@ export function InteractiveDemo(props: {
     editModalOpen.key &&
     events.find((ev) => ev.data.key === editModalOpen.key);
   return (
-    <Box p={2}>
+    <Box p={2} sx={{ width: "100%", height: "100%" }}>
       {editedEvent && (
         <CreateEvent
           sidebar={props.sidebar}

@@ -75,6 +75,8 @@ export type MouseState = {
 export type EventContainer = {
   width: number;
   height: number;
+  x: number;
+  y: number;
 };
 
 /**
@@ -192,6 +194,27 @@ export function useMouse<T>(
     const preventDefault = (ev: Event) => {
       ev.preventDefault();
     };
+    let rectPositionPollInterlval: Timer;
+    const whileDragging = () => {
+      window.addEventListener("selectstart", preventDefault);
+      rectPositionPollInterlval = setInterval(() => {
+        const containerEl = effectRefs.current.eventContainerRef.current;
+        if (!containerEl) {
+          return;
+        }
+        const rect = containerEl.getBoundingClientRect();
+        container = {
+          width: rect.width,
+          height: rect.height,
+          x: rect.x,
+          y: rect.y,
+        };
+      }, 200);
+    };
+    const cleanupWhileDragging = () => {
+      window.removeEventListener("selectstart", preventDefault);
+      clearInterval(rectPositionPollInterlval);
+    };
 
     /**
      * Same as the React.state draggedEvent, but outside the context of react state
@@ -199,10 +222,13 @@ export function useMouse<T>(
      */
     let draggedEvent: DraggedEvent<ModifiableEvent<T>> | undefined = undefined;
     const mouseDown = (ev: MouseEvent) => {
+      const containerEl = effectRefs.current.eventContainerRef.current;
+      if (!containerEl) {
+        return;
+      }
       if (ev.target instanceof HTMLElement) {
         const clickedEvent = ev.target.dataset.type === target;
-        const container = effectRefs.current.eventContainerRef.current;
-        const clickedContainer = ev.target === container;
+        const clickedContainer = ev.target === containerEl;
 
         const pos0: MouseStatePos = {
           x: ev.clientX,
@@ -215,7 +241,14 @@ export function useMouse<T>(
           state.pos0 = pos0;
           state.pos = pos0;
           state.hasDragged = false;
-          window.addEventListener("selectstart", preventDefault);
+          const rect = containerEl.getBoundingClientRect();
+          container = {
+            width: rect.width,
+            height: rect.height,
+            x: rect.x,
+            y: rect.y,
+          };
+          whileDragging();
         };
 
         if (clickedEvent) {
@@ -248,10 +281,10 @@ export function useMouse<T>(
             // can't create new events
             return;
           }
-          if (effectRefs.current.createNewEvent && container) {
+          if (effectRefs.current.createNewEvent && containerEl) {
             const createNewEvent = effectRefs.current.createNewEvent(
               pos0,
-              container.getBoundingClientRect()
+              containerEl.getBoundingClientRect()
             );
             if (createNewEvent) {
               dragged = createNewEvent;
@@ -331,7 +364,7 @@ export function useMouse<T>(
       }
       draggedEvent = undefined;
       effectRefs.current.setDraggedEvent(undefined);
-      window.removeEventListener("selectstart", preventDefault);
+      cleanupWhileDragging();
     };
     const scroll = () => {
       if (!state.pos) {
@@ -350,7 +383,7 @@ export function useMouse<T>(
       state.hasDragged = false;
       draggedEvent = undefined;
       effectRefs.current.setDraggedEvent(undefined);
-      window.removeEventListener("selectstart", preventDefault);
+      cleanupWhileDragging();
     };
     const clickEsc = (ev: KeyboardEvent) => {
       if (ev.code === "Escape") {
@@ -470,21 +503,19 @@ export function useMouse<T>(
         return;
       }
 
-      const rect = containerEl.getBoundingClientRect();
+      const constructRect = () => {
+        const rect = containerEl.getBoundingClientRect();
 
-      container = {
-        width: rect.width,
-        height: rect.height,
+        container = {
+          width: rect.width,
+          height: rect.height,
+          x: rect.x,
+          y: rect.y,
+        };
       };
 
-      const resizeObserver = new ResizeObserver((entries) => {
-        for (let entry of entries) {
-          const rect = entry.contentRect;
-          container = {
-            width: rect.width,
-            height: rect.height,
-          };
-        }
+      const resizeObserver = new ResizeObserver(() => {
+        constructRect();
       });
       resizeObserver.observe(containerEl);
 
@@ -502,7 +533,7 @@ export function useMouse<T>(
       window.removeEventListener("blur", cancel);
       window.removeEventListener("keydown", clickEsc);
 
-      window.removeEventListener("selectstart", preventDefault);
+      cleanupWhileDragging();
       if (cleanupContainerListener) {
         cleanupContainerListener();
       }
@@ -580,8 +611,8 @@ export function dayDiff<T>(
    * offset the rawDelta to be relative to 120 * x
    */
   const offset =
-    (pos0.x - dragged.elX + dayUnitToPx(dragged.colX, daysInWeek, container)) %
-    dayUnitToPx(120, daysInWeek, container);
+    (pos0.x - dragged.elX + xUnitToPx(dragged.colX, daysInWeek, container)) %
+    xUnitToPx(120, daysInWeek, container);
 
   rawDelta += offset;
 
@@ -589,7 +620,7 @@ export function dayDiff<T>(
   // each event is 120px wide, so we can calculate how many days we have moved
   const delta = Math.min(
     Math.max(
-      Math.floor(rawDelta / dayUnitToPx(120, daysInWeek, container)),
+      Math.floor(rawDelta / xUnitToPx(120, daysInWeek, container)),
       minDiff
     ),
     daysInWeek - dragged.x - 1
@@ -597,12 +628,28 @@ export function dayDiff<T>(
   return delta;
 }
 
-export function dayUnitToPx(
+/**
+ * the x unit in number of 120px wide days
+ * @returns
+ */
+export function xUnitToPx(
   width: number,
   daysInWeek: number,
   container: EventContainer
 ) {
   return container.width * (width / (120 * daysInWeek));
+}
+
+/**
+ * the y unit in number of 120px high days
+ * @returns
+ */
+export function yUnitToPx(
+  height: number,
+  weeksInMonth: number,
+  container: EventContainer
+) {
+  return container.height * (height / (120 * weeksInMonth));
 }
 
 export function useEffectRefs<T>(

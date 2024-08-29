@@ -36,7 +36,7 @@ import {
   EventContainer,
   MouseState,
   dayDiff,
-  dayUnitToPx,
+  xUnitToPx,
   useDragableEvents,
   useEffectRefs,
   useMouse,
@@ -847,7 +847,7 @@ function WeekCalendarGrid<T>(props: {
     (pos0, container) => {
       const x = pos0.x - container.x;
       const y = pos0.y - container.y;
-      const day = Math.floor(x / dayUnitToPx(120, daysInWeek, container));
+      const day = Math.floor(x / xUnitToPx(120, daysInWeek, container));
       const minute = y;
       const start = addMinutes(
         startOfDay(addDays(fnsStartOfWeek(startOfWeek, options), day)),

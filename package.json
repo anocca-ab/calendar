@@ -1,6 +1,6 @@
 {
   "name": "@anocca-os/calendar",
-  "version": "0.0.42",
+  "version": "0.0.44",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",

@@ -35,7 +35,8 @@ export function eventGrid<T>(
   events: ModifiableEvent<T>[],
   startDay: StartDay,
   startTime: Date,
-  endTime: Date
+  endTime: Date,
+  maxEventsPerDay: number
 ) {
   const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
     startDay === "monday" ? 1 : 0;
@@ -49,7 +50,14 @@ export function eventGrid<T>(
        * The index of the event
        */
       index: string
-    ]: { row: number; day: number; week: number; maxRow: number };
+    ]: {
+      row: number;
+      day: number;
+      week: number;
+      startDay: number;
+      endDay: number;
+      inMoreButton: boolean;
+    };
   } = {};
 
   // step 2.
@@ -85,7 +93,19 @@ export function eventGrid<T>(
     week: number,
     day: number,
     eventIndex: number,
-    event: ModifiableEvent<T>
+    {
+      event,
+      eventStart,
+      eventEnd,
+      endDay,
+      startDay,
+    }: {
+      event: ModifiableEvent<T>;
+      eventStart: Date;
+      eventEnd: Date;
+      endDay: number;
+      startDay: number;
+    }
   ) => {
     grid[week] = grid[week] ?? [];
     grid[week][day] = grid[week][day] ?? [];
@@ -135,7 +155,9 @@ export function eventGrid<T>(
         row: firstAvailableRow,
         day,
         week,
-        maxRow: 0,
+        startDay,
+        endDay,
+        inMoreButton: false,
       };
     }
   };
@@ -152,7 +174,18 @@ export function eventGrid<T>(
       startOfWeek(eventStart, { weekStartsOn })
     );
 
-    assignEventToGrid(week, day, index, event);
+    const endDay = differenceInDays(
+      eventEnd,
+      startOfWeek(eventStart, { weekStartsOn })
+    );
+
+    assignEventToGrid(week, day, index, {
+      event,
+      startDay: day,
+      endDay,
+      eventStart,
+      eventEnd,
+    });
 
     // we have a 1 day event - we will assign it to the grid according to the line above
     // we have a 2 day event - we will assign the first day of the event to the grid according to the line above
@@ -164,19 +197,28 @@ export function eventGrid<T>(
       });
       const day = differenceInDays(start, startOfWeek(start, { weekStartsOn }));
 
-      assignEventToGrid(week, day, index, event);
+      assignEventToGrid(week, day, index, {
+        event,
+        startDay: day,
+        endDay,
+        eventStart: start,
+        eventEnd,
+      });
     }
   });
 
+  const maxRows: number /* week / day */[][] = [];
+
   // get max row
-  grid.forEach((week) => {
-    week.forEach((day) => {
-      day.forEach((event) => {
-        eventProperties[event.index].maxRow = Math.max(
-          day.length,
-          eventProperties[event.index].maxRow
-        );
-      });
+  grid.forEach((week, weekIndex) => {
+    week.forEach((day, dayIndex) => {
+      if (!Array.isArray(maxRows[weekIndex])) {
+        maxRows[weekIndex] = [];
+      }
+      maxRows[weekIndex][dayIndex] = Math.max(
+        day.length,
+        maxRows[weekIndex][dayIndex] || 0
+      );
     });
   });
 
@@ -191,25 +233,40 @@ export function eventGrid<T>(
   > = {};
 
   events.forEach((event, eventIndex) => {
-    const { week, day, row, maxRow } = eventProperties[eventIndex];
-    const key = `${week}-${day}`;
+    const { week, row, startDay, endDay } = eventProperties[eventIndex];
+    for (let day = startDay; day <= endDay; day++) {
+      const key = `${week}-${day}`;
 
-    let moreButton = moreButtonsDict[key];
-    if (moreButton) {
-      moreButton.allEvents.push(eventIndex);
-    } else {
-      const date = startOfDay(addDays(addWeeks(startTime, week), day));
-      moreButtonsDict[key] = {
-        week,
-        day,
-        events: [],
-        allEvents: [eventIndex],
-        date,
+      let moreButton = moreButtonsDict[key];
+      if (moreButton) {
+        moreButton.allEvents.push(eventIndex);
+      } else {
+        const date = startOfDay(addDays(addWeeks(startTime, week), day));
+        moreButtonsDict[key] = {
+          week,
+          day,
+          events: [],
+          allEvents: [eventIndex],
+          date,
+        };
+        moreButton = moreButtonsDict[key];
+      }
+      const pushEvent = () => {
+        moreButton.events.push(eventIndex);
+        eventProperties[eventIndex].inMoreButton = true;
       };
-      moreButton = moreButtonsDict[key];
-    }
-    if (maxRow <= 5 ? row >= 5 : row >= 4) {
-      moreButton.events.push(eventIndex);
+      const maxRow = maxRows[week][day];
+      eventProperties[eventIndex];
+      if (maxRow > maxEventsPerDay) {
+        // has more button
+        if (row >= maxEventsPerDay - 1) {
+          pushEvent();
+        }
+      } else {
+        if (row >= maxEventsPerDay) {
+          pushEvent();
+        }
+      }
     }
   });
 

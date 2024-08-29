@@ -54,7 +54,7 @@ export function isAllDayEvent<T>(event: CalendarEvent<T>) {
       inRange(
         event.end,
         subMinutes(endOfDay(event.start), 1),
-        endOfDay(event.start),
+        endOfDay(event.start)
       ))
   );
 }
@@ -244,6 +244,9 @@ export const DEFAULT_COLOR = "#FF7043";
 
 export function widthToPct(width: number, daysInWeek: number): string {
   return String((width / (120 * daysInWeek)) * 100) + "%";
+}
+export function heightToPct(height: number, weeksInMonth: number): string {
+  return String(((height) / ((120 * weeksInMonth))) * 100) + "%";
 }
 
 export function isTask(event: { start: Date; end?: Date }) {
