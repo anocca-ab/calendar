@@ -58,6 +58,7 @@ import { FlexCol, FlexRow } from "../wrappers";
 import { filterEventsInMonth } from "./filter_events_in_month";
 import { MonthCalendarEvent } from "./month_calendar_event";
 import { splitMultiWeekEvents } from "./split_multi_week_events";
+import { useMeasureHeight } from "../measure_height";
 
 type RawContext<T> =
   | undefined
@@ -228,33 +229,9 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
     weekStartsOn: startDay === "monday" ? 1 : 0,
   });
 
-  const [wrapperRef, setWrapperRef] = useState<HTMLDivElement | null>(null);
-
-  const [hasMeasuredHeight, setHasMeasuredHeight] = useState(false);
-  const [height, setHeight] = useState<number>(120 * weeksInMonth);
-
-  React.useEffect(() => {
-    if (!wrapperRef) {
-      return;
-    }
-    let t: number;
-    const updateHeight = (h: number) => {
-      cancelAnimationFrame(t);
-      t = requestAnimationFrame(() => {
-        setHeight(h);
-        setHasMeasuredHeight(true);
-      });
-    };
-    const observer = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        updateHeight(entry.contentRect.height);
-      }
-    });
-    observer.observe(wrapperRef);
-    return () => {
-      observer.disconnect();
-    };
-  }, [wrapperRef]);
+  const { height, setWrapperRef, hasMeasuredHeight } = useMeasureHeight(
+    120 * weeksInMonth
+  );
 
   const maxEventsPerDay = Math.max(
     Math.floor((height / weeksInMonth - 35) / 17),

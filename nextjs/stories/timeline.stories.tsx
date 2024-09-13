@@ -1,6 +1,7 @@
+import { InteractiveDemo } from "@/components/interactive_demo";
 import { Timeline } from "@/components/timeline/timeline";
+import { Box } from "@mui/material";
 import type { Meta, StoryObj } from "@storybook/react";
-import { manyEvents } from "./many_events";
 import {
   addDays,
   addHours,
@@ -9,11 +10,10 @@ import {
   startOfDay,
   startOfMonth,
   startOfWeek,
-  subDays,
   subWeeks,
 } from "date-fns";
-import { InteractiveDemo } from "@/components/interactive_demo";
-import { Box } from "@mui/material";
+import { manyEvents } from "./many_events";
+import { generateRandomEvents } from "./helpers";
 
 const meta = {
   title: "Timeline/Timeline",
@@ -84,6 +84,7 @@ export const WithInteractivity: Story = {
         type="timeline"
         {...props}
         timelineResolution={props.resolution}
+        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
       />
     );
   },
@@ -152,6 +153,7 @@ export const WithEvents: Story = {
         type="timeline"
         {...props}
         timelineResolution={props.resolution}
+        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
       />
     );
   },
@@ -242,6 +244,7 @@ export const MonthInteractive: Story = {
         type="timeline"
         {...props}
         timelineResolution={props.resolution}
+        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
       />
     );
   },
@@ -260,6 +263,7 @@ export const ThreeMonthsInteractive: Story = {
         type="timeline"
         {...props}
         timelineResolution={props.resolution}
+        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
       />
     );
   },
@@ -278,6 +282,7 @@ export const YearInteractive: Story = {
         type="timeline"
         {...props}
         timelineResolution={props.resolution}
+        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
       />
     );
   },
@@ -296,6 +301,7 @@ export const ThreeYearsInteractive: Story = {
         type="timeline"
         {...props}
         timelineResolution={props.resolution}
+        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
       />
     );
   },
@@ -316,15 +322,149 @@ export const NoHeader: Story = {
           {...props}
           resolution={props.resolution}
           noHeader
-          events={props.events?.map((e) => ({ ...e, color: '#4985f5' }))}
+          events={props.events?.map((e) => ({ ...e, color: "#4985f5" }))}
         />
         <Timeline
           {...props}
           resolution={props.resolution}
           noHeader
-          events={props.events?.map((e) => ({ ...e, color: '#718059' }))}
+          events={props.events?.map((e) => ({ ...e, color: "#718059" }))}
         />
       </Box>
+    );
+  },
+};
+
+export const ManyEvents: Story = {
+  args: {
+    startDay: "monday",
+    events: [],
+    resolution: "3-years",
+  },
+
+  render: (props) => {
+    const events = generateRandomEvents(1200);
+    return (
+      <InteractiveDemo
+        type="timeline"
+        {...props}
+        events={events}
+        getKey={(e) => {
+          return e.data.id;
+        }}
+        timelineResolution={props.resolution}
+        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
+      />
+    );
+  },
+};
+
+export const BuggedEvents1: Story = {
+  args: {
+    startDay: "monday",
+    events: [],
+    resolution: "3-years",
+  },
+
+  render: (props) => {
+    const _events = [
+      {
+        start: "2025-02-12T17:44:28.741Z",
+        end: "2025-06-06T21:13:04.379Z",
+        canEdit: true,
+      },
+      {
+        start: "2025-06-19T14:20:29.635Z",
+        end: "2025-11-11T05:44:44.081Z",
+        canEdit: true,
+      },
+      {
+        start: "2025-07-22T23:16:46.517Z",
+        end: "2026-06-27T12:01:54.143Z",
+        canEdit: true,
+      },
+      {
+        start: "2024-09-23T15:07:15.013Z",
+        end: "2025-07-17T17:32:30.897Z",
+        canEdit: true,
+      },
+    ];
+    const events = _events.map((e, index) => ({
+      start: new Date(e.start),
+      end: new Date(e.end),
+      canEdit: e.canEdit,
+      title: String(index),
+    }));
+    return (
+      <InteractiveDemo
+        type="timeline"
+        {...props}
+        events={events}
+        timelineResolution={props.resolution}
+        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
+      />
+    );
+  },
+};
+export const BuggedEvents2: Story = {
+  args: {
+    startDay: "monday",
+    events: [],
+    resolution: "3-years",
+  },
+
+  render: (props) => {
+    const _events = [
+      {
+        start: "2025-01-22T10:31:15.656Z",
+        end: "2025-11-11T16:23:53.152Z",
+        canEdit: true,
+      },
+      {
+        start: "2024-10-18T13:52:57.593Z",
+        end: "2025-08-05T19:03:23.855Z",
+        canEdit: true,
+      },
+      {
+        start: "2024-10-12T14:51:36.100Z",
+        end: "2025-03-11T22:17:22.443Z",
+        canEdit: true,
+      },
+      {
+        start: "2024-10-02T10:26:14.772Z",
+        end: "2025-08-20T14:15:41.613Z",
+        canEdit: true,
+      },
+      {
+        start: "2024-09-10T00:01:48.344Z",
+        end: "2024-10-14T08:51:22.866Z",
+        canEdit: true,
+      },
+      {
+        start: "2025-04-23T23:34:03.626Z",
+        end: "2026-03-02T10:57:27.037Z",
+        canEdit: true,
+      },
+      {
+        start: "2025-03-15T22:49:57.104Z",
+        end: "2025-11-23T00:15:26.173Z",
+        canEdit: true,
+      },
+    ];
+    const events = _events.map((e, index) => ({
+      start: new Date(e.start),
+      end: new Date(e.end),
+      canEdit: e.canEdit,
+      title: String(index),
+    }));
+    return (
+      <InteractiveDemo
+        type="timeline"
+        {...props}
+        events={events}
+        timelineResolution={props.resolution}
+        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
+      />
     );
   },
 };

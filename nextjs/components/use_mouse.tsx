@@ -8,8 +8,8 @@ import {
   startOfMinute,
   subMinutes,
 } from "date-fns";
-import React from "react";
-import { getEventEnd, getEventStart } from "./helpers";
+import React, { MutableRefObject } from "react";
+import { getEventEnd, getEventStart, tuple } from "./helpers";
 import { CalendarEvent, ScrollContainer } from "./types";
 import { ModifiableEvent } from "./week_calendar/types";
 
@@ -260,6 +260,10 @@ export function useMouse<T>(
             colX: number;
           } = JSON.parse(ds.calendarEvent!);
           const event = effectRefs.current.events[data.index];
+
+          if (!event) {
+            return;
+          }
 
           const rect = ev.target.getBoundingClientRect();
           dragged = {
@@ -554,43 +558,46 @@ export function useDragableEvents<T>(
     DraggedEvent<ModifiableEvent<T>> | undefined
   >(undefined);
 
-  /**
-   * All events, store reference to the source event and add modifiable start and end times (modified when dragged)
-   */
-  const allEvents: ModifiableEvent<T>[] = events.map((sourceEvent) => ({
-    sourceEvent,
-    start: getEventStart(sourceEvent),
-    end: getEventEnd(sourceEvent),
-  }));
+  const allEvents = React.useMemo(() => {
+    /**
+     * All events, store reference to the source event and add modifiable start and end times (modified when dragged)
+     */
+    const allEvents: ModifiableEvent<T>[] = events.map((sourceEvent) => ({
+      sourceEvent,
+      start: getEventStart(sourceEvent),
+      end: getEventEnd(sourceEvent),
+    }));
 
-  /**
-   * Replace an existing event with the dragged event
-   */
-  if (draggedEvent?.dragged) {
-    const newDragged = {
-      ...draggedEvent.source,
-      ...draggedEvent.dragged,
-    };
-    newDragged.start = getEventStart(newDragged);
-    newDragged.end = getEventEnd(newDragged);
+    /**
+     * Replace an existing event with the dragged event
+     */
+    if (draggedEvent?.dragged) {
+      const newDragged = {
+        ...draggedEvent.source,
+        ...draggedEvent.dragged,
+      };
+      newDragged.start = getEventStart(newDragged);
+      newDragged.end = getEventEnd(newDragged);
 
-    if (snapEvent) {
-      const snap = snapEvent(newDragged.start, newDragged.end);
-      newDragged.start = snap.start;
-      newDragged.end = snap.end;
+      if (snapEvent) {
+        const snap = snapEvent(newDragged.start, newDragged.end);
+        newDragged.start = snap.start;
+        newDragged.end = snap.end;
+      }
+
+      const index = allEvents.findIndex(
+        (ev) => ev.sourceEvent === draggedEvent.source.sourceEvent
+      );
+      if (index !== -1) {
+        // it is a new event
+        allEvents.splice(index, 1, newDragged);
+      } else {
+        // we are moving an existing event
+        allEvents.push(newDragged);
+      }
     }
-
-    const index = allEvents.findIndex(
-      (ev) => ev.sourceEvent === draggedEvent.source.sourceEvent
-    );
-    if (index !== -1) {
-      // it is a new event
-      allEvents.splice(index, 1, newDragged);
-    } else {
-      // we are moving an existing event
-      allEvents.push(newDragged);
-    }
-  }
+    return allEvents;
+  }, [events, draggedEvent, snapEvent]);
   return [allEvents, draggedEvent, setDraggedEvent] as const;
 }
 
@@ -691,7 +698,7 @@ export function useEffectRefs<T>(
     : undefined;
   const onCreateEvent = calendarProps.onCreateEvent;
 
-  const eventContainerRef = React.useRef<HTMLDivElement>(null);
+  const eventContainerRef = React.useRef<HTMLDivElement | null>(null);
 
   const effectRefs = React.useRef({
     onMoveEvent,
@@ -717,5 +724,5 @@ export function useEffectRefs<T>(
     scrollContainers: calendarProps.scrollContainers,
   };
 
-  return [effectRefs, eventContainerRef] as const;
+  return tuple(effectRefs, eventContainerRef);
 }

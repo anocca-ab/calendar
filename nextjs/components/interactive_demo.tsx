@@ -5,9 +5,9 @@ import React from "react";
 import { WeekCalendar } from "./week_calendar/week_calendar";
 import { MonthCalendar } from "./month_calendar/month_calendar";
 import { Timeline } from "./timeline/timeline";
-import { Box } from "@mui/material";
+import { Box, SxProps } from "@mui/material";
 import { TimelineNav } from "./nav/timeline_nav";
-import { DEFAULT_COLOR } from "./helpers";
+import { DEFAULT_COLOR, mergeSx } from "./helpers";
 
 type CalEventWithKey = CalendarEvent<{ data: { key: string } }>;
 
@@ -29,12 +29,13 @@ export function InteractiveDemo(props: {
   ) => void;
   onClickEvent?: (event: CalendarEvent<any>, nativeEvent: MouseEvent) => void;
   noHeader?: boolean;
+  sx?: SxProps;
 }) {
   const { now, startDay, type, events: _events } = props;
   const [realEvents, setEvents] = React.useState<CalEventWithKey[]>(
     (_events ?? []).map((ev) => ({
       ...ev,
-      data: { key: Math.random().toString() },
+      data: { ...(ev as any).data, key: Math.random().toString() },
     }))
   );
 
@@ -112,8 +113,13 @@ export function InteractiveDemo(props: {
     editModalOpen &&
     editModalOpen.key &&
     events.find((ev) => ev.data.key === editModalOpen.key);
+
   return (
-    <Box p={2} sx={{ width: "100%", height: "100%" }}>
+    <Box
+      p={2}
+      sx={mergeSx({ width: "100%", height: "100%" }, props.sx)}
+      className="interactive-demo"
+    >
       {editedEvent && (
         <CreateEvent
           sidebar={props.sidebar}

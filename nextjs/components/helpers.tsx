@@ -252,3 +252,26 @@ export function heightToPct(height: number, weeksInMonth: number): string {
 export function isTask(event: { start: Date; end?: Date }) {
   return !event.end || event.start.getTime() === event.end.getTime();
 }
+
+/**
+ * @public
+ */
+export function tuple<A, B, C, D>(a: A, b: B, c: C, d: D): [A, B, C, D];
+/**
+ * @public
+ */
+export function tuple<A, B, C>(a: A, b: B, c: C): [A, B, C];
+/**
+ * @public
+ */
+export function tuple<A, B>(a: A, b: B): [A, B];
+/**
+ * @public
+ */
+export function tuple<A>(a: A): [A];
+/**
+ * @public
+ */
+export function tuple(...args: any[]) {
+  return args;
+}

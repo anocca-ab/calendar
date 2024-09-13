@@ -28,13 +28,11 @@ import { widthToPct } from "./to_pct";
 function MonthHeader({
   startTime,
   now,
-  height,
   onCreateEvent,
   startDay,
 }: {
   startTime: Date;
   now: Date;
-  height: number;
   onCreateEvent?: (start: Date, end?: Date | undefined) => void;
   startDay: StartDay;
 }) {
@@ -53,7 +51,7 @@ function MonthHeader({
     }
   }
   return (
-    <Box>
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <BigTime
         now={now}
         times={weeks}
@@ -70,7 +68,7 @@ function MonthHeader({
             : undefined
         }
       />
-      <FlexRow sx={{ position: "relative" }}>
+      <FlexRow sx={{ position: "relative", flex: 1 }}>
         {days.map((day, index) => {
           let w = 17;
           if (index === 0) {
@@ -78,7 +76,7 @@ function MonthHeader({
           }
           w += 1 / 7;
           return (
-            <FlexRow key={index} sx={{ width: widthToPct(w) }}>
+            <FlexRow key={index} sx={{ width: widthToPct(w), height: "100%" }}>
               {index !== 0 && (
                 <Box
                   sx={{
@@ -106,7 +104,7 @@ function MonthHeader({
                   m: 0,
                   pt: "4px",
                   // height: '16px',
-                  height: `calc(${height + 18}px)`,
+                  height: `100%`,
                 }}
               >
                 <Box
@@ -170,13 +168,11 @@ function ThreeMonthHeader({
   startTime,
   now,
   startDay,
-  height,
   onCreateEvent,
 }: {
   startTime: Date;
   now: Date;
   startDay: StartDay;
-  height: number;
   onCreateEvent?: (start: Date, end?: Date | undefined) => void;
 }) {
   const monthMap = new Map<number, Date>();
@@ -193,7 +189,7 @@ function ThreeMonthHeader({
 
   const totalWidth = differenceInMilliseconds(
     addWeeks(startTime, 15),
-    startTime,
+    startTime
   );
 
   const options: StartOfWeekOptions = {
@@ -201,14 +197,14 @@ function ThreeMonthHeader({
   };
 
   return (
-    <Box>
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <Box sx={{ position: "relative", height: "60px", width: "100%" }}>
         <>
           {months.flatMap((month, index) => {
             const xStart = month.getTime() - startTime.getTime();
             const xWidth = differenceInMilliseconds(
               startOfMonth(addMonths(month, 1)),
-              month,
+              month
             );
 
             return (
@@ -264,7 +260,6 @@ function ThreeMonthHeader({
         </>
       </Box>
       <SmallTime
-        height={height + 6}
         formatDate={(date) => "W" + format(date, "I")}
         times={weeks}
         noBorderMod={4}
@@ -289,14 +284,11 @@ function ThreeMonthHeader({
 function YearHeader({
   startTime,
   now,
-  startDay,
-  height,
   onCreateEvent,
 }: {
   startTime: Date;
   now: Date;
   startDay: StartDay;
-  height: number;
   onCreateEvent?: (start: Date, end?: Date | undefined) => void;
 }) {
   const quarters: Date[] = [];
@@ -313,7 +305,7 @@ function YearHeader({
     }
   }
   return (
-    <Box>
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <BigTime
         now={now}
         times={quarters}
@@ -331,7 +323,6 @@ function YearHeader({
         }
       />
       <SmallTime
-        height={height + 6}
         formatDate={(date) => format(date, "MMM")}
         times={months}
         noBorderMod={3}
@@ -351,14 +342,10 @@ function YearHeader({
 function ThreeYearHeader({
   startTime,
   now,
-  startDay,
-  height,
   onCreateEvent,
 }: {
   startTime: Date;
   now: Date;
-  startDay: StartDay;
-  height: number;
   onCreateEvent?: (start: Date, end?: Date | undefined) => void;
 }) {
   const years: Date[] = [];
@@ -374,7 +361,15 @@ function ThreeYearHeader({
     }
   }
   return (
-    <Box>
+    <Box
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        position: "sticky",
+        top:0
+      }}
+    >
       <BigTime
         now={now}
         times={years}
@@ -392,7 +387,6 @@ function ThreeYearHeader({
         }
       />
       <SmallTime
-        height={height + 6}
         formatDate={(date) => format(date, "qqq")}
         times={quarters}
         noBorderMod={4}
@@ -414,7 +408,6 @@ export function Header(props: {
   resolution: TimelineResolution;
   now: Date;
   startDay: StartDay;
-  height: number;
   empty: boolean;
   onCreateEvent?: (start: Date, end?: Date | undefined) => void;
 }) {
@@ -509,7 +502,7 @@ function BigTime({
                   borderRadius: "1px",
                 }}
               ></Box>
-            </Box>,
+            </Box>
           );
         }
         return els;
@@ -523,24 +516,23 @@ function SmallTime({
   formatDate,
   noBorderMod,
   isActive,
-  height,
   onCreateEvent,
 }: {
   times: Date[];
   formatDate: (date: Date) => string;
   noBorderMod: number;
   isActive: (date: Date) => boolean;
-  height: number;
   onCreateEvent?: (start: Date) => void;
 }) {
   return (
-    <FlexRow justifyContent="space-between">
+    <FlexRow justifyContent="space-between" sx={{ flex: 1 }}>
       {times.flatMap((week, index) => {
         const els = [
           <Box
             key={index}
             component={onCreateEvent ? Button : undefined}
             onClick={onCreateEvent ? () => onCreateEvent(week) : undefined}
+            className="small-time-button"
             sx={{
               overflow: "hidden",
               p: 0,
@@ -550,7 +542,7 @@ function SmallTime({
               flex: 1,
               justifyContent: "center",
               alignItems: "stretch",
-              height: `calc(${height + 20}px)`,
+              height: `100%`,
             }}
           >
             <Box sx={{ height: "20px" }}>
@@ -592,7 +584,7 @@ function SmallTime({
                   borderTopRightRadius: "1px",
                 }}
               ></Box>
-            </Box>,
+            </Box>
           );
         }
         return els;

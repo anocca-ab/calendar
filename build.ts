@@ -53,8 +53,8 @@ await Bun.write(
       },
     },
     null,
-    2,
-  ),
+    2
+  )
 );
 for (const props of [
   {
@@ -100,15 +100,15 @@ for (const props of [
         exclude: ["node_modules"],
       },
       null,
-      2,
-    ),
+      2
+    )
   );
 }
 
 async function replaceAsync(
   str: string,
   regex: RegExp,
-  asyncFn: (...args: any[]) => Promise<any>,
+  asyncFn: (...args: any[]) => Promise<any>
 ) {
   const promises: Promise<any>[] = [];
 
@@ -133,7 +133,7 @@ for await (const file of glob.scan("nextjs/components")) {
 
   const content = (await f.text()).replaceAll(
     /from (["'])(@\/components\/)/gm,
-    `from $1${relPath === "" ? "." : relPath}/`,
+    `from $1${relPath === "" ? "." : relPath}/`
   );
 
   await Bun.write(path.join(baseDir, file), content);
@@ -158,7 +158,7 @@ await Bun.write(
     "export type { WeekCalendarProps } from './week_calendar/week_calendar';",
     "export type { MonthCalendarProps } from './month_calendar/month_calendar';",
     "export type { TimelineProps } from './timeline/timeline';",
-  ].join("\n") + "\n",
+  ].join("\n") + "\n"
 );
 
 const extraDateType = `
@@ -166,11 +166,14 @@ interface PickerValidDateLookup {
   "date-fns": Date;
 }
 `;
-$`${extraDateType} >> ${path.join(baseDir, "node_modules/@mui/x-date-pickers/models/pickers.d.ts")}`;
+$`${extraDateType} >> ${path.join(
+  baseDir,
+  "node_modules/@mui/x-date-pickers/models/pickers.d.ts"
+)}`;
 
 await Bun.write(
   path.join(baseDir, "global.d.ts"),
-  Bun.file("nextjs/global.d.ts"),
+  Bun.file("nextjs/global.d.ts")
 );
 
 await Bun.write(
@@ -179,7 +182,7 @@ await Bun.write(
     "registry=https://verdaccio--kube.anocca.com/",
     "//verdaccio--kube.anocca.com/:_authToken=fake",
     "always-auth=false",
-  ].join("\n") + "\n",
+  ].join("\n") + "\n"
 );
 
 await Bun.write(path.join(baseDir, "README.md"), Bun.file("README.md"));
@@ -194,20 +197,20 @@ for (const type of ["esm", "cjs"]) {
         type: type === "esm" ? "module" : "commonjs",
       },
       null,
-      2,
-    ),
+      2
+    )
   );
 }
 
 await Bun.write(
   path.join(baseDir, ".npmignore"),
   [".npmrc", "tsconfig.json", "tsconfig-esm.json", "tsconfig-cjs.json"].join(
-    "\n",
-  ) + "\n",
+    "\n"
+  ) + "\n"
 );
 
 for await (const file of new Glob("**/*.js").scan(
-  path.join(baseDir, "dist/esm"),
+  path.join(baseDir, "dist/esm")
 )) {
   const dir = path.parse(file).dir;
 
@@ -233,7 +236,7 @@ for await (const file of new Glob("**/*.js").scan(
       }
 
       return match;
-    },
+    }
   );
 
   await Bun.write(path.join(baseDir, "dist/esm", file), content);

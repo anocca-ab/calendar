@@ -27,10 +27,8 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 
 function MonthHeader({
   startTime,
-  height,
   noHeader,
 }: {
-  height: number;
   startTime: Date;
   noHeader?: boolean;
 }) {
@@ -50,9 +48,6 @@ function MonthHeader({
       <BigTime
         times={weeks}
         width={119}
-        height={height}
-        smallHeight={18}
-        noHeader={noHeader}
       />
       {!noHeader && (
         <Box sx={{ position: "absolute", inset: 0 }}>
@@ -114,10 +109,8 @@ function MonthHeader({
 
 function ThreeMonthHeader({
   startTime,
-  height,
   noHeader,
 }: {
-  height: number;
   startTime: Date;
   noHeader?: boolean;
 }) {
@@ -178,7 +171,6 @@ function ThreeMonthHeader({
         top={noHeader ? 0 : 60}
         times={weeks}
         noBorderMod={0}
-        height={height + (noHeader ? -16 : 10)}
       />
     </Wrapper>
   );
@@ -186,10 +178,8 @@ function ThreeMonthHeader({
 
 function YearHeader({
   startTime,
-  height,
   noHeader,
 }: {
-  height: number;
   startTime: Date;
   noHeader?: boolean;
 }) {
@@ -208,28 +198,16 @@ function YearHeader({
   }
   return (
     <Wrapper>
-      <BigTime
-        times={quarters}
-        width={179}
-        height={height + (noHeader ? -56 : 0)}
-        smallHeight={noHeader ? 0 : 22 + 4}
-      />
-      <SmallTime
-        times={months}
-        noBorderMod={3}
-        height={height + (noHeader ? -16 : 10)}
-        top={noHeader ? 0 : 56}
-      />
+      <BigTime times={quarters} width={179} />
+      <SmallTime times={months} noBorderMod={3} top={noHeader ? 0 : 56} />
     </Wrapper>
   );
 }
 
 function ThreeYearHeader({
   startTime,
-  height,
   noHeader,
 }: {
-  height: number;
   startTime: Date;
   noHeader?: boolean;
 }) {
@@ -247,18 +225,8 @@ function ThreeYearHeader({
   }
   return (
     <Wrapper>
-      <BigTime
-        times={years}
-        width={239}
-        height={height + (noHeader ? -56 : 0)}
-        smallHeight={noHeader ? 0 : 22 + 4}
-      />
-      <SmallTime
-        times={quarters}
-        noBorderMod={4}
-        height={height + (noHeader ? -16 : 10)}
-        top={noHeader ? 0 : 56}
-      />
+      <BigTime times={years} width={239} />
+      <SmallTime times={quarters} noBorderMod={4} top={noHeader ? 0 : 56} />
     </Wrapper>
   );
 }
@@ -268,7 +236,6 @@ export function Grid(props: {
   resolution: TimelineResolution;
   now: Date;
   startDay: StartDay;
-  height: number;
   empty: boolean;
   noHeader?: boolean;
 }) {
@@ -288,22 +255,10 @@ export function Grid(props: {
   }
   throw new Error("Invalid resolution");
 }
-function BigTime({
-  times,
-  width,
-  height,
-  smallHeight,
-  noHeader,
-}: {
-  times: Date[];
-  width: number;
-  height: number;
-  smallHeight: number;
-  noHeader?: boolean;
-}) {
+function BigTime({ times, width }: { times: Date[]; width: number }) {
   return (
     <Box sx={{ position: "absolute", inset: 0 }}>
-      <FlexRow>
+      <FlexRow sx={{ height: "100%" }}>
         {times.flatMap((month, index) => {
           const els = [
             <FlexRow
@@ -316,9 +271,10 @@ function BigTime({
             els.push(
               <Box
                 key={index + "divider"}
+                className="big-time-divider"
                 sx={{
                   width: "1px",
-                  height: noHeader ? height : height + 56 + smallHeight,
+                  height: "100%",
                 }}
               >
                 <Box
@@ -342,12 +298,10 @@ function BigTime({
 function SmallTime({
   times,
   noBorderMod,
-  height,
   top,
 }: {
   times: Date[];
   noBorderMod?: number;
-  height: number;
   top: number;
 }) {
   return (
@@ -369,15 +323,16 @@ function SmallTime({
           const divider = (index: number) => (
             <Box
               key={index + "divider"}
+              className="small-time-divider"
               sx={{
                 width: "1px",
-                height: "16px",
+                height: "100%",
               }}
             >
               <Box
                 sx={{
                   width: "1px",
-                  height: height + 16,
+                  height: "100%",
                   background:
                     noBorderMod !== undefined
                       ? index % noBorderMod === 0
