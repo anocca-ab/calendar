@@ -13,6 +13,8 @@ import {
   differenceInCalendarDays,
   differenceInMilliseconds,
   endOfDay,
+  getDaysInMonth,
+  getDaysInYear,
   max,
   min,
   startOfDay,
@@ -27,6 +29,7 @@ import {
   DEFAULT_COLOR,
   getEventEnd,
   getEventStart,
+  isTask,
   mergeSx,
   tuple,
 } from "../helpers";
@@ -38,7 +41,10 @@ import {
   TimelineResolution,
 } from "../types";
 import {
+  DragPosition,
   DraggedEvent,
+  EventContainer,
+  MouseState,
   useDragableEvents,
   useEffectRefs,
   useMouse,
@@ -226,7 +232,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
   }, [startDay]);
 
   const snapFn = React.useCallback(
-    (start: Date, end: Date) => {
+    (start: Date, end: Date, strict?: boolean) => {
       const snapToMonth = () => {
         const delta = differenceInMilliseconds(end, start);
 
@@ -239,11 +245,19 @@ export function Timeline<T>(props: TimelineProps<T>) {
           startOfMonth(start),
           monthDelta / 2
         );
-        const newStart =
-          compareAsc(start, middleOfTheMonth) === -1
-            ? startOfMonth(start)
-            : startOfMonth(addMonths(start, 1));
 
+        const snap = (date: Date) => {
+          return compareAsc(date, middleOfTheMonth) === -1
+            ? startOfMonth(date)
+            : startOfMonth(addMonths(date, 1));
+        };
+        const newStart = snap(start);
+        if (strict) {
+          return {
+            start: newStart,
+            end: snap(end),
+          };
+        }
         const newEnd = addMilliseconds(newStart, delta);
         return {
           start: newStart,
@@ -253,10 +267,20 @@ export function Timeline<T>(props: TimelineProps<T>) {
       const snapToDay = () => {
         const delta = differenceInMilliseconds(end, start);
         const middleOfTheDay = addMinutes(startOfDay(start), 720 / 2);
-        const newStart =
-          compareAsc(start, middleOfTheDay) === -1
-            ? startOfDay(start)
-            : startOfDay(addDays(start, 1));
+
+        const snap = (date: Date) => {
+          return compareAsc(date, middleOfTheDay) === -1
+            ? startOfDay(date)
+            : startOfDay(addDays(date, 1));
+        };
+        const newStart = snap(start);
+
+        if (strict) {
+          return {
+            start: newStart,
+            end: snap(end),
+          };
+        }
 
         const newEnd = addMilliseconds(newStart, delta);
         return {
@@ -272,10 +296,21 @@ export function Timeline<T>(props: TimelineProps<T>) {
           startOfWeek(start, options),
           (7 * 720) / 2
         );
-        const newStart =
-          compareAsc(start, middleOfTheWeek) === -1
-            ? startOfWeek(start, options)
-            : startOfWeek(addWeeks(start, 1), options);
+
+        const snap = (date: Date) => {
+          return compareAsc(date, middleOfTheWeek) === -1
+            ? startOfWeek(date, options)
+            : startOfWeek(addWeeks(date, 1), options);
+        };
+
+        const newStart = snap(start);
+
+        if (strict) {
+          return {
+            start: newStart,
+            end: snap(end),
+          };
+        }
 
         const newEnd = addMilliseconds(newStart, delta);
         return {
@@ -347,55 +382,129 @@ export function Timeline<T>(props: TimelineProps<T>) {
     [allEvents, resolution, startTime]
   );
 
-  const verticalPositionsRef = React.useRef<
-    Record<number, number> | undefined
-  >();
-
   const [timelineStart, timelineEnd] = React.useMemo(
     () => getTimelineRange(resolution, startTime),
     [resolution, startTime]
   );
 
+  function calculateNewTime(
+    state: MouseState,
+    dragged: DragPosition<ModifiableEvent<T>>,
+    container: EventContainer
+  ) {
+    if (state.pos && state.pos0) {
+      const { pos, pos0 } = state;
+      let deltaX = pos.x + -pos0.x + pos.scrollX - pos0.scrollX;
+
+      let addedMs =
+        (timelineEnd.getTime() - timelineStart.getTime()) *
+        (deltaX / container.width);
+
+      const minDuration =
+        (4 * (timelineEnd.getTime() - timelineStart.getTime())) /
+        container.width; // 4px width
+
+      const minAddedMs =
+        timelineStart.getTime() - dragged.event.end.getTime() + minDuration;
+
+      const maxAddedMs =
+        timelineEnd.getTime() - dragged.event.start.getTime() - minDuration;
+
+      addedMs = Math.min(Math.max(addedMs, minAddedMs), maxAddedMs);
+
+      let start = addMilliseconds(
+        getEventStart(dragged.event.sourceEvent),
+        addedMs
+      );
+      let end = addMilliseconds(
+        getEventEnd(dragged.event.sourceEvent),
+        addedMs
+      );
+
+      if (dragged.type === "new") {
+        const draggingLeft = deltaX < 0;
+        // when creating a new event by dragging, we must maintain an "anchor" which depends which is the end if dragging up or the start when dragging down
+        if (draggingLeft) {
+          return snapFn(start, dragged.event.end, true);
+        } else {
+          return snapFn(dragged.event.start, end, true);
+        }
+      }
+
+      if (state.hasDragged) {
+        return snapFn(start, end);
+      }
+    }
+    return undefined;
+  }
+
+  function constrainResize(
+    origEv: { start: Date; end: Date },
+    newEv: { start: Date; end: Date },
+    resize: "start" | "end"
+  ) {
+    if (resize === "end") {
+      const delta = differenceInMilliseconds(newEv.end, origEv.start);
+      if (resolution === "month" || resolution === "3-months") {
+        let minDuration = 7 * 24 * 60 * 60 * 1000;
+        if (delta < minDuration) {
+          const newEnd = addMilliseconds(origEv.start, minDuration);
+          return {
+            start: origEv.start,
+            end: newEnd,
+          };
+        }
+      } else if (resolution === "year" || resolution === "3-years") {
+        const minDuration = getDaysInMonth(origEv.start) * 24 * 60 * 60 * 1000;
+        if (delta < minDuration) {
+          const newEnd = addMilliseconds(origEv.start, minDuration);
+          return {
+            start: origEv.start,
+            end: newEnd,
+          };
+        }
+      }
+    } else {
+      const delta = differenceInMilliseconds(origEv.end, newEv.start);
+      if (resolution === "month" || resolution === "3-months") {
+        let minDuration = 7 * 24 * 60 * 60 * 1000;
+        if (delta < minDuration) {
+          const newStart = addMilliseconds(origEv.end, -minDuration);
+          return {
+            start: newStart,
+            end: origEv.end,
+          };
+        }
+      } else if (resolution === "year" || resolution === "3-years") {
+        const minDuration = getDaysInMonth(origEv.end) * 24 * 60 * 60 * 1000;
+        if (delta < minDuration) {
+          const newStart = addMilliseconds(origEv.end, -minDuration);
+          return {
+            start: newStart,
+            end: origEv.end,
+          };
+        }
+      }
+    }
+    if (resize === "end") {
+      return {
+        start: origEv.start,
+        end: newEv.end,
+      };
+    }
+    return {
+      start: newEv.start,
+      end: origEv.end,
+    };
+  }
+
   const [effectRefs, eventContainerRef] = useEffectRefs(
     events,
     setDraggedEvent,
-    (state, dragged, container) => {
-      if (state.pos && state.pos0) {
-        const { pos, pos0 } = state;
-        let rawDelta = pos.x + -pos0.x + pos.scrollX - pos0.scrollX;
-
-        let addedMs =
-          (timelineEnd.getTime() - timelineStart.getTime()) *
-          (rawDelta / container.width);
-
-        const minDuration =
-          (4 * (timelineEnd.getTime() - timelineStart.getTime())) /
-          container.width; // 4px width
-
-        const minAddedMs =
-          timelineStart.getTime() - dragged.event.end.getTime() + minDuration;
-
-        const maxAddedMs =
-          timelineEnd.getTime() - dragged.event.start.getTime() - minDuration;
-
-        addedMs = Math.min(Math.max(addedMs, minAddedMs), maxAddedMs);
-
-        let start = addMilliseconds(
-          getEventStart(dragged.event.sourceEvent),
-          addedMs
-        );
-        let end = addMilliseconds(
-          getEventEnd(dragged.event.sourceEvent),
-          addedMs
-        );
-
-        if (state.hasDragged) {
-          return snapFn(start, end);
-        }
-      }
-      return undefined;
-    },
-    calendarProps
+    calculateNewTime,
+    calendarProps,
+    undefined,
+    constrainResize
   );
 
   useMouse("timeline-event", effectRefs, false);
@@ -433,6 +542,10 @@ export function Timeline<T>(props: TimelineProps<T>) {
   const endIndex = Math.min(topRowIndex + windowSize, events.length - 1);
 
   const eventsStickedToRows = React.useRef<Record<number, string[]>>({});
+  const lastMovedEvent = React.useRef<{ eventId: string } | undefined>();
+
+  const eventRows = React.useRef<Record<string, number>>({});
+  const firstEventInWindow = React.useRef<Record<number, string>>({});
 
   const { persistedRows, assignedEvents, finishedRows, unassignedEvents } =
     React.useMemo(() => {
@@ -490,20 +603,52 @@ export function Timeline<T>(props: TimelineProps<T>) {
       }
     }
 
+    /**
+     * When to start iterating through the events
+     */
+    let started = false;
+    let withOffset: number | undefined = undefined;
+
+    if (lastMovedEvent.current && getId) {
+      const lastRow = eventRows.current[lastMovedEvent.current.eventId];
+      if (lastRow) {
+        if (unassignedEvents.has(lastRow)) {
+          withOffset = lastRow;
+        }
+      }
+      lastMovedEvent.current = undefined;
+    }
+
     // go through each event and assign it to an eligble row if possible
     eventLoop: for (let j of unassignedEvents) {
+      const event = events[j];
+
+      if (!started && typeof withOffset !== "undefined") {
+        if (j === withOffset) {
+          started = true;
+        } else {
+          continue;
+        }
+      }
+
       if (assignedEvents.has(j)) {
         continue;
       }
-      const event = events[j];
+
+      const updateReferences = () => {
+        assignedEvents.add(j);
+        unassignedEvents.delete(j);
+        if (getId) {
+          eventRows.current[getId(event.sourceEvent)] = j;
+        }
+      };
 
       if (getId && stickyEvents.has(getId(event.sourceEvent))) {
         const rowIndex = stickyEvents.get(getId(event.sourceEvent));
         if (typeof rowIndex !== "undefined") {
           rows[rowIndex] = rows[rowIndex] ?? [];
           rows[rowIndex].push({ ev: event, index: j });
-          assignedEvents.add(j);
-          unassignedEvents.delete(j);
+          updateReferences();
           continue;
         }
       }
@@ -529,16 +674,14 @@ export function Timeline<T>(props: TimelineProps<T>) {
         for (let i = startIndex; i <= endIndex; i++) {
           if (!rows[i]) {
             rows[i] = [{ ev: event, index: j }];
-            unassignedEvents.delete(j);
-            assignedEvents.add(j);
+            updateReferences();
             continue eventLoop;
           }
         }
         assignedRowsToAllIndices = true;
       } else {
         eligbleRow.push({ ev: event, index: j });
-        assignedEvents.add(j);
-        unassignedEvents.delete(j);
+        updateReferences();
       }
     }
     for (let i = startIndex; i <= endIndex; i++) {
@@ -706,7 +849,10 @@ export function Timeline<T>(props: TimelineProps<T>) {
                     eventsStickedToRows.current[startIndex + index] ?? [];
                   eventsStickedToRows.current[startIndex + index] = stickyRow;
 
-                  stickyRow.push(getId(draggedEvent?.source.sourceEvent));
+                  const eventId = getId(draggedEvent?.source.sourceEvent);
+
+                  stickyRow.push(eventId);
+                  lastMovedEvent.current = { eventId };
                 }
               }
               return (
@@ -716,7 +862,6 @@ export function Timeline<T>(props: TimelineProps<T>) {
                   draggedEvent={draggedEventForRow}
                   timelineStart={timelineStart}
                   timelineEnd={timelineEnd}
-                  snapFn={snapFn}
                 />
               );
             })}
@@ -763,13 +908,11 @@ const Row = React.memo(function Row<T>({
   draggedEvent,
   timelineStart,
   timelineEnd,
-  snapFn,
 }: {
   row: { ev: ModifiableEvent<T>; index: number }[];
   draggedEvent?: DraggedEvent<ModifiableEvent<T>>;
   timelineStart: Date;
   timelineEnd: Date;
-  snapFn: (start: Date, end: Date) => { start: Date; end: Date };
 }) {
   const start = timelineStart.getTime();
   const end = timelineEnd.getTime();
@@ -791,7 +934,7 @@ const Row = React.memo(function Row<T>({
         let evStart = event.start;
         let evEnd = event.end;
 
-        if (dragged) {
+        if (dragged && draggedEvent.dragged) {
           const newDragged = {
             ...draggedEvent.source,
             ...draggedEvent.dragged,
@@ -799,12 +942,6 @@ const Row = React.memo(function Row<T>({
 
           newDragged.start = getEventStart(newDragged);
           newDragged.end = getEventEnd(newDragged);
-
-          if (snapFn) {
-            const snap = snapFn(newDragged.start, newDragged.end);
-            newDragged.start = snap.start;
-            newDragged.end = snap.end;
-          }
 
           evStart = newDragged.start;
           evEnd = newDragged.end;
@@ -825,23 +962,26 @@ const Row = React.memo(function Row<T>({
         const color = event.sourceEvent.color ?? DEFAULT_COLOR;
         const title = event.sourceEvent.title ?? "(No title)";
 
+        const dataProps: any = {
+          "data-type": "timeline-event",
+          "data-calendar-event": JSON.stringify({
+            x: 0,
+            colX: 0,
+            index,
+            w: Math.max(width, 1),
+          }),
+        };
+
         return (
           <React.Fragment key={rowEvIndex}>
             <Box
               zIndex={2}
               component={Button}
-              data-type={"timeline-event"}
-              data-calendar-event={JSON.stringify({
-                x: 0,
-                colX: 0,
-                index,
-                w: Math.max(width, 1),
-              })}
+              {...dataProps}
               style={{
                 minWidth: "auto",
                 width: dragged ? `calc(${w} + 2px)` : w,
                 left: dragged ? `calc(${x} - 1px)` : x,
-                // top: y * (16 + 1) + (noHeader ? 0 : headerHeight),
                 height: "16px",
                 position: "absolute",
                 borderRadius: "4px",
@@ -890,6 +1030,29 @@ const Row = React.memo(function Row<T>({
                   </Typography>
                 </Box>
               </Box>
+
+              {!isTask(event.sourceEvent) &&
+                (["start", "end"] as const).map((pos, i) => (
+                  <Box
+                    key={i}
+                    className="resize-event"
+                    {...dataProps}
+                    data-drag-source="resize-event"
+                    data-resize-pos={pos}
+                    style={{
+                      height: "100%",
+                      width: 4,
+                      flexShrink: 0,
+                      position: "absolute",
+                      zIndex: 1,
+                      top: 0,
+                      bottom: 0,
+                      cursor: "ew-resize",
+                      left: pos === "start" ? 0 : undefined,
+                      right: pos === "start" ? undefined : 0,
+                    }}
+                  ></Box>
+                ))}
             </Box>
           </React.Fragment>
         );

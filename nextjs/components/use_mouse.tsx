@@ -145,6 +145,11 @@ export function useMouse<T>(
     onCreateEvent?: (start: Date, end?: Date) => void;
     eventContainerRef: React.MutableRefObject<HTMLDivElement | null>;
     scrollContainers: ScrollContainer[];
+    constrainResize?: (
+      orig: { start: Date; end: Date },
+      newTime: { start: Date; end: Date },
+      resize: "start" | "end"
+    ) => { start: Date; end: Date };
   }>,
   workWeek: boolean
 ) {
@@ -466,6 +471,14 @@ export function useMouse<T>(
           ) => {
             const origStart = getEventStart(dragged.event.sourceEvent);
             const origEnd = getEventEnd(dragged.event.sourceEvent);
+            const constrainResize = effectRefs.current.constrainResize;
+            if (constrainResize) {
+              return constrainResize(
+                { start: origStart, end: origEnd },
+                newEventTime,
+                resize
+              );
+            }
             return resize === "start"
               ? {
                   start: min([newEventTime.start, subMinutes(origEnd, 15)]),
@@ -682,7 +695,12 @@ export function useEffectRefs<T>(
   createNewEvent?: (
     pos0: MouseStatePos,
     container: DOMRect
-  ) => DragPosition<ModifiableEvent<T>> | undefined
+  ) => DragPosition<ModifiableEvent<T>> | undefined,
+  constrainResize?: (
+    orig: { start: Date; end: Date },
+    newTime: { start: Date; end: Date },
+    resize: "start" | "end"
+  ) => { start: Date; end: Date }
 ) {
   const ome = calendarProps.onMoveEvent;
   const onMoveEvent = ome
@@ -710,6 +728,7 @@ export function useEffectRefs<T>(
     eventContainerRef,
     createNewEvent,
     scrollContainers: calendarProps.scrollContainers,
+    constrainResize,
   });
 
   effectRefs.current = {
@@ -722,6 +741,7 @@ export function useEffectRefs<T>(
     eventContainerRef,
     createNewEvent,
     scrollContainers: calendarProps.scrollContainers,
+    constrainResize
   };
 
   return tuple(effectRefs, eventContainerRef);

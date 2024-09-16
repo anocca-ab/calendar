@@ -693,8 +693,8 @@ function WeekCalendarGrid<T>(props: {
 
   const snapFn = (start: Date, end: Date, strict?: boolean) => {
     const delta = differenceInMilliseconds(end, start);
+    const newStart = roundToNearestMinutes(start, { nearestTo: 15 });
     if (strict) {
-      const newStart = roundToNearestMinutes(start, { nearestTo: 15 });
       const newEnd = roundToNearestMinutes(end, { nearestTo: 15 });
 
       return {
@@ -702,7 +702,6 @@ function WeekCalendarGrid<T>(props: {
         end: newEnd,
       };
     }
-    const newStart = roundToNearestMinutes(start, { nearestTo: 15 });
     const newEnd = addMilliseconds(newStart, delta);
     return {
       start: newStart,
@@ -806,11 +805,11 @@ function WeekCalendarGrid<T>(props: {
       const deltaY =
         state.pos.y - state.pos0.y + state.pos.scrollY - state.pos0.scrollY;
 
-      const draggingUp = deltaY < 0;
+      const draggingDown = deltaY >= 0;
 
       const addedMin = Math.min(
         Math.max(
-          deltaY + (dragged.type === "new" ? (!draggingUp ? -15 : 0) : 0),
+          deltaY + (dragged.type === "new" ? (draggingDown ? -15 : 0) : 0),
           minAddedMinutes
         ),
         maxAddedMinutes
@@ -823,7 +822,7 @@ function WeekCalendarGrid<T>(props: {
 
       if (dragged.type === "new") {
         // when creating a new event by dragging, we must maintain an "anchor" which depends which is the end if dragging up or the start when dragging down
-        if (!draggingUp) {
+        if (draggingDown) {
           return snapFn(dragged.event.start, end, true);
         } else {
           return snapFn(start, dragged.event.end, true);
