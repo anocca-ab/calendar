@@ -226,7 +226,9 @@ export function getEventColor(
   };
 }
 
-export function getEventStart<T>(event: CalendarEvent<T>) {
+export function getEventStart<T>(
+  event: Pick<CalendarEvent<T>, "start" | "end">
+) {
   if (!event.end) {
     return startOfDay(event.start);
   }
@@ -246,7 +248,7 @@ export function widthToPct(width: number, daysInWeek: number): string {
   return String((width / (120 * daysInWeek)) * 100) + "%";
 }
 export function heightToPct(height: number, weeksInMonth: number): string {
-  return String(((height) / ((120 * weeksInMonth))) * 100) + "%";
+  return String((height / (120 * weeksInMonth)) * 100) + "%";
 }
 
 export function isTask(event: { start: Date; end?: Date }) {

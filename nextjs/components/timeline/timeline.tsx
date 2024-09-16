@@ -1,4 +1,4 @@
-import { Box, BoxProps, Button, Typography } from "@mui/material";
+import { Box, BoxProps, Button, Typography, useTheme } from "@mui/material";
 import {
   StartOfWeekOptions,
   addDays,
@@ -22,9 +22,15 @@ import {
   startOfYear,
   subMilliseconds,
 } from "date-fns";
-import { FixedSizeList as VirtualizedList } from "react-window";
 import React from "react";
-import { DEFAULT_COLOR, getEventEnd, getEventStart, mergeSx } from "../helpers";
+import {
+  DEFAULT_COLOR,
+  getEventEnd,
+  getEventStart,
+  mergeSx,
+  tuple,
+} from "../helpers";
+import { useMeasureHeight } from "../measure_height";
 import {
   CalendarEvent,
   ScrollContainer,
@@ -37,33 +43,51 @@ import {
   useEffectRefs,
   useMouse,
 } from "../use_mouse";
-import { getPositions, timelinePositions } from "../week_calendar/clique_grid";
 import { ModifiableEvent } from "../week_calendar/types";
 import { Grid } from "./grid";
 import { Header } from "./header";
 import { timelineHeaderHeight } from "./timeline_height";
 import { widthToPct } from "./to_pct";
-import { useMeasureHeight } from "../measure_height";
 
 export type TimelineProps<T> = {
   /**
-   * Events for the calendar
+   * Events for the calendar. Memoize this prop for better performance
    * @default []
    */
   events?: CalendarEvent<T>[];
 
   /**
-   * Define how to group the events
+   * Define how to group the events. Memoize this prop for better performance
    */
   group?: {
+    /**
+     * return the group key of the event
+     */
     getGroup: (event: CalendarEvent<T>) => string;
-    groups: { key: string; title: string; color: string }[];
+    /**
+     * a list of groups
+     */
+    groups: {
+      /**
+       * group key
+       */
+      key: string;
+      /**
+       * title of the group
+       */
+      title: string;
+      /**
+       * color of the group
+       */
+      color: string;
+    }[];
   };
 
   /**
-   * To increase performance we need to know the key of the event
+   * If you want to maintain the position of the events when they are dragged
+   * the timeline must know what id to use for the event. This is used to keep track of the event
    */
-  getKey?: (event: CalendarEvent<T>) => string;
+  getId?: (event: CalendarEvent<T>) => string;
 
   /**
    * Will be e.g. start of the week / year / month / quarter / 3 years / 3 months depending on the resolution
@@ -177,7 +201,8 @@ function useParseDefaultProps<T>(props: TimelineProps<T>) {
     onClickEvent: props.onClickEvent,
     scrollContainers,
     noHeader: props.noHeader,
-    getKey: props.getKey,
+    group: props.group,
+    getId: props.getId,
   };
 }
 
@@ -189,7 +214,8 @@ export function Timeline<T>(props: TimelineProps<T>) {
     startDay,
     resolution,
     noHeader,
-    getKey,
+    group,
+    getId,
     ...calendarProps
   } = p;
 
@@ -275,10 +301,46 @@ export function Timeline<T>(props: TimelineProps<T>) {
     [options, resolution]
   );
 
-  const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
-    sourceEvents,
-    snapFn
-  );
+  // const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
+  //   sourceEvents,
+  //   snapFn
+  // );
+
+  const [draggedEvent, setDraggedEvent] = React.useState<
+    DraggedEvent<ModifiableEvent<T>> | undefined
+  >(undefined);
+
+  const allEvents = React.useMemo(() => {
+    return sourceEvents.map((sourceEvent) => ({
+      sourceEvent,
+      start: getEventStart(sourceEvent),
+      end: getEventEnd(sourceEvent),
+    }));
+  }, [sourceEvents]);
+
+  if (draggedEvent?.dragged) {
+    const newDragged = {
+      ...draggedEvent.source,
+      ...draggedEvent.dragged,
+    };
+    newDragged.start = getEventStart(newDragged);
+    newDragged.end = getEventEnd(newDragged);
+
+    const snap = snapFn(newDragged.start, newDragged.end);
+    newDragged.start = snap.start;
+    newDragged.end = snap.end;
+
+    const index = allEvents.findIndex(
+      (ev) => ev.sourceEvent === draggedEvent.source.sourceEvent
+    );
+    if (index !== -1) {
+      // it is a new event
+      allEvents.splice(index, 1, newDragged);
+    } else {
+      // we are moving an existing event
+      allEvents.push(newDragged);
+    }
+  }
 
   const events: ModifiableEvent<T>[] = React.useMemo(
     () => parseEventsInTimeline(allEvents, resolution, startTime),
@@ -289,7 +351,10 @@ export function Timeline<T>(props: TimelineProps<T>) {
     Record<number, number> | undefined
   >();
 
-  const [timelineStart, timelineEnd] = getTimelineRange(resolution, startTime);
+  const [timelineStart, timelineEnd] = React.useMemo(
+    () => getTimelineRange(resolution, startTime),
+    [resolution, startTime]
+  );
 
   const [effectRefs, eventContainerRef] = useEffectRefs(
     events,
@@ -354,7 +419,8 @@ export function Timeline<T>(props: TimelineProps<T>) {
     );
   };
 
-  const padding = Math.floor(height / 17);
+  // half a screen of rows
+  const padding = Math.floor(height / 17 / 2);
 
   const [direction, setDirection] = React.useState<"up" | "down">("down");
   const windowSize = !hasMeasuredHeight
@@ -366,12 +432,19 @@ export function Timeline<T>(props: TimelineProps<T>) {
   const startIndex = Math.max(topRowIndex - padding, 0);
   const endIndex = Math.min(topRowIndex + windowSize, events.length - 1);
 
-  const { persistedRows, assignedEvents, finishedRows } = React.useMemo(() => {
-    const persistedRows: { index: number; ev: ModifiableEvent<T> }[][] = [[]];
-    const assignedEvents = new Set<number>();
-    const finishedRows = new Set<number>();
-    return { persistedRows, assignedEvents, finishedRows };
-  }, [events]);
+  const eventsStickedToRows = React.useRef<Record<number, string[]>>({});
+
+  const { persistedRows, assignedEvents, finishedRows, unassignedEvents } =
+    React.useMemo(() => {
+      const persistedRows: { index: number; ev: ModifiableEvent<T> }[][] = [[]];
+      const assignedEvents = new Set<number>();
+      const unassignedEvents = new Set<number>();
+      for (let j = 0; j < events.length; j++) {
+        unassignedEvents.add(j);
+      }
+      const finishedRows = new Set<number>();
+      return { persistedRows, assignedEvents, finishedRows, unassignedEvents };
+    }, [events]);
 
   const rows = React.useMemo(() => {
     if (!hasMeasuredHeight) {
@@ -400,12 +473,46 @@ export function Timeline<T>(props: TimelineProps<T>) {
     if (candidateRows.length === 0) {
       return rows;
     }
+
+    let numCheckedEvents = 0;
+
+    const stickyRows = Object.entries(eventsStickedToRows.current);
+
+    const stickyEvents = new Map<string, number>();
+
+    if (getId && stickyRows.length > 0) {
+      for (let i = startIndex; i <= endIndex; i++) {
+        if (eventsStickedToRows.current[i]) {
+          eventsStickedToRows.current[i].forEach((evId) => {
+            stickyEvents.set(evId, i);
+          });
+        }
+      }
+    }
+
     // go through each event and assign it to an eligble row if possible
-    eventLoop: for (let j = 0; j < events.length; j++) {
+    eventLoop: for (let j of unassignedEvents) {
       if (assignedEvents.has(j)) {
         continue;
       }
       const event = events[j];
+
+      if (getId && stickyEvents.has(getId(event.sourceEvent))) {
+        const rowIndex = stickyEvents.get(getId(event.sourceEvent));
+        if (typeof rowIndex !== "undefined") {
+          rows[rowIndex] = rows[rowIndex] ?? [];
+          rows[rowIndex].push({ ev: event, index: j });
+          assignedEvents.add(j);
+          unassignedEvents.delete(j);
+          continue;
+        }
+      }
+
+      numCheckedEvents++;
+      if (numCheckedEvents > 100 && assignedRowsToAllIndices) {
+        break;
+      }
+
       const eligbleRow = candidateRows
         // if the row is empty or if the events doesn't overlap with some of the events in the row
         .find(
@@ -422,6 +529,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
         for (let i = startIndex; i <= endIndex; i++) {
           if (!rows[i]) {
             rows[i] = [{ ev: event, index: j }];
+            unassignedEvents.delete(j);
             assignedEvents.add(j);
             continue eventLoop;
           }
@@ -430,6 +538,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
       } else {
         eligbleRow.push({ ev: event, index: j });
         assignedEvents.add(j);
+        unassignedEvents.delete(j);
       }
     }
     for (let i = startIndex; i <= endIndex; i++) {
@@ -437,7 +546,14 @@ export function Timeline<T>(props: TimelineProps<T>) {
     }
 
     return rows;
-  }, [events, startIndex, endIndex, persistedRows, finishedRows]);
+  }, [
+    events,
+    startIndex,
+    endIndex,
+    persistedRows,
+    finishedRows,
+    unassignedEvents,
+  ]);
 
   const [scrollableRef, setScrollableRef] = React.useState<HTMLElement | null>(
     null
@@ -451,27 +567,44 @@ export function Timeline<T>(props: TimelineProps<T>) {
     }
     let t: number;
     let current = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(t);
-      t = requestAnimationFrame(() => {
-        const scrollTop = scrollableRef.scrollTop;
-        setDirection(scrollTop > current ? "down" : "up");
-        current = scrollTop;
-        const newStartIndex = Math.floor(scrollTop / 17);
+    const emit = () => {
+      const scrollTop = scrollableRef.scrollTop;
+      setDirection(scrollTop > current ? "down" : "up");
+      current = scrollTop;
+      const newStartIndex = Math.floor(scrollTop / 17);
+      setTimeout(() => {
         setTopRowIndex(newStartIndex);
+      }, 0);
+    };
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) {
+        return;
+      }
+      t = requestAnimationFrame(() => {
+        emit();
+        ticking = false;
       });
+      ticking = true;
     };
     scrollableRef.addEventListener("scroll", onScroll, { passive: true });
 
     onScroll();
 
+    // const i = setInterval(() => {
+    //   const scrollTop = scrollableRef.scrollTop;
+    //   setTopRowIndex((i) => i + 1);
+    // }, 1000);
+
     return () => {
+      // clearInterval(i);
       scrollableRef.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(t);
     };
   }, [scrollableRef, events.length]);
 
   const scrollLength =
-    rows.length * 17 + (events.length - assignedEvents.size) * 17;
+    rows.length * 17 + (unassignedEvents.size === 0 ? 0 : padding);
 
   return (
     <Box
@@ -547,173 +680,48 @@ export function Timeline<T>(props: TimelineProps<T>) {
             sx={{
               height: `${scrollLength}px`,
               width: "64px",
-              backgroundColor: "red",
               position: "absolute",
+              pointerEvents: "none",
             }}
           ></Box>
-          {rows.slice(startIndex, endIndex + 1).map((row, index) => {
-            return (
-              <Box
-                key={index}
-                sx={{
-                  display: "flex",
-                  position: "relative",
-                  height: "17px",
-                  top: startIndex * 17,
-                }}
-              >
-                {row.map(({ ev: event, index }, rowEvIndex) => {
-                  const dragged =
-                    draggedEvent?.source.sourceEvent === event.sourceEvent;
+          {/* <Box sx={{ height: startIndex * 17, backgroundColor: "red" }} /> */}
+          <Box
+            style={{
+              transform: `translateY(${startIndex * 17}px)`,
+              pointerEvents: "all",
+            }}
+          >
+            {rows.slice(startIndex, endIndex + 1).map((row, index) => {
+              let draggedEventForRow:
+                | DraggedEvent<ModifiableEvent<T>>
+                | undefined;
+              if (
+                row.some(
+                  (r) => r.ev.sourceEvent === draggedEvent?.source.sourceEvent
+                )
+              ) {
+                draggedEventForRow = draggedEvent;
+                if (draggedEvent?.source.sourceEvent && getId) {
+                  const stickyRow =
+                    eventsStickedToRows.current[startIndex + index] ?? [];
+                  eventsStickedToRows.current[startIndex + index] = stickyRow;
 
-                  const x = widthToPct(
-                    (720 * (event.start.getTime() - start)) /
-                      totalSecondsOfMonth
-                  );
-                  const w = widthToPct(
-                    (720 * (event.end.getTime() - event.start.getTime())) /
-                      totalSecondsOfMonth
-                  );
-
-                  let width = differenceInCalendarDays(event.end, event.start);
-                  if (event.end.getTime() === endOfDay(event.end).getTime()) {
-                    width += 1;
-                  }
-
-                  const key = index;
-
-                  const color = event.sourceEvent.color ?? DEFAULT_COLOR;
-                  const title = event.sourceEvent.title ?? "(No title)";
-
-                  return (
-                    <React.Fragment key={rowEvIndex}>
-                      <Box
-                        zIndex={2}
-                        component={Button}
-                        data-type={"timeline-event"}
-                        data-calendar-event={JSON.stringify({
-                          x: 0,
-                          colX: 0,
-                          index,
-                          w: Math.max(width, 1),
-                        })}
-                        sx={{
-                          minWidth: "auto",
-                          width: dragged ? `calc(${w} + 2px)` : w,
-                          left: dragged ? `calc(${x} - 1px)` : x,
-                          // top: y * (16 + 1) + (noHeader ? 0 : headerHeight),
-                          height: "16px",
-                          position: "absolute",
-                          borderRadius: "4px",
-                          padding: 0,
-                          margin: 0,
-                          zIndex: dragged ? 2 : 1,
-                          paddingX: dragged ? "1px" : 0,
-                          background: "white",
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            borderRadius: "4px",
-                            height: "16px",
-                            overflow: "hidden",
-                            boxShadow: (theme) =>
-                              dragged ? theme.shadows[4] : "none",
-                            backgroundColor: color,
-                            display: "flex",
-                            justifyContent: "center",
-                            flex: 1,
-                            alignItems: "center",
-                            flexShrink: 1,
-                            whiteSpace: "nowrap",
-                            padding: 0,
-                            pointerEvents: "none",
-                            "*": {
-                              pointerEvents: "none",
-                            },
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              paddingLeft: "8px",
-                              paddingRight: "8px",
-                              flexShrink: 1,
-                              height: "16px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "flex-start",
-                              width: "100%",
-                            }}
-                          >
-                            <Typography
-                              variant="event"
-                              color={(theme) =>
-                                theme.palette.primary.contrastText
-                              }
-                            >
-                              {title}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </Box>
-                    </React.Fragment>
-                  );
-                })}
-              </Box>
-            );
-          })}
+                  stickyRow.push(getId(draggedEvent?.source.sourceEvent));
+                }
+              }
+              return (
+                <Row
+                  row={row}
+                  key={startIndex + index}
+                  draggedEvent={draggedEventForRow}
+                  timelineStart={timelineStart}
+                  timelineEnd={timelineEnd}
+                  snapFn={snapFn}
+                />
+              );
+            })}
+          </Box>
         </Box>
-
-        {/* {events.map((event, index) => {
-        const dragged = draggedEvent?.source.sourceEvent === event.sourceEvent;
-
-        const x = widthToPct(
-          (720 * (event.start.getTime() - start)) / totalSecondsOfMonth
-        );
-        const w = widthToPct(
-          (720 * (event.end.getTime() - event.start.getTime())) /
-            totalSecondsOfMonth
-        );
-
-        let width = differenceInCalendarDays(event.end, event.start);
-        if (event.end.getTime() === endOfDay(event.end).getTime()) {
-          width += 1;
-        }
-
-        const y = verticalPositions[index];
-
-        const key = index;
-
-        return (
-          <TlEvent
-            key={key}
-            color={event.sourceEvent.color ?? DEFAULT_COLOR}
-            title={event.sourceEvent.title ?? "(No title)"}
-            index={index}
-            width={width}
-            dragged={dragged}
-            w={w}
-            x={x}
-            y={y}
-            noHeader={!!noHeader}
-            headerHeight={headerHeight}
-          />
-        );
-      })}
-      {events.length > 0 && (
-        <TimeIndicator
-          sx={{
-            top: `${noHeader ? 0 : headerHeight}px`,
-            pointerEvents: "none",
-            zIndex: 2,
-            height: `${gridHeight}px`,
-            left: widthToPct(
-              (720 * (calendarProps.now.getTime() - start)) /
-                totalSecondsOfMonth
-            ),
-          }}
-        />
-      )} */}
       </Box>
       <Box
         sx={{
@@ -729,6 +737,166 @@ export function Timeline<T>(props: TimelineProps<T>) {
     </Box>
   );
 }
+
+const initial = Symbol();
+/**
+ * Use like `console.log(useDebugDeps([a, b, c]))` where `[a, b, c]` are the dependencies to e.g. a useEffect. This will log when one of the deps change
+ * @public
+ */
+export const useDebugDeps = (...deps: unknown[]) => {
+  const previousDeps = React.useRef<unknown[]>(deps.map(() => initial));
+  const diffingDeps: unknown[] = [];
+  deps.forEach((dep, index) => {
+    const prev = previousDeps.current[index];
+    if (prev === initial) {
+      diffingDeps.push(tuple("initial_render", index, dep));
+    } else if (prev !== dep) {
+      diffingDeps.push(tuple(index, prev, dep));
+    }
+  });
+  previousDeps.current = deps;
+  return diffingDeps;
+};
+
+const Row = React.memo(function Row<T>({
+  row,
+  draggedEvent,
+  timelineStart,
+  timelineEnd,
+  snapFn,
+}: {
+  row: { ev: ModifiableEvent<T>; index: number }[];
+  draggedEvent?: DraggedEvent<ModifiableEvent<T>>;
+  timelineStart: Date;
+  timelineEnd: Date;
+  snapFn: (start: Date, end: Date) => { start: Date; end: Date };
+}) {
+  const start = timelineStart.getTime();
+  const end = timelineEnd.getTime();
+  const totalSecondsOfMonth = end - start;
+  const theme = useTheme();
+
+  return (
+    <Box
+      style={{
+        display: "flex",
+        position: "relative",
+        height: "17px",
+        overflow: "hidden",
+      }}
+    >
+      {row.map(({ ev: event, index }, rowEvIndex) => {
+        const dragged = draggedEvent?.source.sourceEvent === event.sourceEvent;
+
+        let evStart = event.start;
+        let evEnd = event.end;
+
+        if (dragged) {
+          const newDragged = {
+            ...draggedEvent.source,
+            ...draggedEvent.dragged,
+          };
+
+          newDragged.start = getEventStart(newDragged);
+          newDragged.end = getEventEnd(newDragged);
+
+          if (snapFn) {
+            const snap = snapFn(newDragged.start, newDragged.end);
+            newDragged.start = snap.start;
+            newDragged.end = snap.end;
+          }
+
+          evStart = newDragged.start;
+          evEnd = newDragged.end;
+        }
+
+        const x = widthToPct(
+          (720 * (evStart.getTime() - start)) / totalSecondsOfMonth
+        );
+        const w = widthToPct(
+          (720 * (evEnd.getTime() - evStart.getTime())) / totalSecondsOfMonth
+        );
+
+        let width = differenceInCalendarDays(evEnd, evStart);
+        if (evEnd.getTime() === endOfDay(evEnd).getTime()) {
+          width += 1;
+        }
+
+        const color = event.sourceEvent.color ?? DEFAULT_COLOR;
+        const title = event.sourceEvent.title ?? "(No title)";
+
+        return (
+          <React.Fragment key={rowEvIndex}>
+            <Box
+              zIndex={2}
+              component={Button}
+              data-type={"timeline-event"}
+              data-calendar-event={JSON.stringify({
+                x: 0,
+                colX: 0,
+                index,
+                w: Math.max(width, 1),
+              })}
+              style={{
+                minWidth: "auto",
+                width: dragged ? `calc(${w} + 2px)` : w,
+                left: dragged ? `calc(${x} - 1px)` : x,
+                // top: y * (16 + 1) + (noHeader ? 0 : headerHeight),
+                height: "16px",
+                position: "absolute",
+                borderRadius: "4px",
+                padding: 0,
+                margin: 0,
+                zIndex: dragged ? 2 : 1,
+                paddingLeft: dragged ? "1px" : 0,
+                paddingRight: dragged ? "1px" : 0,
+                background: "white",
+              }}
+            >
+              <Box
+                style={{
+                  borderRadius: "4px",
+                  height: "16px",
+                  overflow: "hidden",
+                  boxShadow: dragged ? theme.shadows[4] : "none",
+                  backgroundColor: color,
+                  display: "flex",
+                  justifyContent: "center",
+                  flex: 1,
+                  alignItems: "center",
+                  flexShrink: 1,
+                  whiteSpace: "nowrap",
+                  padding: 0,
+                  pointerEvents: "none",
+                }}
+              >
+                <Box
+                  style={{
+                    paddingLeft: "8px",
+                    paddingRight: "8px",
+                    flexShrink: 1,
+                    height: "16px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-start",
+                    width: "100%",
+                  }}
+                >
+                  <Typography
+                    variant="event"
+                    style={{ color: theme.palette.primary.contrastText }}
+                  >
+                    {title}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </React.Fragment>
+        );
+      })}
+    </Box>
+  );
+});
 
 const TlEvent = React.memo(function TlEvent({
   index,

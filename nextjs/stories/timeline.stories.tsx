@@ -343,16 +343,14 @@ export const ManyEvents: Story = {
   },
 
   render: (props) => {
-    const events = generateRandomEvents(1200);
+    const events = generateRandomEvents(5000);
     return (
       <InteractiveDemo
         type="timeline"
         {...props}
         events={events}
-        getKey={(e) => {
-          return e.data.id;
-        }}
         timelineResolution={props.resolution}
+        getId={(e) => e.data.id}
         sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
       />
     );
