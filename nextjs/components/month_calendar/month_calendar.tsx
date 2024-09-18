@@ -305,8 +305,12 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
     return undefined;
   }
 
+  const getEvent = (index: string): ModifiableEvent<T> | undefined => {
+    return events[parseInt(index)];
+  };
+
   const [effectRefs, eventContainerRef] = useEffectRefs(
-    events,
+    getEvent,
     setDraggedEvent,
     calculateNewTime,
     calendarProps

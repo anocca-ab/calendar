@@ -317,8 +317,13 @@ function WeekCalendarHeader<T>(props: {
     return undefined;
   }
 
+
+  const getEvent = (index: string): ModifiableEvent<T> | undefined => {
+    return events[parseInt(index)];
+  };
+
   const [effectRefs, eventContainerRef] = useEffectRefs(
-    events,
+    getEvent,
     setDraggedEvent,
     calculateNewTime,
     calendarProps
@@ -838,8 +843,12 @@ function WeekCalendarGrid<T>(props: {
 
   const onClickEvent = calendarProps.onClickEvent;
 
+  const getEvent = (index: string): ModifiableEvent<T> | undefined => {
+    return events[parseInt(index)];
+  };
+
   const [effectRefs, eventContainerRef] = useEffectRefs(
-    events,
+    getEvent,
     setDraggedEvent,
     calculateNewTime,
     calendarProps,
@@ -1122,7 +1131,7 @@ function WeekCalendarGrid<T>(props: {
                   </Typography>
                 )}
               </Box>
-              {!isTask(event.sourceEvent) &&
+              {event.sourceEvent.canEdit && !isTask(event.sourceEvent) &&
                 (["start", "end"] as const).map((pos, i) => (
                   <Box
                     key={i}

@@ -8,11 +8,13 @@ import { Timeline } from "./timeline/timeline";
 import { Box, SxProps } from "@mui/material";
 import { TimelineNav } from "./nav/timeline_nav";
 import { DEFAULT_COLOR, mergeSx } from "./helpers";
+import { eventsToRows } from "@/components/events_to_rows";
 
 type CalEventWithKey = CalendarEvent<{ data: { key: string } }>;
 
 export function InteractiveDemo(props: {
   events?: CalendarEvent<undefined>[];
+  rows?: CalendarEvent<undefined>[][];
   now?: Date;
   startDay?: "sunday" | "monday";
   type: "month" | "week" | "timeline";
@@ -33,12 +35,25 @@ export function InteractiveDemo(props: {
   getId?: (event: CalendarEvent<any>) => string;
 }) {
   const { now, startDay, type, events: _events } = props;
-  const [realEvents, setEvents] = React.useState<CalEventWithKey[]>(
+  const [realEvents, _setEvents] = React.useState<CalEventWithKey[]>(
     (_events ?? []).map((ev) => ({
       ...ev,
       data: { ...(ev as any).data, key: Math.random().toString() },
     }))
+    // .sort((a, b) => a.start.getTime() - b.start.getTime())
   );
+  const _rows = React.useMemo(() => {
+    return eventsToRows(realEvents, props.timelineResolution ?? "month");
+  }, [realEvents]);
+  const rows = (props.rows ?? _rows) as typeof _rows;
+
+  const setEvents = (
+    events:
+      | CalEventWithKey[]
+      | ((events: CalEventWithKey[]) => CalEventWithKey[])
+  ) => {
+    return _setEvents(events);
+  };
 
   const [draft, setDraft] = React.useState<CalEventWithKey | undefined>(
     undefined
@@ -194,6 +209,7 @@ export function InteractiveDemo(props: {
       )}
       <CalendarType
         {...props}
+        rows={rows}
         startTime={startTime} // timeline
         startOfWeek={startTime} // week calendar
         startOfMonth={startTime} // month calendar

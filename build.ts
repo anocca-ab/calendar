@@ -158,6 +158,8 @@ await Bun.write(
     "export type { WeekCalendarProps } from './week_calendar/week_calendar';",
     "export type { MonthCalendarProps } from './month_calendar/month_calendar';",
     "export type { TimelineProps } from './timeline/timeline';",
+    "export { minRenderedEventDuration, eventsOverlaps, eventsToRows } from './events_to_rows';",
+    "export type { PartialEvent } from './events_to_rows';",
   ].join("\n") + "\n"
 );
 

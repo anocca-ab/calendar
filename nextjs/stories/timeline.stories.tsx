@@ -14,6 +14,8 @@ import {
 } from "date-fns";
 import { manyEvents } from "./many_events";
 import { generateRandomEvents } from "./helpers";
+import { realEvents } from "./real_events";
+import { eventsToRows } from "../components/events_to_rows";
 
 const meta = {
   title: "Timeline/Timeline",
@@ -38,7 +40,7 @@ const meta = {
         disable: true,
       },
     },
-    events: {
+    rows: {
       table: {
         disable: true,
       },
@@ -66,25 +68,28 @@ export const EmptyCalendar: Story = {
 };
 
 export const WithInteractivity: Story = {
-  args: {
-    events: [
-      {
-        start: startOfDay(new Date()),
-        end: endOfDay(
-          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
-        ),
-        title: "A loong day event",
-        canEdit: true,
-      },
-    ],
-  },
+  args: {},
   render: (props) => {
     return (
       <InteractiveDemo
         type="timeline"
         {...props}
+        events={[
+          {
+            start: startOfDay(new Date()),
+            end: endOfDay(
+              addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
+            ),
+            title: "A loong day event",
+            canEdit: true,
+          },
+        ]}
         timelineResolution={props.resolution}
-        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
+        sx={{
+          height: "calc(100vh - 64px)",
+          display: "flex",
+          flexDirection: "column",
+        }}
       />
     );
   },
@@ -95,65 +100,78 @@ export const WithEvents: Story = {
     resolution: "month",
     startDay: "monday",
     startTime: new Date(),
-    events: [
-      {
-        start: addDays(
-          startOfDay(startOfWeek(subWeeks(new Date(), 2), { weekStartsOn: 1 })),
-          3
-        ),
-        end: addDays(
-          startOfDay(startOfWeek(subWeeks(new Date(), 2), { weekStartsOn: 1 })),
-          5
-        ),
-        title: "2 days",
-      },
-      {
-        start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
-        end: endOfDay(
-          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 15)
-        ),
-        title: "2 weeks",
-      },
-      {
-        start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
-        end: endOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
-        title: "All day event",
-      },
-      {
-        start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
-        end: endOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 2)),
-        title: "3 day",
-        color: "blue",
-      },
-      {
-        start: addHours(startOfDay(addDays(new Date(), 2)), 5),
-        end: addMinutes(addHours(startOfDay(addDays(new Date(), 2)), 5), 35),
-        title: "35 min",
-      },
-      {
-        start: addDays(startOfDay(new Date()), 1),
-        end: addDays(startOfDay(new Date()), 1),
-        title: "task",
-      },
-      {
-        start: addHours(startOfDay(addDays(new Date(), 3)), 5),
-        end: addHours(startOfDay(addDays(new Date(), 3)), 6),
-        title: "1 hour ",
-      },
-      {
-        start: addHours(startOfDay(addDays(new Date(), 3)), 7),
-        end: addHours(startOfDay(addDays(new Date(), 3)), 9),
-        title: "2 hours",
-      },
-    ].map((e) => ({ ...e, canEdit: true })),
   },
   render: (props) => {
     return (
       <InteractiveDemo
         type="timeline"
         {...props}
+        events={[
+          {
+            start: addDays(
+              startOfDay(
+                startOfWeek(subWeeks(new Date(), 2), { weekStartsOn: 1 })
+              ),
+              3
+            ),
+            end: addDays(
+              startOfDay(
+                startOfWeek(subWeeks(new Date(), 2), { weekStartsOn: 1 })
+              ),
+              5
+            ),
+            title: "2 days",
+          },
+          {
+            start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
+            end: endOfDay(
+              addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 15)
+            ),
+            title: "2 weeks",
+          },
+          {
+            start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
+            end: endOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
+            title: "All day event",
+          },
+          {
+            start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
+            end: endOfDay(
+              addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 2)
+            ),
+            title: "3 day",
+            color: "blue",
+          },
+          {
+            start: addHours(startOfDay(addDays(new Date(), 2)), 5),
+            end: addMinutes(
+              addHours(startOfDay(addDays(new Date(), 2)), 5),
+              35
+            ),
+            title: "35 min",
+          },
+          {
+            start: addDays(startOfDay(new Date()), 1),
+            end: addDays(startOfDay(new Date()), 1),
+            title: "task",
+          },
+          {
+            start: addHours(startOfDay(addDays(new Date(), 3)), 5),
+            end: addHours(startOfDay(addDays(new Date(), 3)), 6),
+            title: "1 hour ",
+          },
+          {
+            start: addHours(startOfDay(addDays(new Date(), 3)), 7),
+            end: addHours(startOfDay(addDays(new Date(), 3)), 9),
+            title: "2 hours",
+          },
+        ].map((e) => ({ ...e, canEdit: true }))}
         timelineResolution={props.resolution}
-        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
+        sx={{
+          height: "calc(100vh - 64px)",
+          display: "flex",
+          flexDirection: "column",
+        }}
       />
     );
   },
@@ -161,71 +179,83 @@ export const WithEvents: Story = {
 
 export const Month: Story = {
   args: {
-    events: [
-      {
-        start: startOfDay(new Date()),
-        end: endOfDay(
-          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
-        ),
-        title: "A loong day event",
-      },
-    ],
+    rows: eventsToRows(
+      [
+        {
+          start: startOfDay(new Date()),
+          end: endOfDay(
+            addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
+          ),
+          title: "A loong day event",
+        },
+      ],
+      "month"
+    ),
     resolution: "month",
   },
 };
 
 export const MonthNoEvents: Story = {
   args: {
-    events: [],
+    rows: [],
     resolution: "month",
   },
 };
 export const ThreeMonthsNoEvents: Story = {
   args: {
-    events: [],
+    rows: [],
     resolution: "3-months",
   },
 };
 
 export const ThreeMonths: Story = {
   args: {
-    events: [
-      {
-        start: startOfDay(new Date()),
-        end: endOfDay(
-          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
-        ),
-        title: "A loong day event",
-      },
-    ],
+    rows: eventsToRows(
+      [
+        {
+          start: startOfDay(new Date()),
+          end: endOfDay(
+            addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
+          ),
+          title: "A loong day event",
+        },
+      ],
+      "3-months"
+    ),
     resolution: "3-months",
   },
 };
 export const Year: Story = {
   args: {
-    events: [
-      {
-        start: startOfDay(new Date()),
-        end: endOfDay(
-          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
-        ),
-        title: "A loong day event",
-      },
-    ],
+    rows: eventsToRows(
+      [
+        {
+          start: startOfDay(new Date()),
+          end: endOfDay(
+            addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
+          ),
+          title: "A loong day event",
+        },
+      ],
+      "year"
+    ),
     resolution: "year",
   },
 };
 export const ThreeYears: Story = {
   args: {
-    events: [
-      {
-        start: startOfDay(new Date()),
-        end: endOfDay(
-          addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
-        ),
-        title: "A loong day event",
-      },
-    ],
+    rows: eventsToRows(
+      [
+        {
+          start: startOfDay(new Date()),
+          end: endOfDay(
+            addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)
+          ),
+          title: "A loong day event",
+        },
+      ],
+      "3-years"
+    ),
     resolution: "3-years",
   },
 };
@@ -233,8 +263,6 @@ export const ThreeYears: Story = {
 export const MonthInteractive: Story = {
   args: {
     startDay: "monday",
-    events: manyEvents,
-
     resolution: "month",
   },
 
@@ -243,8 +271,13 @@ export const MonthInteractive: Story = {
       <InteractiveDemo
         type="timeline"
         {...props}
+        events={manyEvents}
         timelineResolution={props.resolution}
-        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
+        sx={{
+          height: "calc(100vh - 64px)",
+          display: "flex",
+          flexDirection: "column",
+        }}
       />
     );
   },
@@ -253,7 +286,6 @@ export const MonthInteractive: Story = {
 export const ThreeMonthsInteractive: Story = {
   args: {
     startDay: "monday",
-    events: manyEvents,
     resolution: "3-months",
   },
 
@@ -262,8 +294,13 @@ export const ThreeMonthsInteractive: Story = {
       <InteractiveDemo
         type="timeline"
         {...props}
+        events={manyEvents}
         timelineResolution={props.resolution}
-        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
+        sx={{
+          height: "calc(100vh - 64px)",
+          display: "flex",
+          flexDirection: "column",
+        }}
       />
     );
   },
@@ -272,7 +309,6 @@ export const ThreeMonthsInteractive: Story = {
 export const YearInteractive: Story = {
   args: {
     startDay: "monday",
-    events: manyEvents,
     resolution: "year",
   },
 
@@ -281,8 +317,13 @@ export const YearInteractive: Story = {
       <InteractiveDemo
         type="timeline"
         {...props}
+        events={manyEvents}
         timelineResolution={props.resolution}
-        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
+        sx={{
+          height: "calc(100vh - 64px)",
+          display: "flex",
+          flexDirection: "column",
+        }}
       />
     );
   },
@@ -291,7 +332,6 @@ export const YearInteractive: Story = {
 export const ThreeYearsInteractive: Story = {
   args: {
     startDay: "monday",
-    events: manyEvents,
     resolution: "3-years",
   },
 
@@ -300,8 +340,13 @@ export const ThreeYearsInteractive: Story = {
       <InteractiveDemo
         type="timeline"
         {...props}
+        events={manyEvents}
         timelineResolution={props.resolution}
-        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
+        sx={{
+          height: "calc(100vh - 64px)",
+          display: "flex",
+          flexDirection: "column",
+        }}
       />
     );
   },
@@ -310,25 +355,34 @@ export const ThreeYearsInteractive: Story = {
 export const NoHeader: Story = {
   args: {
     startDay: "monday",
-    events: manyEvents,
     resolution: "3-years",
   },
 
   render: (props) => {
     return (
       <Box display="flex" flexDirection="column" gap={0}>
-        <Timeline {...props} resolution={props.resolution} />
         <Timeline
           {...props}
           resolution={props.resolution}
-          noHeader
-          events={props.events?.map((e) => ({ ...e, color: "#4985f5" }))}
+          rows={eventsToRows(manyEvents, props.resolution ?? "3-years")}
         />
         <Timeline
           {...props}
           resolution={props.resolution}
           noHeader
-          events={props.events?.map((e) => ({ ...e, color: "#718059" }))}
+          rows={eventsToRows(
+            manyEvents.map((e) => ({ ...e, color: "#4985f5" })),
+            props.resolution ?? "3-years"
+          )}
+        />
+        <Timeline
+          {...props}
+          resolution={props.resolution}
+          noHeader
+          rows={eventsToRows(
+            manyEvents.map((e) => ({ ...e, color: "#718059" })),
+            props.resolution ?? "3-years"
+          )}
         />
       </Box>
     );
@@ -338,7 +392,6 @@ export const NoHeader: Story = {
 export const ManyEvents: Story = {
   args: {
     startDay: "monday",
-    events: [],
     resolution: "3-years",
   },
 
@@ -351,7 +404,35 @@ export const ManyEvents: Story = {
         events={events}
         timelineResolution={props.resolution}
         getId={(e) => e.data.id}
-        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
+        sx={{
+          height: "calc(100vh - 64px)",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      />
+    );
+  },
+};
+
+export const RealEvents: Story = {
+  args: {
+    startDay: "monday",
+    resolution: "3-years",
+  },
+
+  render: (props) => {
+    return (
+      <InteractiveDemo
+        type="timeline"
+        {...props}
+        events={realEvents}
+        timelineResolution={props.resolution}
+        getId={(e) => e.data.id}
+        sx={{
+          height: "calc(100vh - 64px)",
+          display: "flex",
+          flexDirection: "column",
+        }}
       />
     );
   },
@@ -360,7 +441,6 @@ export const ManyEvents: Story = {
 export const BuggedEvents1: Story = {
   args: {
     startDay: "monday",
-    events: [],
     resolution: "3-years",
   },
 
@@ -399,7 +479,11 @@ export const BuggedEvents1: Story = {
         {...props}
         events={events}
         timelineResolution={props.resolution}
-        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
+        sx={{
+          height: "calc(100vh - 64px)",
+          display: "flex",
+          flexDirection: "column",
+        }}
       />
     );
   },
@@ -407,7 +491,6 @@ export const BuggedEvents1: Story = {
 export const BuggedEvents2: Story = {
   args: {
     startDay: "monday",
-    events: [],
     resolution: "3-years",
   },
 
@@ -461,7 +544,11 @@ export const BuggedEvents2: Story = {
         {...props}
         events={events}
         timelineResolution={props.resolution}
-        sx={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column" }}
+        sx={{
+          height: "calc(100vh - 64px)",
+          display: "flex",
+          flexDirection: "column",
+        }}
       />
     );
   },

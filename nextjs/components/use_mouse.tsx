@@ -126,7 +126,7 @@ export function useMouse<T>(
       end: Date | undefined
     ) => void;
     onClickEvent?: (event: ModifiableEvent<T>, nativeEvent: MouseEvent) => void;
-    events: ModifiableEvent<T>[];
+    getEvent: (id: string) => ModifiableEvent<T> | undefined;
     setDraggedEvent: React.Dispatch<
       React.SetStateAction<DraggedEvent<ModifiableEvent<T>> | undefined>
     >;
@@ -259,12 +259,12 @@ export function useMouse<T>(
         if (clickedEvent) {
           const ds = ev.target.dataset;
           const data: {
-            index: number;
+            index: string;
             x: number;
             w: number;
             colX: number;
           } = JSON.parse(ds.calendarEvent!);
-          const event = effectRefs.current.events[data.index];
+          const event = effectRefs.current.getEvent(data.index);
 
           if (!event) {
             return;
@@ -673,7 +673,7 @@ export function yUnitToPx(
 }
 
 export function useEffectRefs<T>(
-  events: ModifiableEvent<T>[],
+  getEvent: (id: string) => ModifiableEvent<T> | undefined,
   setDraggedEvent: React.Dispatch<
     React.SetStateAction<DraggedEvent<ModifiableEvent<T>> | undefined>
   >,
@@ -720,7 +720,7 @@ export function useEffectRefs<T>(
 
   const effectRefs = React.useRef({
     onMoveEvent,
-    events,
+    getEvent,
     onClickEvent,
     onCreateEvent,
     setDraggedEvent,
@@ -733,7 +733,7 @@ export function useEffectRefs<T>(
 
   effectRefs.current = {
     onMoveEvent,
-    events,
+    getEvent,
     onCreateEvent,
     onClickEvent,
     setDraggedEvent,
