@@ -28,9 +28,13 @@ function Wrapper({ children }: { children: React.ReactNode }) {
 function MonthHeader({
   startTime,
   noHeader,
+  startOfTimeline,
+  totalSecondsOfTimeline,
 }: {
   startTime: Date;
   noHeader?: boolean;
+  startOfTimeline: number;
+  totalSecondsOfTimeline: number;
 }) {
   const weeks: Date[] = [];
   const days: Date[] = [];
@@ -47,7 +51,8 @@ function MonthHeader({
     <>
       <BigTime
         times={weeks}
-        width={119}
+        startOfTimeline={startOfTimeline}
+        totalSecondsOfTimeline={totalSecondsOfTimeline}
       />
       {!noHeader && (
         <Box sx={{ position: "absolute", inset: 0 }}>
@@ -110,9 +115,13 @@ function MonthHeader({
 function ThreeMonthHeader({
   startTime,
   noHeader,
+  startOfTimeline,
+  totalSecondsOfTimeline,
 }: {
   startTime: Date;
   noHeader?: boolean;
+  startOfTimeline: number;
+  totalSecondsOfTimeline: number;
 }) {
   const monthMap = new Map<number, Date>();
   const weeks: Date[] = [];
@@ -138,10 +147,7 @@ function ThreeMonthHeader({
           <>
             {months.flatMap((month, index) => {
               const xStart = month.getTime() - startTime.getTime();
-              const xWidth = differenceInMilliseconds(
-                startOfMonth(addMonths(month, 1)),
-                month
-              );
+
               return (
                 <Box
                   key={index + "divider"}
@@ -171,6 +177,8 @@ function ThreeMonthHeader({
         top={noHeader ? 0 : 60}
         times={weeks}
         noBorderMod={0}
+        startOfTimeline={startOfTimeline}
+        totalSecondsOfTimeline={totalSecondsOfTimeline}
       />
     </Wrapper>
   );
@@ -179,8 +187,12 @@ function ThreeMonthHeader({
 function YearHeader({
   startTime,
   noHeader,
+  startOfTimeline,
+  totalSecondsOfTimeline,
 }: {
   startTime: Date;
+  startOfTimeline: number;
+  totalSecondsOfTimeline: number;
   noHeader?: boolean;
 }) {
   const quarters: Date[] = [];
@@ -190,16 +202,26 @@ function YearHeader({
     // 3 months
     for (let j = 0; j < 3; j += 1) {
       if (j === 0) {
-        quarters.push(addMonths(startTime, i * 3));
+        quarters.push(addMonths(startOfMonth(startTime), i * 3));
       }
       const k = i * 3 + j;
-      months.push(addMonths(startTime, k));
+      months.push(addMonths(startOfMonth(startTime), k));
     }
   }
   return (
     <Wrapper>
-      <BigTime times={quarters} width={179} />
-      <SmallTime times={months} noBorderMod={3} top={noHeader ? 0 : 56} />
+      <BigTime
+        times={quarters}
+        startOfTimeline={startOfTimeline}
+        totalSecondsOfTimeline={totalSecondsOfTimeline}
+      />
+      <SmallTime
+        times={months}
+        noBorderMod={3}
+        top={noHeader ? 0 : 56}
+        startOfTimeline={startOfTimeline}
+        totalSecondsOfTimeline={totalSecondsOfTimeline}
+      />
     </Wrapper>
   );
 }
@@ -207,8 +229,12 @@ function YearHeader({
 function ThreeYearHeader({
   startTime,
   noHeader,
+  startOfTimeline,
+  totalSecondsOfTimeline,
 }: {
   startTime: Date;
+  startOfTimeline: number;
+  totalSecondsOfTimeline: number;
   noHeader?: boolean;
 }) {
   const years: Date[] = [];
@@ -225,14 +251,26 @@ function ThreeYearHeader({
   }
   return (
     <Wrapper>
-      <BigTime times={years} width={239} />
-      <SmallTime times={quarters} noBorderMod={4} top={noHeader ? 0 : 56} />
+      <BigTime
+        times={years}
+        startOfTimeline={startOfTimeline}
+        totalSecondsOfTimeline={totalSecondsOfTimeline}
+      />
+      <SmallTime
+        times={quarters}
+        noBorderMod={4}
+        top={noHeader ? 0 : 56}
+        startOfTimeline={startOfTimeline}
+        totalSecondsOfTimeline={totalSecondsOfTimeline}
+      />
     </Wrapper>
   );
 }
 
 export function Grid(props: {
   startTime: Date;
+  startOfTimeline: number;
+  totalSecondsOfTimeline: number;
   resolution: TimelineResolution;
   now: Date;
   startDay: StartDay;
@@ -255,19 +293,24 @@ export function Grid(props: {
   }
   throw new Error("Invalid resolution");
 }
-function BigTime({ times, width }: { times: Date[]; width: number }) {
+function BigTime({
+  times,
+  startOfTimeline,
+  totalSecondsOfTimeline,
+}: {
+  times: Date[];
+  startOfTimeline: number;
+  totalSecondsOfTimeline: number;
+}) {
   return (
     <Box sx={{ position: "absolute", inset: 0 }}>
       <FlexRow sx={{ height: "100%" }}>
         {times.flatMap((month, index) => {
-          const els = [
-            <FlexRow
-              key={index}
-              sx={{ width: widthToPct(width), height: "44px" }}
-              justifyContent={"center"}
-            ></FlexRow>,
-          ];
-          if (index < times.length - 1) {
+          const x = widthToPct(
+            (720 * (month.getTime() - startOfTimeline)) / totalSecondsOfTimeline
+          );
+          const els = [];
+          if (index > 0) {
             els.push(
               <Box
                 key={index + "divider"}
@@ -275,6 +318,10 @@ function BigTime({ times, width }: { times: Date[]; width: number }) {
                 sx={{
                   width: "1px",
                   height: "100%",
+                  position: "absolute",
+                  top: 0,
+                  bottom: 0,
+                  left: x,
                 }}
               >
                 <Box
@@ -299,15 +346,18 @@ function SmallTime({
   times,
   noBorderMod,
   top,
+  startOfTimeline,
+  totalSecondsOfTimeline,
 }: {
   times: Date[];
   noBorderMod?: number;
   top: number;
+  startOfTimeline: number;
+  totalSecondsOfTimeline: number;
 }) {
   return (
     <Box sx={{ position: "absolute", inset: 0 }}>
       <FlexRow
-        justifyContent="space-between"
         sx={{
           top: `${top}px`,
           position: "absolute",
@@ -320,6 +370,9 @@ function SmallTime({
           const els = [
             <FlexRow key={index} justifyContent="center" flex="1"></FlexRow>,
           ];
+          const x = widthToPct(
+            (720 * (week.getTime() - startOfTimeline)) / totalSecondsOfTimeline
+          );
           const divider = (index: number) => (
             <Box
               key={index + "divider"}
@@ -327,6 +380,10 @@ function SmallTime({
               sx={{
                 width: "1px",
                 height: "100%",
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                left: x,
               }}
             >
               <Box

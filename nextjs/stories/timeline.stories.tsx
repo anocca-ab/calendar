@@ -74,6 +74,7 @@ export const WithInteractivity: Story = {
       <InteractiveDemo
         type="timeline"
         {...props}
+        group={false}
         events={[
           {
             start: startOfDay(new Date()),
@@ -106,6 +107,7 @@ export const WithEvents: Story = {
       <InteractiveDemo
         type="timeline"
         {...props}
+        group={false}
         events={[
           {
             start: addDays(
@@ -271,6 +273,7 @@ export const MonthInteractive: Story = {
       <InteractiveDemo
         type="timeline"
         {...props}
+        group={false}
         events={manyEvents}
         timelineResolution={props.resolution}
         sx={{
@@ -294,6 +297,7 @@ export const ThreeMonthsInteractive: Story = {
       <InteractiveDemo
         type="timeline"
         {...props}
+        group={false}
         events={manyEvents}
         timelineResolution={props.resolution}
         sx={{
@@ -317,6 +321,7 @@ export const YearInteractive: Story = {
       <InteractiveDemo
         type="timeline"
         {...props}
+        group={false}
         events={manyEvents}
         timelineResolution={props.resolution}
         sx={{
@@ -340,6 +345,7 @@ export const ThreeYearsInteractive: Story = {
       <InteractiveDemo
         type="timeline"
         {...props}
+        group={false}
         events={manyEvents}
         timelineResolution={props.resolution}
         sx={{
@@ -401,9 +407,36 @@ export const ManyEvents: Story = {
       <InteractiveDemo
         type="timeline"
         {...props}
+        group={false}
         events={events}
         timelineResolution={props.resolution}
         getId={(e) => e.data.id}
+        sx={{
+          height: "calc(100vh - 64px)",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      />
+    );
+  },
+};
+
+export const Grouped: Story = {
+  args: {
+    startDay: "monday",
+    resolution: "3-years",
+  },
+
+  render: (props) => {
+    const events = generateRandomEvents(5000);
+    return (
+      <InteractiveDemo
+        type="timeline"
+        {...props}
+        events={events}
+        timelineResolution={props.resolution}
+        getId={(e) => e.data.id}
+        group={true}
         sx={{
           height: "calc(100vh - 64px)",
           display: "flex",
@@ -425,6 +458,7 @@ export const RealEvents: Story = {
       <InteractiveDemo
         type="timeline"
         {...props}
+        group={false}
         events={realEvents}
         timelineResolution={props.resolution}
         getId={(e) => e.data.id}
@@ -477,6 +511,7 @@ export const BuggedEvents1: Story = {
       <InteractiveDemo
         type="timeline"
         {...props}
+        group={false}
         events={events}
         timelineResolution={props.resolution}
         sx={{
@@ -542,6 +577,7 @@ export const BuggedEvents2: Story = {
       <InteractiveDemo
         type="timeline"
         {...props}
+        group={false}
         events={events}
         timelineResolution={props.resolution}
         sx={{

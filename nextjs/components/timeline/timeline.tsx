@@ -1,4 +1,11 @@
-import { Box, BoxProps, Button, Typography, useTheme } from "@mui/material";
+import {
+  Box,
+  BoxProps,
+  Button,
+  Tooltip,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import {
   StartOfWeekOptions,
   addDays,
@@ -58,6 +65,26 @@ import { timelineHeaderHeight } from "./timeline_height";
 import { widthToPct } from "./to_pct";
 import { minRenderedEventDuration } from "../events_to_rows";
 
+type TimelineGroup<T> = {
+  /**
+   * group key
+   */
+  key: string;
+  /**
+   * title of the group
+   */
+  title: string;
+  /**
+   * color of the group
+   */
+  color: string;
+
+  /**
+   * Use these rows instead of the default rows
+   */
+  rows: CalendarEvent<T>[][];
+};
+
 export type TimelineProps<T> = {
   /**
    * Events for the calendar. Memoize this prop for better performance
@@ -76,20 +103,7 @@ export type TimelineProps<T> = {
     /**
      * a list of groups
      */
-    groups: {
-      /**
-       * group key
-       */
-      key: string;
-      /**
-       * title of the group
-       */
-      title: string;
-      /**
-       * color of the group
-       */
-      color: string;
-    }[];
+    groups: TimelineGroup<T>[];
   };
 
   /**
@@ -327,7 +341,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
       };
 
       if (resolution === "month") {
-        return snapToHour();
+        return snapToDay();
       }
       if (resolution === "3-months") {
         return snapToDay();
@@ -336,7 +350,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
         return snapToDay();
       }
       if (resolution === "3-years") {
-        return snapToWeek();
+        return snapToMonth();
       }
       return { start, end };
     },
@@ -352,15 +366,33 @@ export function Timeline<T>(props: TimelineProps<T>) {
     DraggedEvent<ModifiableEvent<T>> | undefined
   >(undefined);
 
-  const allRows = React.useMemo(() => {
-    return sourceRows.map((sourceRow) =>
-      sourceRow.map((sourceEvent) => ({
-        sourceEvent,
-        start: getEventStart(sourceEvent),
-        end: getEventEnd(sourceEvent),
-      }))
-    );
-  }, [sourceRows]);
+  const { allRows, eventGroupMap } = React.useMemo(() => {
+    let allRows = sourceRows;
+    const eventGroupMap: (TimelineGroup<T> | undefined)[] = [];
+    if (group) {
+      allRows = [];
+      group.groups.forEach((group) => {
+        group.rows.forEach((row) => {
+          allRows.push(row);
+          eventGroupMap.push(group);
+        });
+      });
+      sourceRows.forEach((row, rowIndex) => {
+        allRows.push(row);
+        eventGroupMap.push(undefined);
+      });
+    }
+    return {
+      allRows: allRows.map((sourceRow) =>
+        sourceRow.map((sourceEvent) => ({
+          sourceEvent,
+          start: getEventStart(sourceEvent),
+          end: getEventEnd(sourceEvent),
+        }))
+      ),
+      eventGroupMap,
+    };
+  }, [sourceRows, group]);
 
   const rows: ModifiableEvent<T>[][] = React.useMemo(
     () => parseEventsInTimeline(allRows, resolution, startTime),
@@ -415,7 +447,10 @@ export function Timeline<T>(props: TimelineProps<T>) {
       }
 
       if (state.hasDragged) {
-        return snapFn(start, end);
+        // in use_mouse only start is changed when resizing from left and end when resizing from right
+        // thus snap both during resize
+        // otherwise just snap the start position
+        return snapFn(start, end, dragged.resize ? "both" : "start");
       }
     }
     return undefined;
@@ -482,13 +517,13 @@ export function Timeline<T>(props: TimelineProps<T>) {
 
   const start = timelineStart.getTime();
   const end = timelineEnd.getTime();
-  const totalSecondsOfMonth = end - start;
 
   const headerHeight = timelineHeaderHeight({
     resolution,
   });
 
-  const { height, setWrapperRef, hasMeasuredHeight } = useMeasureHeight(0);
+  const { height, setWrapperRef, hasMeasuredHeight, width } =
+    useMeasureHeight(0);
 
   // half a screen of rows
   const padding = Math.floor(height / 17 / 2);
@@ -554,47 +589,49 @@ export function Timeline<T>(props: TimelineProps<T>) {
   const scrollLength = rows.length * 17;
 
   const empty = rows.length === 0 || rows.every((r) => r.length === 0);
+  const leftSidebarWidth = 64;
+
+  const startOfTimeline = timelineStart.getTime();
+  const endOfTimeline = timelineEnd.getTime();
+  const totalSecondsOfTimeline = end - start;
 
   return (
     <Box
-      sx={{ position: "relative", display: "flex", height: "100%", flex: 1 }}
+      sx={{
+        position: "relative",
+        display: "flex",
+        height: "100%",
+        flex: 1,
+        flexDirection: "column",
+        opacity: hasMeasuredHeight ? 1 : 0,
+        transition: "opacity 0.2s ease-in-out",
+      }}
     >
       <Box
-        className="timeline"
         sx={{
-          position: "relative",
-          flex: 1,
-          overflow: "auto",
+          display: "flex",
+          alignItems: "stretch",
         }}
-        component="div"
-        ref={(el: HTMLDivElement | null) => {
-          setScrollableRef(el);
-          eventContainerRef.current = el;
-        }}
+        className="sticky-header-container"
       >
+        {group && (
+          <Box
+            sx={{
+              width: `${leftSidebarWidth}px`,
+              flexShrink: 0,
+              background: (theme) => theme.palette.background.paper,
+              height: `${noHeader ? 0 : headerHeight}px`,
+            }}
+          ></Box>
+        )}
         <Box
-          ref={setWrapperRef}
           sx={{
-            position: "absolute",
-            overflow: "hidden",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            top: `${noHeader ? 0 : headerHeight}px`,
-          }}
-        />
-        <Box
-          sx={{
-            width: "100%",
-            position: "sticky",
-            top: 0,
-            left: 0,
-            height: "100%",
-            zIndex: 2,
-            pointerEvents: "none",
+            position: "relative",
+            width: `${
+              !width ? "100%" : width - (group ? leftSidebarWidth : 0)
+            }px`,
           }}
         >
-          <Grid {...p} empty={empty} noHeader={noHeader} />
           {!noHeader && (
             <Box
               sx={{
@@ -612,6 +649,72 @@ export function Timeline<T>(props: TimelineProps<T>) {
             </Box>
           )}
         </Box>
+      </Box>
+
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          right: "0",
+          height: "100%",
+          zIndex: 0,
+          pointerEvents: "none",
+          display: "flex",
+          alignItems: "stretch",
+        }}
+        className="sticky-grid"
+      >
+        {group && (
+          <Box
+            sx={{
+              width: `${leftSidebarWidth}px`,
+              flexShrink: 0,
+              background: (theme) => theme.palette.background.paper,
+              height: `${noHeader ? 0 : headerHeight}px`,
+            }}
+          ></Box>
+        )}
+        <Box
+          sx={{
+            position: "relative",
+            width: `${
+              !width ? "100%" : width - (group ? leftSidebarWidth : 0)
+            }px`,
+          }}
+        >
+          <Grid
+            {...p}
+            empty={empty}
+            noHeader={noHeader}
+            totalSecondsOfTimeline={totalSecondsOfTimeline}
+            startOfTimeline={startOfTimeline}
+          />
+        </Box>
+      </Box>
+
+      <Box
+        className="timeline"
+        sx={{
+          position: "relative",
+          flex: 1,
+          overflow: "auto",
+        }}
+        component="div"
+        ref={(el: HTMLDivElement | null) => {
+          setScrollableRef(el);
+          eventContainerRef.current = el;
+        }}
+      >
+        {/* To measure the width/height of the container */}
+        <Box
+          ref={setWrapperRef}
+          sx={{
+            position: "absolute",
+            overflow: "hidden",
+            inset: 0,
+          }}
+        />
 
         <Box
           sx={{
@@ -619,7 +722,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
             bottom: 0,
             left: 0,
             right: 0,
-            top: `${noHeader ? 0 : headerHeight}px`,
+            top: 0,
             // backgroundColor: "yellow",
             pointerEvents: "none",
             zIndex: 1,
@@ -628,57 +731,116 @@ export function Timeline<T>(props: TimelineProps<T>) {
           <Box
             sx={{
               height: `${scrollLength}px`,
-              width: "64px",
+              width: `64px`,
               position: "absolute",
               pointerEvents: "none",
+              overflow: "hidden",
             }}
           ></Box>
-          {/* <Box sx={{ height: startIndex * 17, backgroundColor: "red" }} /> */}
           <Box
             style={{
               transform: `translateY(${startIndex * 17}px)`,
               pointerEvents: "all",
+              display: "flex",
+              alignItems: "stretch",
             }}
           >
-            {rows.slice(startIndex, endIndex + 1).map((row, index) => {
-              let draggedEventForRow:
-                | DraggedEvent<ModifiableEvent<T>>
-                | undefined;
+            {group && (
+              <Box
+                sx={{
+                  width: `${leftSidebarWidth}px`,
+                  flexShrink: 0,
+                }}
+                className="group-marker"
+              >
+                {eventGroupMap
+                  .slice(startIndex, endIndex + 1)
+                  .map((group, index) => {
+                    if (!group) {
+                      return null;
+                    }
+                    let last = false;
+                    if (
+                      eventGroupMap[index + startIndex + 1]?.key !== group.key
+                    ) {
+                      last = true;
+                    }
 
-              if (
-                row.some(
-                  (r) => r.sourceEvent === draggedEvent?.source.sourceEvent
-                )
-              ) {
-                draggedEventForRow = draggedEvent;
-              }
+                    if (last) {
+                      return (
+                        <Box
+                          sx={{
+                            height: "17px",
+                            borderBottom:
+                              "3px solid " + (group.color ?? DEFAULT_COLOR),
+                            borderRight:
+                              "3px solid " + (group.color ?? DEFAULT_COLOR),
+                            position: "relative",
+                            overflow: "hidden",
+                          }}
+                          key={startIndex + index}
+                        >
+                          <Tooltip title={group.title} placement="top">
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                position: "absolute",
+                                top: "-2px",
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis",
+                                width: "100%",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {group.title}
+                            </Typography>
+                          </Tooltip>
+                        </Box>
+                      );
+                    }
+                    return (
+                      <Box
+                        sx={{
+                          height: "17px",
+                          borderRight:
+                            "3px solid " + (group.color ?? DEFAULT_COLOR),
+                        }}
+                        key={startIndex + index}
+                      ></Box>
+                    );
+                  })}
+              </Box>
+            )}
+            <Box sx={{ flex: 1 }}>
+              {rows.slice(startIndex, endIndex + 1).map((row, index) => {
+                let draggedEventForRow:
+                  | DraggedEvent<ModifiableEvent<T>>
+                  | undefined;
 
-              return (
-                <Row
-                  row={row}
-                  key={startIndex + index}
-                  draggedEvent={draggedEventForRow}
-                  rowIndex={startIndex + index}
-                  timelineStart={timelineStart}
-                  timelineEnd={timelineEnd}
-                  resolution={resolution}
-                />
-              );
-            })}
+                if (
+                  row.some(
+                    (r) => r.sourceEvent === draggedEvent?.source.sourceEvent
+                  )
+                ) {
+                  draggedEventForRow = draggedEvent;
+                }
+
+                return (
+                  <Row
+                    row={row}
+                    key={startIndex + index}
+                    draggedEvent={draggedEventForRow}
+                    rowIndex={startIndex + index}
+                    timelineStart={timelineStart}
+                    timelineEnd={timelineEnd}
+                    resolution={resolution}
+                  />
+                );
+              })}
+            </Box>
           </Box>
         </Box>
       </Box>
-      <Box
-        sx={{
-          position: "absolute",
-          zIndex: 3,
-          inset: 0,
-          backdropFilter: "blur(5px)",
-          top: `${noHeader ? 0 : headerHeight}px`,
-          display: "none",
-          pointerEvents: "none",
-        }}
-      ></Box>
     </Box>
   );
 }
@@ -720,7 +882,7 @@ const Row = React.memo(function Row<T>({
 }) {
   const start = timelineStart.getTime();
   const end = timelineEnd.getTime();
-  const totalSecondsOfMonth = end - start;
+  const totalSecondsOfTimeline = end - start;
   const theme = useTheme();
 
   return (
@@ -740,7 +902,7 @@ const Row = React.memo(function Row<T>({
             event={event}
             draggedEvent={dragged ? draggedEvent : undefined}
             start={start}
-            totalSecondsOfMonth={totalSecondsOfMonth}
+            totalSecondsOfTimeline={totalSecondsOfTimeline}
             rowIndex={rowIndex}
             evIndex={evIndex}
             resolution={resolution}
@@ -755,7 +917,7 @@ const RowEvent = React.memo(function RowEvent<T>({
   draggedEvent,
   event,
   start,
-  totalSecondsOfMonth,
+  totalSecondsOfTimeline,
   rowIndex,
   evIndex,
   resolution,
@@ -763,7 +925,7 @@ const RowEvent = React.memo(function RowEvent<T>({
   draggedEvent?: DraggedEvent<ModifiableEvent<T>>;
   event: ModifiableEvent<T>;
   start: number;
-  totalSecondsOfMonth: number;
+  totalSecondsOfTimeline: number;
   rowIndex: number;
   evIndex: number;
   resolution: TimelineResolution;
@@ -791,10 +953,10 @@ const RowEvent = React.memo(function RowEvent<T>({
   }
 
   const x = widthToPct(
-    (720 * (evStart.getTime() - start)) / totalSecondsOfMonth
+    (720 * (evStart.getTime() - start)) / totalSecondsOfTimeline
   );
   const w = widthToPct(
-    (720 * (evEnd.getTime() - evStart.getTime())) / totalSecondsOfMonth
+    (720 * (evEnd.getTime() - evStart.getTime())) / totalSecondsOfTimeline
   );
 
   let width = differenceInCalendarDays(evEnd, evStart);
@@ -817,7 +979,6 @@ const RowEvent = React.memo(function RowEvent<T>({
 
   const theme = useTheme();
 
-
   return (
     <React.Fragment>
       <Box
@@ -826,16 +987,16 @@ const RowEvent = React.memo(function RowEvent<T>({
         {...dataProps}
         style={{
           minWidth: "auto",
-          width: dragged ? `calc(${w} + 2px)` : w,
-          left: dragged ? `calc(${x} - 1px)` : x,
+          width: w,
+          left: x,
           height: "16px",
           position: "absolute",
           borderRadius: "4px",
           padding: 0,
           margin: 0,
           zIndex: dragged ? 2 : 1,
-          paddingLeft: dragged ? "1px" : 0,
-          paddingRight: dragged ? "1px" : 0,
+          paddingLeft: 0,
+          paddingRight: 0,
           background: "white",
           overflow: "hidden",
         }}
@@ -845,7 +1006,6 @@ const RowEvent = React.memo(function RowEvent<T>({
             borderRadius: "4px",
             height: "16px",
             overflow: "hidden",
-            boxShadow: dragged ? theme.shadows[4] : "none",
             backgroundColor: color,
             display: "flex",
             justifyContent: "center",
@@ -855,6 +1015,7 @@ const RowEvent = React.memo(function RowEvent<T>({
             whiteSpace: "nowrap",
             padding: 0,
             pointerEvents: "none",
+            width: "100%",
           }}
         >
           <Box

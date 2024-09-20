@@ -5,22 +5,24 @@ export const useMeasureHeight = (initialHeight: number) => {
 
   const [hasMeasuredHeight, setHasMeasuredHeight] = useState(false);
   const [height, setHeight] = useState<number>(initialHeight);
+  const [width, setWidth] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     if (!wrapperRef) {
       return;
     }
     let t: number;
-    const updateHeight = (h: number) => {
+    const updateSize = (w: number, h: number) => {
       cancelAnimationFrame(t);
       t = requestAnimationFrame(() => {
+        setWidth(w);
         setHeight(h);
         setHasMeasuredHeight(true);
       });
     };
     const observer = new ResizeObserver((entries) => {
       for (let entry of entries) {
-        updateHeight(entry.contentRect.height);
+        updateSize(entry.contentRect.width, entry.contentRect.height);
       }
     });
     observer.observe(wrapperRef);
@@ -28,5 +30,5 @@ export const useMeasureHeight = (initialHeight: number) => {
       observer.disconnect();
     };
   }, [wrapperRef]);
-  return { height, setWrapperRef, hasMeasuredHeight };
+  return { width, height, setWrapperRef, hasMeasuredHeight };
 };

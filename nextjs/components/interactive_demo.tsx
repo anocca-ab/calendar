@@ -4,13 +4,28 @@ import { CalendarEvent, TimelineResolution } from "@/components/types";
 import React from "react";
 import { WeekCalendar } from "./week_calendar/week_calendar";
 import { MonthCalendar } from "./month_calendar/month_calendar";
-import { Timeline } from "./timeline/timeline";
+import { Timeline, TimelineProps } from "./timeline/timeline";
 import { Box, SxProps } from "@mui/material";
 import { TimelineNav } from "./nav/timeline_nav";
 import { DEFAULT_COLOR, mergeSx } from "./helpers";
 import { eventsToRows } from "@/components/events_to_rows";
 
 type CalEventWithKey = CalendarEvent<{ data: { key: string } }>;
+
+function getRandomName() {
+  return [
+    "John",
+    "Doe",
+    "Jane",
+    "Smith",
+    "Alice",
+    "Brown",
+    "Bob",
+    "White",
+    "Charlie",
+    "Black",
+  ][Math.floor(Math.random() * 10)];
+}
 
 export function InteractiveDemo(props: {
   events?: CalendarEvent<undefined>[];
@@ -23,6 +38,7 @@ export function InteractiveDemo(props: {
   sidebar?: boolean;
   workWeek?: boolean;
   startOfWeek?: Date;
+  group?: boolean;
   onCreateEvent?: (start: Date, end: Date | undefined) => void;
   onMoveEvent?: (
     event: CalendarEvent<undefined>,
@@ -44,8 +60,45 @@ export function InteractiveDemo(props: {
   );
   const _rows = React.useMemo(() => {
     return eventsToRows(realEvents, props.timelineResolution ?? "month");
-  }, [realEvents]);
+  }, [props.timelineResolution, realEvents]);
   const rows = (props.rows ?? _rows) as typeof _rows;
+
+  const group: TimelineProps<{ data: { key: string } }>["group"] =
+    React.useMemo(() => {
+      if (!props.group) {
+        return undefined;
+      }
+      const getGroup = (event: CalEventWithKey) => {
+        return event.color ?? DEFAULT_COLOR;
+      };
+
+      const groupsRecord: Record<
+        string,
+        { key: string; title: string; color: string; events: CalEventWithKey[] }
+      > = {};
+
+      realEvents.forEach((event) => {
+        const group = getGroup(event);
+        if (!groupsRecord[group]) {
+          groupsRecord[group] = {
+            key: group,
+            title: group + getRandomName(),
+            color: group,
+            events: [],
+          };
+        }
+        groupsRecord[group].events.push(event);
+      });
+
+      const groups = Object.values(groupsRecord).map((group) => ({
+        ...group,
+        rows: eventsToRows(
+          group.events ?? [],
+          props.timelineResolution ?? "month"
+        ),
+      }));
+      return { getGroup, groups };
+    }, [props.timelineResolution, realEvents, props.group]);
 
   const setEvents = (
     events:
@@ -210,6 +263,7 @@ export function InteractiveDemo(props: {
       <CalendarType
         {...props}
         rows={rows}
+        group={group}
         startTime={startTime} // timeline
         startOfWeek={startTime} // week calendar
         startOfMonth={startTime} // month calendar

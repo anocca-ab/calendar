@@ -72,7 +72,7 @@ export function Theme({
         },
         ...calendarTheme,
       }),
-    [prefersDarkMode, theme]
+    [origTheme, prefersDarkMode, theme]
   );
 
   return <ThemeProvider theme={muiTheme}>{children}</ThemeProvider>;
