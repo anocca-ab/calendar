@@ -472,6 +472,32 @@ export const RealEvents: Story = {
   },
 };
 
+export const WithDefaultColor: Story = {
+  args: {
+    startDay: "monday",
+    resolution: "3-years",
+  },
+
+  render: (props) => {
+    return (
+      <InteractiveDemo
+        type="timeline"
+        {...props}
+        group={false}
+        events={realEvents}
+        timelineResolution={props.resolution}
+        getId={(e) => e.data.id}
+        defaultEventColor="red"
+        sx={{
+          height: "calc(100vh - 64px)",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      />
+    );
+  },
+};
+
 export const BuggedEvents1: Story = {
   args: {
     startDay: "monday",

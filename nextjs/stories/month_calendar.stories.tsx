@@ -251,3 +251,16 @@ export const DynamicHeight: Story = {
     );
   },
 };
+
+export const WithDefaultColor: Story = {
+  args: {
+    events: [...monthEvents],
+  },
+  render: (props) => {
+    return (
+      <Box sx={{ height: "100vh" }}>
+        <InteractiveDemo type="month" {...props} defaultEventColor="red" />
+      </Box>
+    );
+  },
+};

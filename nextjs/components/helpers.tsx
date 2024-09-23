@@ -173,7 +173,7 @@ export function parseColor(background: string): ParsedColor | undefined {
     const unsaturated: Hsla = {
       ...hsla,
       s: Math.max(hsla.s * 0.7, 0),
-      l: Math.min(hsla.l * 1.3, 100),
+      l: Math.max(Math.min(hsla.l * 1.3, 100), 70),
     };
     unsaturated.cssString = `hsla(${unsaturated.h}, ${unsaturated.s}%, ${unsaturated.l}%, ${unsaturated.a})`;
     const contrastText = getContrastText(imageData);
@@ -181,11 +181,11 @@ export function parseColor(background: string): ParsedColor | undefined {
     c.clearRect(x, y, 1, 1);
     c.fillStyle = unsaturated.cssString;
     c.fillRect(x, y, 1, 1);
-    const unsaturatedContrastText = contrastText;
+    // const unsaturatedContrastText = contrastText;
     // or if we want the contrast text to be calculated on the more unsaturated color
-    // const saturatedContrastText = getContrastText(
-    //   c.getImageData(x, y, 1, 1).data
-    // );
+    const unsaturatedContrastText = getContrastText(
+      c.getImageData(x, y, 1, 1).data
+    );
 
     const result: ParsedColor = {
       hsla,

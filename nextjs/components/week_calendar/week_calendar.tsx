@@ -317,7 +317,6 @@ function WeekCalendarHeader<T>(props: {
     return undefined;
   }
 
-
   const getEvent = (index: string): ModifiableEvent<T> | undefined => {
     return events[parseInt(index)];
   };
@@ -901,6 +900,18 @@ function WeekCalendarGrid<T>(props: {
     }
   }, [props.autoScroll, timeIndicator]);
 
+  let showTimeIndicator = false;
+
+  if (now.getTime() >= startOfWeek.getTime()) {
+    if (workWeek) {
+      if (now.getTime() <= addDays(startOfWeek, 5).getTime()) {
+        showTimeIndicator = true;
+      }
+    } else if (now.getTime() <= endOfWeek(startOfWeek, options).getTime()) {
+      showTimeIndicator = true;
+    }
+  }
+
   return (
     <Box
       sx={{
@@ -1131,7 +1142,8 @@ function WeekCalendarGrid<T>(props: {
                   </Typography>
                 )}
               </Box>
-              {event.sourceEvent.canEdit && !isTask(event.sourceEvent) &&
+              {event.sourceEvent.canEdit &&
+                !isTask(event.sourceEvent) &&
                 (["start", "end"] as const).map((pos, i) => (
                   <Box
                     key={i}
@@ -1164,33 +1176,35 @@ function WeekCalendarGrid<T>(props: {
         })}
       </Box>
 
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-        }}
-      >
-        {/* Time Indicator */}
+      {showTimeIndicator && (
         <Box
-          className="time-indicator"
-          ref={setTimeIndicatorRef}
           sx={{
             position: "absolute",
-            top: differenceInMinutes(now, startOfDay(now)),
-            left: widthToPct(
-              differenceInCalendarDays(now, startOfWeek) * 120 + 1,
-              daysInWeek
-            ),
-            width: `calc(${widthToPct(120, daysInWeek)} + 6.5px)`,
-            height: "13px",
-            marginTop: "-6px",
-            marginLeft: `calc(-${widthToPct(1, daysInWeek)} - 6.5px)`,
+            inset: 0,
+            pointerEvents: "none",
           }}
         >
-          <TimeIndicator />
+          {/* Time Indicator */}
+          <Box
+            className="time-indicator"
+            ref={setTimeIndicatorRef}
+            sx={{
+              position: "absolute",
+              top: differenceInMinutes(now, startOfDay(now)),
+              left: widthToPct(
+                differenceInCalendarDays(now, startOfWeek) * 120 + 1,
+                daysInWeek
+              ),
+              width: `calc(${widthToPct(120, daysInWeek)} + 6.5px)`,
+              height: "13px",
+              marginTop: "-6px",
+              marginLeft: `calc(-${widthToPct(1, daysInWeek)} - 6.5px)`,
+            }}
+          >
+            <TimeIndicator />
+          </Box>
         </Box>
-      </Box>
+      )}
     </Box>
   );
 }

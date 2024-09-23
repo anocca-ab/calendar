@@ -34,6 +34,8 @@ import React, {
 } from "react";
 import { MoreButton, eventGrid, monthCalendarRange } from "../event_grid";
 import {
+  DEFAULT_COLOR,
+  getEventColor,
   getEventEnd,
   getEventStart,
   heightToPct,
@@ -134,6 +136,12 @@ export type MonthCalendarProps<T> = {
   onClickEvent?: (event: CalendarEvent<T>, nativeEvent: MouseEvent) => void;
 
   /**
+   * This is the default event color, when no event.color is provided (and for new events that are created by dragging for example)
+   * @default "#FF7043"
+   */
+  defaultEventColor?: string;
+
+  /**
    * Provide elements that scroll around the calendar so that events can be moved while the user is scrolling
    * @default [window]
    */
@@ -160,11 +168,12 @@ function parseDefaultProps<T>(props: MonthCalendarProps<T>) {
     onMoveEvent: props.onMoveEvent,
     onClickEvent: props.onClickEvent,
     scrollContainers,
+    defaultEventColor: props.defaultEventColor ?? DEFAULT_COLOR,
   };
 }
 
 export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
-  const { startDay, now, startOfMonth, ...calendarProps } =
+  const { startDay, now, startOfMonth, defaultEventColor, ...calendarProps } =
     parseDefaultProps(props);
 
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
@@ -726,12 +735,22 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         (draggedEvent?.dragged &&
                           draggedEvent.source.sourceEvent ===
                             event.sourceEvent);
+
+                      const { bg, color } = getEventColor(
+                        now,
+                        getEventEnd(event.sourceEvent),
+                        theme,
+                        event.sourceEvent.color ?? defaultEventColor
+                      );
+
                       const props: React.ComponentPropsWithoutRef<
                         typeof MonthCalendarEvent
                       > = {
                         event: event.sourceEvent,
                         disableInteractive,
                         disableRipple,
+                        bg,
+                        color,
                         sx: {
                           width: widthToPct(width * 119 - 4, daysInWeek),
                           left: `${widthToPct(day * 119 + 4, daysInWeek)}`,
@@ -883,11 +902,21 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         (draggedEvent?.dragged &&
                           draggedEvent.source.sourceEvent ===
                             event.sourceEvent);
+
+                      const { bg, color } = getEventColor(
+                        now,
+                        getEventEnd(event.sourceEvent),
+                        theme,
+                        event.sourceEvent.color ?? defaultEventColor
+                      );
+
                       const props: React.ComponentPropsWithoutRef<
                         typeof MonthCalendarEvent
                       > = {
                         event: event.sourceEvent,
                         disableInteractive,
+                        bg,
+                        color,
                         sx: {
                           width: "100%",
                           top: index * (16 + 1),

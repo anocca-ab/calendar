@@ -12,6 +12,8 @@ export function MonthCalendarEvent<T>({
   allDayEvent,
   disableInteractive,
   dataProps,
+  bg,
+  color,
   ...buttonProps
 }: {
   event: CalendarEvent<T>;
@@ -20,8 +22,10 @@ export function MonthCalendarEvent<T>({
   triangle?: "right" | "left" | "both";
   disableInteractive?: boolean;
   dataProps: any;
-} & React.ComponentPropsWithRef<typeof Button>) {
-  const { start, title, color } = event;
+  bg: string;
+  color: string;
+} & Omit<React.ComponentProps<typeof Button>, "color">) {
+  const { start, title } = event;
 
   return (
     <Box
@@ -54,17 +58,12 @@ export function MonthCalendarEvent<T>({
       )}
     >
       {allDayEvent && (triangle === "left" || triangle === "both") && (
-        <Triangle
-          direction={"left"}
-          height={16}
-          width={12}
-          color={color ?? DEFAULT_COLOR}
-        />
+        <Triangle direction={"left"} height={16} width={12} color={bg} />
       )}
       {allDayEvent ? (
         <FlexRow
           sx={{
-            bgcolor: color ?? DEFAULT_COLOR,
+            bgcolor: bg,
             justifyContent: "flex-start",
             padding: "0px 8px",
             flex: 1,
@@ -72,10 +71,7 @@ export function MonthCalendarEvent<T>({
             alignItems: "center",
           }}
         >
-          <Typography
-            variant="event"
-            color={(theme) => theme.palette.primary.contrastText}
-          >
+          <Typography variant="event" color={color}>
             {title ?? "(No title)"}
           </Typography>
         </FlexRow>
@@ -96,7 +92,7 @@ export function MonthCalendarEvent<T>({
           }}
         >
           <FlexCol justifyContent="center" width="8px">
-            <EventDot color={color ?? DEFAULT_COLOR} />
+            <EventDot color={bg} />
           </FlexCol>
           <FlexRow gap="6px" alignItems="center">
             <Typography
@@ -125,12 +121,7 @@ export function MonthCalendarEvent<T>({
         </FlexRow>
       )}
       {allDayEvent && (triangle === "right" || triangle === "both") && (
-        <Triangle
-          direction={"right"}
-          height={16}
-          width={12}
-          color={color ?? DEFAULT_COLOR}
-        />
+        <Triangle direction={"right"} height={16} width={12} color={bg} />
       )}
     </Box>
   );

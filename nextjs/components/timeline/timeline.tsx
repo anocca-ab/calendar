@@ -36,6 +36,7 @@ import {
 import React from "react";
 import {
   DEFAULT_COLOR,
+  getEventColor,
   getEventEnd,
   getEventStart,
   isTask,
@@ -163,6 +164,12 @@ export type TimelineProps<T> = {
   onClickEvent?: (event: CalendarEvent<T>, nativeEvent: MouseEvent) => void;
 
   /**
+   * This is the default event color, when no event.color is provided (and for new events that are created by dragging for example)
+   * @default "#FF7043"
+   */
+  defaultEventColor?: string;
+
+  /**
    * Provide elements that scroll around the calendar so that events can be moved while the user is scrolling
    * @default [window]
    */
@@ -226,6 +233,7 @@ function useParseDefaultProps<T>(props: TimelineProps<T>) {
     noHeader: props.noHeader,
     group: props.group,
     getId: props.getId,
+    defaultEventColor: props.defaultEventColor ?? DEFAULT_COLOR,
   };
 }
 
@@ -239,6 +247,8 @@ export function Timeline<T>(props: TimelineProps<T>) {
     noHeader,
     group,
     getId,
+    defaultEventColor,
+    now,
     ...calendarProps
   } = p;
 
@@ -595,6 +605,12 @@ export function Timeline<T>(props: TimelineProps<T>) {
   const endOfTimeline = timelineEnd.getTime();
   const totalSecondsOfTimeline = end - start;
 
+  let displayTimeIndicator = false;
+  if (now.getTime() >= start && now.getTime() <= end) {
+    displayTimeIndicator = true;
+  }
+
+
   return (
     <Box
       sx={{
@@ -692,6 +708,34 @@ export function Timeline<T>(props: TimelineProps<T>) {
           />
         </Box>
       </Box>
+      {displayTimeIndicator && (
+        <Box
+          sx={{
+            position: "absolute",
+            left: group ? leftSidebarWidth : 0,
+            width: `${
+              !width ? "100%" : width - (group ? leftSidebarWidth : 0)
+            }px`,
+            bottom: 0,
+            top: `${noHeader ? 0 : headerHeight}px`,
+            zIndex: 2,
+            pointerEvents: "none",
+          }}
+        >
+          <Box
+            sx={{
+              position: "absolute",
+              pointerEvents: "none",
+              left: widthToPct(
+                (720 * (now.getTime() - start)) / totalSecondsOfTimeline
+              ),
+              height: "100%",
+            }}
+          >
+            <TimeIndicator />
+          </Box>
+        </Box>
+      )}
 
       <Box
         className="timeline"
@@ -834,6 +878,8 @@ export function Timeline<T>(props: TimelineProps<T>) {
                     timelineStart={timelineStart}
                     timelineEnd={timelineEnd}
                     resolution={resolution}
+                    defaultEventColor={defaultEventColor}
+                    now={now}
                   />
                 );
               })}
@@ -872,6 +918,8 @@ const Row = React.memo(function Row<T>({
   timelineStart,
   timelineEnd,
   resolution,
+  defaultEventColor,
+  now,
 }: {
   row: ModifiableEvent<T>[];
   rowIndex: number;
@@ -879,6 +927,8 @@ const Row = React.memo(function Row<T>({
   timelineStart: Date;
   timelineEnd: Date;
   resolution: TimelineResolution;
+  defaultEventColor: string;
+  now: Date;
 }) {
   const start = timelineStart.getTime();
   const end = timelineEnd.getTime();
@@ -896,6 +946,12 @@ const Row = React.memo(function Row<T>({
     >
       {row.map((event, evIndex) => {
         const dragged = draggedEvent?.source.sourceEvent === event.sourceEvent;
+        const { bg, color } = getEventColor(
+          now,
+          getEventEnd(event.sourceEvent),
+          theme,
+          event.sourceEvent.color ?? defaultEventColor
+        );
         return (
           <RowEvent
             key={evIndex}
@@ -906,6 +962,8 @@ const Row = React.memo(function Row<T>({
             rowIndex={rowIndex}
             evIndex={evIndex}
             resolution={resolution}
+            bg={bg}
+            color={color}
           />
         );
       })}
@@ -921,6 +979,8 @@ const RowEvent = React.memo(function RowEvent<T>({
   rowIndex,
   evIndex,
   resolution,
+  bg,
+  color,
 }: {
   draggedEvent?: DraggedEvent<ModifiableEvent<T>>;
   event: ModifiableEvent<T>;
@@ -929,6 +989,8 @@ const RowEvent = React.memo(function RowEvent<T>({
   rowIndex: number;
   evIndex: number;
   resolution: TimelineResolution;
+  bg: string;
+  color: string;
 }) {
   let evStart = event.start;
   let evEnd = event.end;
@@ -964,7 +1026,6 @@ const RowEvent = React.memo(function RowEvent<T>({
     width += 1;
   }
 
-  const color = event.sourceEvent.color ?? DEFAULT_COLOR;
   const title = event.sourceEvent.title ?? "(No title)";
 
   const dataProps: any = {
@@ -1006,7 +1067,7 @@ const RowEvent = React.memo(function RowEvent<T>({
             borderRadius: "4px",
             height: "16px",
             overflow: "hidden",
-            backgroundColor: color,
+            backgroundColor: bg,
             display: "flex",
             justifyContent: "center",
             flex: 1,
@@ -1030,10 +1091,7 @@ const RowEvent = React.memo(function RowEvent<T>({
               width: "100%",
             }}
           >
-            <Typography
-              variant="event"
-              style={{ color: theme.palette.primary.contrastText }}
-            >
+            <Typography variant="event" style={{ color }}>
               {title}
             </Typography>
           </Box>
@@ -1157,6 +1215,7 @@ function TimeIndicator(boxProps: BoxProps) {
         marginTop: "0px",
         position: "absolute",
         overflow: "hidden",
+        height: "100%",
       })}
     >
       <Box
