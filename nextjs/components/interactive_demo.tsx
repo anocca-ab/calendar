@@ -49,8 +49,9 @@ export function InteractiveDemo(props: {
   noHeader?: boolean;
   sx?: SxProps;
   getId?: (event: CalendarEvent<any>) => string;
+  testSelection?: boolean;
 }) {
-  const { now, startDay, type, events: _events } = props;
+  const { now, startDay, type, events: _events, testSelection } = props;
   const [realEvents, _setEvents] = React.useState<CalEventWithKey[]>(
     (_events ?? []).map((ev) => ({
       ...ev,
@@ -58,9 +59,26 @@ export function InteractiveDemo(props: {
     }))
     // .sort((a, b) => a.start.getTime() - b.start.getTime())
   );
+  const [click, setClick] = React.useState(false);
+  React.useEffect(() => {
+    const click = () => {
+      setClick((c) => !c);
+    };
+    window.addEventListener("click", click);
+    return () => {
+      window.removeEventListener("click", click);
+    };
+  }, []);
   const _rows = React.useMemo(() => {
-    return eventsToRows(realEvents, props.timelineResolution ?? "month");
-  }, [props.timelineResolution, realEvents]);
+    return eventsToRows(
+      !testSelection
+        ? realEvents
+        : realEvents.map((ev) =>
+            ev.title === "0" ? { ...ev, selected: click } : ev
+          ),
+      props.timelineResolution ?? "month"
+    );
+  }, [props.timelineResolution, testSelection, realEvents, click]);
   const rows = (props.rows ?? _rows) as typeof _rows;
 
   const group: TimelineProps<{ data: { key: string } }>["group"] =
@@ -186,7 +204,16 @@ export function InteractiveDemo(props: {
   return (
     <Box
       p={2}
-      sx={mergeSx({ width: "100%", height: "100%" }, props.sx)}
+      sx={mergeSx(
+        {
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "stretch",
+        },
+        props.sx
+      )}
       className="interactive-demo"
     >
       {editedEvent && (
@@ -260,33 +287,35 @@ export function InteractiveDemo(props: {
           setTime={setStartTime}
         />
       )}
-      <CalendarType
-        {...props}
-        rows={rows}
-        group={group}
-        startTime={startTime} // timeline
-        startOfWeek={startTime} // week calendar
-        startOfMonth={startTime} // month calendar
-        events={events}
-        onCreateEvent={(start, end) => {
-          const ev: CalEventWithKey = {
-            canEdit: true,
-            color: props.defaultEventColor ?? DEFAULT_COLOR,
-            end,
-            start,
-            title: "(No title)",
-            data: {
-              key: Math.random().toString(),
-            },
-          };
-          setDraft(ev);
-          onClickEvent(ev);
-        }}
-        onClickEvent={(ev) => {
-          onClickEvent(ev);
-        }}
-        onMoveEvent={onMoveEvent}
-      />
+      <Box sx={{ flex: 1 }}>
+        <CalendarType
+          {...props}
+          rows={rows}
+          group={group}
+          startTime={startTime} // timeline
+          startOfWeek={startTime} // week calendar
+          startOfMonth={startTime} // month calendar
+          events={events}
+          onCreateEvent={(start, end) => {
+            const ev: CalEventWithKey = {
+              canEdit: true,
+              color: props.defaultEventColor ?? DEFAULT_COLOR,
+              end,
+              start,
+              title: "(No title)",
+              data: {
+                key: Math.random().toString(),
+              },
+            };
+            setDraft(ev);
+            onClickEvent(ev);
+          }}
+          onClickEvent={(ev) => {
+            onClickEvent(ev);
+          }}
+          onMoveEvent={onMoveEvent}
+        />
+      </Box>
     </Box>
   );
 }

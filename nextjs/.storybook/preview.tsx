@@ -51,8 +51,9 @@ const preview: Preview = {
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Box
               sx={{
-                background: (theme) => theme.palette.background.default,
-                color: "rgba(0, 0, 0, 0.87)",
+                background: (theme) => {
+                  return theme.palette.background.default;
+                },
                 WebkitFontSmoothing: "antialiased",
                 // Antialiasing.
                 MozOsxFontSmoothing: "grayscale",

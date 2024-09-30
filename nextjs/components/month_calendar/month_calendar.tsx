@@ -3,6 +3,7 @@ import {
   Button,
   ButtonProps,
   Divider,
+  Paper,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -396,11 +397,14 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
         <FlexRow width="100%" height="20px">
           <FlexCol
             sx={{
-              bgcolor: "rgba(236,239,241,1)",
               height: "20px",
               alignItems: "center",
               borderRadius: "4px",
               width: "20px",
+              bgcolor: (theme) =>
+                theme.palette.mode === "light"
+                  ? theme.palette.grey[200]
+                  : theme.palette.grey[900],
             }}
           >
             <FlexCol
@@ -409,7 +413,12 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                 alignItems: "center",
               }}
             >
-              <Typography variant="body2">W</Typography>
+              <Typography
+                variant="body2"
+                color={(theme) => theme.palette.text.primary}
+              >
+                W
+              </Typography>
             </FlexCol>
           </FlexCol>
           <MonthCalendarWeekdayBar />
@@ -751,36 +760,42 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         disableRipple,
                         bg,
                         color,
-                        sx: {
-                          width: widthToPct(width * 119 - 4, daysInWeek),
-                          left: `${widthToPct(day * 119 + 4, daysInWeek)}`,
-                          top: `calc(${heightToPct(
-                            week * 120,
-                            weeksInMonth
-                          )} + ${row * (16 + 1) + 1 + 32}px)`,
-                          height: "16px",
-                          position: "absolute",
-                          zIndex: 2,
-                          cursor: disableInteractive ? "auto" : "pointer",
-                          boxShadow:
-                            !disableInteractive &&
-                            draggedEvent?.dragged &&
-                            draggedEvent.source.sourceEvent ===
-                              event.sourceEvent
-                              ? theme.shadows[4]
-                              : theme.shadows[0],
-                          opacity:
-                            !disableInteractive &&
-                            draggedEvent?.source.sourceEvent ===
-                              event.sourceEvent
-                              ? 0.5
-                              : !disableInteractive &&
-                                draggedEvent?.dragged &&
-                                draggedEvent.source.sourceEvent ===
-                                  event.sourceEvent
-                              ? 0.75
-                              : 1,
-                        },
+                        sx: mergeSx(
+                          {
+                            width: widthToPct(width * 119 - 4, daysInWeek),
+                            left: `${widthToPct(day * 120 + 1, daysInWeek)}`,
+                            top: `calc(${heightToPct(
+                              week * 120,
+                              weeksInMonth
+                            )} + ${row * (16 + 1) + 1 + 32}px)`,
+                            height: "16px",
+                            position: "absolute",
+                            zIndex: 2,
+                            cursor: disableInteractive ? "auto" : "pointer",
+                            boxShadow:
+                              !disableInteractive &&
+                              draggedEvent?.dragged &&
+                              draggedEvent.source.sourceEvent ===
+                                event.sourceEvent
+                                ? theme.shadows[4]
+                                : theme.shadows[0],
+                            opacity:
+                              !disableInteractive &&
+                              draggedEvent?.source.sourceEvent ===
+                                event.sourceEvent
+                                ? 0.5
+                                : !disableInteractive &&
+                                  draggedEvent?.dragged &&
+                                  draggedEvent.source.sourceEvent ===
+                                    event.sourceEvent
+                                ? 0.75
+                                : 1,
+                          },
+                          event.sourceEvent.selected && {
+                            boxShadow: theme.shadows[6],
+                            border: `1px solid ${theme.palette.primary.main}`,
+                          }
+                        ),
                         allDayEvent: isAllDayEvent(event.sourceEvent),
                         state:
                           draggedEvent &&
@@ -799,7 +814,8 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
 
             {/** More events modal */}
             {modal && (
-              <Box
+              <Paper
+                elevation={4}
                 ref={setMoreEventsModalEl}
                 id="more-event-modal"
                 sx={{
@@ -812,11 +828,6 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                   top: modal.top,
                   left: modal.left,
                   zIndex: 3,
-                  bgcolor: (theme) =>
-                    theme.palette.mode === "light"
-                      ? theme.palette.background.default
-                      : "white",
-                  boxShadow: (theme) => theme.shadows[1],
                   borderRadius: "4px",
                 }}
               >
@@ -917,13 +928,19 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         disableInteractive,
                         bg,
                         color,
-                        sx: {
-                          width: "100%",
-                          top: index * (16 + 1),
-                          height: "16px",
-                          zIndex: 3,
-                          cursor: disableInteractive ? "auto" : "pionter",
-                        },
+                        sx: mergeSx(
+                          {
+                            width: "100%",
+                            top: index * (16 + 1),
+                            height: "16px",
+                            zIndex: 3,
+                            cursor: disableInteractive ? "auto" : "pionter",
+                          },
+                          event.sourceEvent.selected && {
+                            boxShadow: theme.shadows[6],
+                            border: `1px solid ${theme.palette.primary.main}`,
+                          }
+                        ),
                         disableRipple,
                         allDayEvent: isAllDayEvent(event.sourceEvent),
                         state:
@@ -948,7 +965,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                     Close
                   </Button>
                 </FlexCol>
-              </Box>
+              </Paper>
             )}
           </Box>
         </FlexRow>
@@ -967,7 +984,10 @@ function WeekIndicator({
   return (
     <FlexCol
       sx={{
-        bgcolor: "rgba(236,239,241,1)",
+        bgcolor: (theme) =>
+          theme.palette.mode === "light"
+            ? theme.palette.grey[200]
+            : theme.palette.grey[900],
         height: heightToPct(120, weeksInMonth),
         padding: "4px 0px",
         alignItems: "center",
@@ -983,7 +1003,12 @@ function WeekIndicator({
           height: "24px",
         }}
       >
-        <Typography variant="body2">{title}</Typography>
+        <Typography
+          variant="body2"
+          color={(theme) => theme.palette.text.primary}
+        >
+          {title}
+        </Typography>
       </FlexCol>
     </FlexCol>
   );

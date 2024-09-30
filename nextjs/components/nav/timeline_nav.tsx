@@ -202,7 +202,7 @@ export function TimelineNav(props: {
     year: "yyyy",
     "3-years": () =>
       `${format(currentDate, "yyyy")} – ${format(
-        addMonths(currentDate, 3),
+        addYears(currentDate, 2),
         "yyyy"
       )}`,
   };

@@ -21,8 +21,6 @@ import {
   differenceInCalendarDays,
   differenceInMilliseconds,
   endOfDay,
-  getDaysInMonth,
-  getDaysInYear,
   max,
   min,
   startOfDay,
@@ -34,6 +32,7 @@ import {
   subMilliseconds,
 } from "date-fns";
 import React from "react";
+import { minRenderedEventDuration } from "../events_to_rows";
 import {
   DEFAULT_COLOR,
   getEventColor,
@@ -55,7 +54,6 @@ import {
   DraggedEvent,
   EventContainer,
   MouseState,
-  useDragableEvents,
   useEffectRefs,
   useMouse,
 } from "../use_mouse";
@@ -64,7 +62,6 @@ import { Grid } from "./grid";
 import { Header } from "./header";
 import { timelineHeaderHeight } from "./timeline_height";
 import { widthToPct } from "./to_pct";
-import { minRenderedEventDuration } from "../events_to_rows";
 
 type TimelineGroup<T> = {
   /**
@@ -610,7 +607,6 @@ export function Timeline<T>(props: TimelineProps<T>) {
     displayTimeIndicator = true;
   }
 
-
   return (
     <Box
       sx={{
@@ -941,7 +937,6 @@ const Row = React.memo(function Row<T>({
         display: "flex",
         position: "relative",
         height: "17px",
-        overflow: "hidden",
       }}
     >
       {row.map((event, evIndex) => {
@@ -1040,6 +1035,17 @@ const RowEvent = React.memo(function RowEvent<T>({
 
   const theme = useTheme();
 
+  let extraStyle: React.CSSProperties = {};
+  let p = 8;
+
+  if (event.sourceEvent.selected) {
+    extraStyle = {
+      boxShadow: theme.shadows[6],
+      border: `1px solid ${theme.palette.primary.main}`,
+    };
+    p = 7;
+  }
+
   return (
     <React.Fragment>
       <Box
@@ -1060,13 +1066,12 @@ const RowEvent = React.memo(function RowEvent<T>({
           paddingRight: 0,
           background: "white",
           overflow: "hidden",
+          ...extraStyle,
         }}
       >
         <Box
           style={{
-            borderRadius: "4px",
             height: "16px",
-            overflow: "hidden",
             backgroundColor: bg,
             display: "flex",
             justifyContent: "center",
@@ -1081,8 +1086,8 @@ const RowEvent = React.memo(function RowEvent<T>({
         >
           <Box
             style={{
-              paddingLeft: "8px",
-              paddingRight: "8px",
+              paddingLeft: p + "px",
+              paddingRight: p + "px",
               flexShrink: 1,
               height: "16px",
               display: "flex",

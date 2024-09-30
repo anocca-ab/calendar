@@ -78,10 +78,6 @@ export function MonthCalendarEvent<T>({
       ) : (
         <FlexRow
           sx={{
-            bgcolor: (theme) =>
-              theme.palette.mode === "light"
-                ? theme.palette.background.default
-                : "white",
             alignItems: "center",
             gap: "6px",
             padding: "0px 0px 0px 3px",
@@ -97,11 +93,7 @@ export function MonthCalendarEvent<T>({
           <FlexRow gap="6px" alignItems="center">
             <Typography
               variant="event"
-              color={(theme) =>
-                theme.palette.mode === "dark"
-                  ? theme.palette.primary.contrastText
-                  : theme.palette.text.primary
-              }
+              color={(theme) => theme.palette.text.primary}
               sx={{ fontWeight: "400" }}
             >
               {`${format(start, "h:mm")}`}
@@ -109,11 +101,7 @@ export function MonthCalendarEvent<T>({
 
             <Typography
               variant="event"
-              color={(theme) =>
-                theme.palette.mode === "dark"
-                  ? theme.palette.primary.contrastText
-                  : theme.palette.text.primary
-              }
+              color={(theme) => theme.palette.text.primary}
             >
               {title ?? "(No Title)"}
             </Typography>

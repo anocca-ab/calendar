@@ -47,6 +47,13 @@ const meta = {
     startDay: "monday",
     now: new Date(),
   },
+  render: (props) => {
+    return (
+      <Box sx={{ height: "calc(100vh - 80px)" }}>
+        <InteractiveDemo type="month" {...props} />
+      </Box>
+    );
+  },
 } satisfies Meta<typeof MonthCalendar>;
 
 export default meta;
@@ -245,7 +252,21 @@ export const DynamicHeight: Story = {
   },
   render: (props) => {
     return (
-      <Box sx={{ height: "100vh" }}>
+      <Box sx={{ height: "calc(100vh - 80px)" }}>
+        <InteractiveDemo type="month" {...props} />
+      </Box>
+    );
+  },
+};
+export const WithSelected: Story = {
+  args: {
+    events: [
+      ...monthEvents.map((event, i) => ({ ...event, selected: i % 2 === 0 })),
+    ],
+  },
+  render: (props) => {
+    return (
+      <Box sx={{ height: "calc(100vh - 80px)" }}>
         <InteractiveDemo type="month" {...props} />
       </Box>
     );
@@ -258,7 +279,7 @@ export const WithDefaultColor: Story = {
   },
   render: (props) => {
     return (
-      <Box sx={{ height: "100vh" }}>
+      <Box sx={{ height: "calc(100vh - 80px)" }}>
         <InteractiveDemo type="month" {...props} defaultEventColor="red" />
       </Box>
     );

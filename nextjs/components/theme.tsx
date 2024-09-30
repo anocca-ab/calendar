@@ -63,16 +63,17 @@ export function Theme({
 }) {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
 
-  const origTheme = useTheme();
   const muiTheme = React.useMemo(
     () =>
-      createTheme(origTheme, {
-        palette: {
-          mode: theme ?? (prefersDarkMode ? "dark" : "light"),
+      createTheme(
+        {
+          palette: {
+            mode: theme ?? (prefersDarkMode ? "dark" : "light"),
+          },
         },
-        ...calendarTheme,
-      }),
-    [origTheme, prefersDarkMode, theme]
+        calendarTheme
+      ),
+    [prefersDarkMode, theme]
   );
 
   return <ThemeProvider theme={muiTheme}>{children}</ThemeProvider>;

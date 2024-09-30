@@ -421,6 +421,36 @@ export const ManyEvents: Story = {
   },
 };
 
+export const WithSelected: Story = {
+  args: {
+    startDay: "monday",
+    resolution: "3-years",
+  },
+
+  render: (props) => {
+    const events = generateRandomEvents(5000).map((e, i) => ({
+      ...e,
+      selected: i % 2 === 0,
+    }));
+    return (
+      <InteractiveDemo
+        type="timeline"
+        {...props}
+        group={false}
+        events={events}
+        timelineResolution={props.resolution}
+        getId={(e) => e.data.id}
+        testSelection
+        sx={{
+          height: "calc(100vh - 64px)",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      />
+    );
+  },
+};
+
 export const Grouped: Story = {
   args: {
     startDay: "monday",

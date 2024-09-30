@@ -525,7 +525,8 @@ function WeekCalendarHeader<T>(props: {
                   <AllDayCalendarOverflow
                     direction="left"
                     value={rawX}
-                    color={bg}
+                    color={color}
+                    bg={bg}
                     valueDate={start}
                     compact={width <= 1}
                   />
@@ -566,7 +567,8 @@ function WeekCalendarHeader<T>(props: {
                   <AllDayCalendarOverflow
                     direction="right"
                     value={dayOverflowRight}
-                    color={bg}
+                    bg={bg}
+                    color={color}
                     valueDate={end}
                     compact={width <= 1}
                   />
@@ -1213,6 +1215,7 @@ function AllDayCalendarOverflow({
   direction,
   value,
   color,
+  bg,
   valueDate,
   compact,
 }: {
@@ -1220,6 +1223,7 @@ function AllDayCalendarOverflow({
   value: number;
   valueDate: Date;
   color: string;
+  bg: string;
   compact?: boolean;
 }) {
   const t = (
@@ -1237,19 +1241,19 @@ function AllDayCalendarOverflow({
         pointerEvents: "none",
       }}
     >
-      <Triangle direction={direction} height={16} width={12} color={color} />
+      <Triangle direction={direction} height={16} width={12} color={bg} />
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           px: 0.5,
-          background: color,
+          background: bg,
         }}
       >
         <Typography
           variant="event"
-          color={(theme) => theme.palette.primary.contrastText}
+          color={color}
           sx={{
             whiteSpace: "nowrap",
             opacity: 0.7,
