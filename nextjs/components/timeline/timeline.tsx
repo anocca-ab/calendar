@@ -83,6 +83,13 @@ type TimelineGroup<T> = {
   rows: CalendarEvent<T>[][];
 };
 
+/**
+ * To render events we either use the `rows` or `group` prop. 
+ * 
+ * The `group` props defines how we can render groups of events.
+ * 
+ * `rows` will just render each row of events, you are responsible for spacing them out.
+ */
 export type TimelineProps<T> = {
   /**
    * Events for the calendar. Memoize this prop for better performance
@@ -91,7 +98,7 @@ export type TimelineProps<T> = {
   rows?: CalendarEvent<T>[][];
 
   /**
-   * Define how to group the events. Memoize this prop for better performance
+   * Define how to group the events. Memoize this prop for better performance.
    */
   group?: {
     /**
