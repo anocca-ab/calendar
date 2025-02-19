@@ -123,11 +123,14 @@ function MonthHeader({
                   >
                     <Typography
                       variant="event"
-                      sx={{ fontSize: "8px", lineHeight: "8px" }}
-                      color={(theme) => {
-                        return theme.palette.text[
-                          isSameDay(day, now) ? "primary" : "secondary"
-                        ];
+                      sx={{
+                        fontSize: "8px",
+                        lineHeight: "8px",
+                        color: (theme) => {
+                          return theme.palette.text[
+                            isSameDay(day, now) ? "primary" : "secondary"
+                          ];
+                        },
                       }}
                     >
                       {format(day, "d")}
@@ -210,7 +213,7 @@ function ThreeMonthHeader({
             return (
               <Box
                 key={index}
-                component={onCreateEvent ? Button : undefined}
+                component={onCreateEvent ? Button : "div"}
                 onClick={
                   onCreateEvent
                     ? () => onCreateEvent(month, endOfMonth(month))
@@ -235,11 +238,12 @@ function ThreeMonthHeader({
                 <Box>
                   <Typography
                     variant="h4"
-                    color={(theme) =>
-                      theme.palette.text[
-                        isSameMonth(month, now) ? "primary" : "secondary"
-                      ]
-                    }
+                    sx={{
+                      collor: (theme) =>
+                        theme.palette.text[
+                          isSameMonth(month, now) ? "primary" : "secondary"
+                        ],
+                    }}
                   >
                     {format(month, "MMM")}
                   </Typography>
@@ -367,7 +371,7 @@ function ThreeYearHeader({
         display: "flex",
         flexDirection: "column",
         position: "sticky",
-        top:0
+        top: 0,
       }}
     >
       <BigTime
@@ -464,11 +468,12 @@ function BigTime({
             <Box>
               <Typography
                 variant="h4"
-                color={(theme) =>
-                  theme.palette.text[
-                    isActive(time, now) ? "primary" : "secondary"
-                  ]
-                }
+                sx={{
+                  color: (theme) =>
+                    theme.palette.text[
+                      isActive(time, now) ? "primary" : "secondary"
+                    ],
+                }}
               >
                 {formatDate(time)}
               </Typography>
@@ -530,7 +535,7 @@ function SmallTime({
         const els = [
           <Box
             key={index}
-            component={onCreateEvent ? Button : undefined}
+            component={onCreateEvent ? Button : "div"}
             onClick={onCreateEvent ? () => onCreateEvent(week) : undefined}
             className="small-time-button"
             sx={{
@@ -548,7 +553,7 @@ function SmallTime({
             <Box sx={{ height: "20px" }}>
               <Typography
                 variant="body2"
-                color={(theme) => theme.palette.text.secondary}
+                sx={{ color: (theme) => theme.palette.text.secondary }}
               >
                 {formatDate(week)}
               </Typography>

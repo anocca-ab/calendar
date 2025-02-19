@@ -415,7 +415,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
             >
               <Typography
                 variant="body2"
-                color={(theme) => theme.palette.text.primary}
+                sx={{ color: (theme) => theme.palette.text.primary }}
               >
                 W
               </Typography>
@@ -579,11 +579,11 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                       {dayNumber === 1 && !active && (
                         <Typography
                           variant="body2"
-                          color={
-                            isInCurrentMonth
+                          sx={{
+                            color: isInCurrentMonth
                               ? (theme) => theme.palette.text.primary
-                              : (theme) => theme.palette.text.secondary
-                          }
+                              : (theme) => theme.palette.text.secondary,
+                          }}
                         >
                           {monthName}
                         </Typography>
@@ -611,13 +611,13 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                           <Typography
                             zIndex={1}
                             variant="body2"
-                            color={
-                              active
+                            sx={{
+                              color: active
                                 ? (theme) => theme.palette.primary.contrastText
                                 : isInCurrentMonth
                                 ? (theme) => theme.palette.text.primary
-                                : (theme) => theme.palette.text.secondary
-                            }
+                                : (theme) => theme.palette.text.secondary,
+                            }}
                           >
                             {dayNumber}
                           </Typography>
@@ -841,13 +841,13 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                     >
                       <Typography
                         variant="body2"
-                        color={
-                          isSameDay(modal.date, startOfMonth)
+                        sx={{
+                          color: isSameDay(modal.date, startOfMonth)
                             ? (theme) => theme.palette.primary.contrastText
                             : isSameMonth(modal.date, startOfMonth)
                             ? (theme) => theme.palette.text.primary
-                            : (theme) => theme.palette.text.secondary
-                        }
+                            : (theme) => theme.palette.text.secondary,
+                        }}
                       >
                         {format(modal.date, "EEE")}
                       </Typography>
@@ -860,13 +860,13 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                     >
                       <Typography
                         variant="body2"
-                        color={
-                          isSameDay(modal.date, startOfMonth)
+                        sx={{
+                          color: isSameDay(modal.date, startOfMonth)
                             ? (theme) => theme.palette.primary.contrastText
                             : isSameMonth(modal.date, startOfMonth)
                             ? (theme) => theme.palette.text.primary
-                            : (theme) => theme.palette.text.secondary
-                        }
+                            : (theme) => theme.palette.text.secondary,
+                        }}
                       >
                         {format(modal.date, "d")}
                       </Typography>
@@ -1005,7 +1005,7 @@ function WeekIndicator({
       >
         <Typography
           variant="body2"
-          color={(theme) => theme.palette.text.primary}
+          sx={{ color: (theme) => theme.palette.text.primary }}
         >
           {title}
         </Typography>
@@ -1086,7 +1086,7 @@ function MonthCalendarWeekdayBar() {
           variant="caption"
           sx={{
             color: (theme) =>
-              (theme.palette.mode === "dark" ? "white" : "black")
+              theme.palette.mode === "dark"
                 ? theme.palette.text.primary
                 : theme.palette.primary.contrastText,
           }}

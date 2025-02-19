@@ -27,6 +27,12 @@ export function MonthCalendarEvent<T>({
 } & Omit<React.ComponentProps<typeof Button>, "color">) {
   const { start, title } = event;
 
+  const hasEndArrow =
+    allDayEvent && (triangle === "right" || triangle === "both");
+
+  const hasStartArrow =
+    allDayEvent && (triangle === "left" || triangle === "both");
+
   return (
     <Box
       component={Button}
@@ -57,15 +63,22 @@ export function MonthCalendarEvent<T>({
         buttonProps.sx
       )}
     >
-      {allDayEvent && (triangle === "left" || triangle === "both") && (
-        <Triangle direction={"left"} height={16} width={12} color={bg} />
+      {hasStartArrow && (
+        <Triangle direction={"left"} height={16} width={4} color={bg} />
       )}
       {allDayEvent ? (
         <FlexRow
           sx={{
             bgcolor: bg,
             justifyContent: "flex-start",
-            padding: "0px 8px",
+            paddingRight: event.endAdornment
+              ? hasEndArrow
+                ? 0
+                : "4px"
+              : "8px",
+            paddingLeft: "8px",
+            paddingTop: 0,
+            paddingBottom: 0,
             flex: 1,
             borderRadius: !triangle ? "4px" : "0px",
             alignItems: "center",
@@ -74,6 +87,12 @@ export function MonthCalendarEvent<T>({
           <Typography variant="event" color={color}>
             {title ?? "(No title)"}
           </Typography>
+          {event.endAdornment ? (
+            <>
+              <Box sx={{ flex: 1 }}></Box>
+              <Box>{event.endAdornment({ bg, color })}</Box>
+            </>
+          ) : null}
         </FlexRow>
       ) : (
         <FlexRow
@@ -93,23 +112,33 @@ export function MonthCalendarEvent<T>({
           <FlexRow gap="6px" alignItems="center">
             <Typography
               variant="event"
-              color={(theme) => theme.palette.text.primary}
-              sx={{ fontWeight: "400" }}
+              sx={{
+                fontWeight: "400",
+                color: (theme) => theme.palette.text.primary,
+              }}
             >
               {`${format(start, "h:mm")}`}
             </Typography>
 
             <Typography
               variant="event"
-              color={(theme) => theme.palette.text.primary}
+              sx={{ color: (theme) => theme.palette.text.primary }}
             >
               {title ?? "(No Title)"}
             </Typography>
           </FlexRow>
+          {event.endAdornment ? (
+            <>
+              <Box sx={{ flex: 1 }}></Box>
+              <Box sx={{ paddingRight: "4px" }}>
+                {event.endAdornment({ bg, color })}
+              </Box>
+            </>
+          ) : null}
         </FlexRow>
       )}
-      {allDayEvent && (triangle === "right" || triangle === "both") && (
-        <Triangle direction={"right"} height={16} width={12} color={bg} />
+      {hasEndArrow && (
+        <Triangle direction={"right"} height={16} width={4} color={bg} />
       )}
     </Box>
   );

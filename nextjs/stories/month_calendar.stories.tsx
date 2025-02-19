@@ -14,6 +14,8 @@ import {
 import { manyEvents } from "./many_events";
 import { CalendarEvent } from "@/components/types";
 import { Box } from "@mui/material";
+import { CalendarIcon } from "@mui/x-date-pickers/icons";
+import { AcUnit, AddAlarm } from "@mui/icons-material";
 
 const meta = {
   title: "Calendar/Month",
@@ -71,11 +73,12 @@ const monthEvents: CalendarEvent<undefined>[] = [
     canEdit: true,
   },
   {
-    title: "Full day event",
+    title: "Some event",
     start: startOfDay(new Date()),
     end: addMinutes(startOfDay(new Date()), 1339),
     color: "#EC407A",
     canEdit: true,
+    endAdornment: () => "🎉",
   },
   {
     title: "2 days event",
@@ -90,6 +93,7 @@ const monthEvents: CalendarEvent<undefined>[] = [
     end: endOfDay(addWeeks(addDays(new Date(), 1), 4)),
     color: "#EF5350",
     canEdit: true,
+    endAdornment: () => "🎉",
   },
   {
     title: "10min event",
@@ -152,6 +156,22 @@ export const WithBuggedEvents: Story = {
         start: startOfDay(addDays(new Date(), 2)),
         color: "red",
         canEdit: true,
+        endAdornment: () => (
+          <Box
+            sx={{
+              height: "16px",
+              display: "flex",
+              color: "white",
+              alignItems: "center",
+              svg: {
+                fontSize: "12px",
+              },
+            }}
+          >
+            <AddAlarm />
+            <AcUnit />
+          </Box>
+        ),
       },
       {
         title: "B",
@@ -159,6 +179,7 @@ export const WithBuggedEvents: Story = {
         end: endOfDay(addDays(new Date(), 1)),
         color: "green",
         canEdit: true,
+        endAdornment: () => "🎉",
       },
       {
         title: "C",

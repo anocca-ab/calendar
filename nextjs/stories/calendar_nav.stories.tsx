@@ -60,14 +60,13 @@ function InteractiveDemo(
   );
   return (
     <Box sx={{ p: 2 }}>
-      <CalendarNav
-        {...props}
-        time={currentDate}
-        setTime={setCurrentDate}
-      />
+      <CalendarNav {...props} time={currentDate} setTime={setCurrentDate} />
       <Typography
-        sx={{ textAlign: "center", p: 2 }}
-        color={(theme) => theme.palette.text.primary}
+        sx={{
+          textAlign: "center",
+          p: 2,
+          color: (theme) => theme.palette.text.primary,
+        }}
       >
         {format(currentDate, "do MMMM yyyy")}
       </Typography>

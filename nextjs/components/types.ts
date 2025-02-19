@@ -16,13 +16,14 @@ export type CalendarEvent<T> = {
   color?: string;
   canEdit?: boolean;
   selected?: boolean;
+  endAdornment?: (colors: { bg: string; color: string }) => React.ReactNode;
 } & (T extends { data: any } ? T : {});
 
 export type StartDay = "monday" | "sunday";
 
 /**
  * How many days the timeline span
- * 
+ *
  * e.g.\
  * month = 30 days\
  * 3-months = 90 days
@@ -31,7 +32,7 @@ export type TimelineResolution = "month" | "3-months" | "year" | "3-years";
 
 /**
  * The speed that you navigate left / right using the timeline nav
- * 
+ *
  * e.g. speed = 1 day / click\
  * e.g. speed = 7 day / click (week)\
  * e.g. speed = 30 days / click (month)
@@ -57,6 +58,14 @@ type El = {
   scrollLeft?: number;
   scrollY?: number;
   scrollX?: number;
-  addEventListener?(type: string, listener: (...args: any[]) => any, options?: any): void;
-  removeEventListener?(type: string, listener: (...args: any[]) => any, options?: any): void;
+  addEventListener?(
+    type: string,
+    listener: (...args: any[]) => any,
+    options?: any
+  ): void;
+  removeEventListener?(
+    type: string,
+    listener: (...args: any[]) => any,
+    options?: any
+  ): void;
 };

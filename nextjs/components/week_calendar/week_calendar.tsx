@@ -562,6 +562,12 @@ function WeekCalendarHeader<T>(props: {
                   >
                     {event.sourceEvent.title ?? "(No name)"}
                   </Typography>
+                  {event.sourceEvent.endAdornment && dayOverflowRight <= 0 ? (
+                    <>
+                      <Box sx={{ flex: 1 }}></Box>
+                      <Box>{event.sourceEvent.endAdornment({ bg, color })}</Box>
+                    </>
+                  ) : null}
                 </Box>
                 {dayOverflowRight > 0 ? (
                   <AllDayCalendarOverflow
@@ -571,6 +577,11 @@ function WeekCalendarHeader<T>(props: {
                     color={color}
                     valueDate={end}
                     compact={width <= 1}
+                    endAdornment={
+                      event.sourceEvent.endAdornment
+                        ? event.sourceEvent.endAdornment({ bg, color })
+                        : undefined
+                    }
                   />
                 ) : null}
               </Box>
@@ -612,7 +623,9 @@ function DayHeader({ date, active }: { date: Date; active?: boolean }) {
       <FlexCol height={20} justifyContent={"center"} alignItems={"center"}>
         <Typography
           variant="caption"
-          color={active ? "primary" : (theme) => theme.palette.text.primary}
+          sx={{
+            color: active ? "primary" : (theme) => theme.palette.text.primary,
+          }}
         >
           {dayOfWeek}
         </Typography>
@@ -626,11 +639,11 @@ function DayHeader({ date, active }: { date: Date; active?: boolean }) {
       >
         <Typography
           variant="h5"
-          color={
-            active
+          sx={{
+            color: active
               ? (theme) => theme.palette.primary.contrastText
-              : (theme) => theme.palette.text.primary
-          }
+              : (theme) => theme.palette.text.primary,
+          }}
         >
           {dayOfMonthNr}
         </Typography>
@@ -661,7 +674,7 @@ function TimeSidebar() {
           >
             <Typography
               variant="caption"
-              color={(theme) => theme.palette.text.primary}
+              sx={{ color: (theme) => theme.palette.text.primary }}
             >
               {hour === 12 ? `${hour} PM` : `${hour} AM`}
             </Typography>
@@ -680,7 +693,7 @@ function TimeSidebar() {
           >
             <Typography
               variant="caption"
-              color={(theme) => theme.palette.text.primary}
+              sx={{ color: (theme) => theme.palette.text.primary }}
             >{`${hour} PM`}</Typography>
           </FlexCol>
         );
@@ -1098,52 +1111,98 @@ function WeekCalendarGrid<T>(props: {
                     overflow: "hidden",
                     px: "7px",
                     py: height >= 35 ? "3px" : 0,
-                  },
-                  height < 35 && {
+                    gap: "4px",
+                    width: "100%",
                     display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                  }
+                  },
+                  height >= 60
+                    ? {
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                      }
+                    : {
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }
                 )}
               >
-                <Typography
-                  color={color}
-                  variant="event"
-                  component="div"
-                  sx={mergeSx(
-                    {
-                      pointerEvents: "none",
-                      whiteSpace: "nowrap",
-                    },
-                    textOpacityStyle
+                <Box sx={{ overflow: "hidden" }}>
+                  {height >= 30 ? (
+                    <>
+                      <Typography
+                        color={color}
+                        variant="event"
+                        component="div"
+                        sx={mergeSx(
+                          {
+                            pointerEvents: "none",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "clip",
+                          },
+                          textOpacityStyle
+                        )}
+                      >
+                        {event.sourceEvent.title ?? "(No name)"}
+                      </Typography>
+                      <Typography
+                        component="div"
+                        color={color}
+                        variant="event"
+                        sx={mergeSx(
+                          {
+                            pointerEvents: "none",
+                            whiteSpace: "nowrap",
+                            fontWeight: 400,
+                            textOverflow: "clip",
+                            overflow: "hidden",
+                          },
+                          textOpacityStyle
+                        )}
+                      >
+                        {time}
+                      </Typography>
+                    </>
+                  ) : (
+                    <Typography
+                      color={color}
+                      variant="event"
+                      component="div"
+                      sx={mergeSx(
+                        {
+                          pointerEvents: "none",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "clip",
+                        },
+                        textOpacityStyle
+                      )}
+                    >
+                      {event.sourceEvent.title ?? "(No name)"}
+                      <Box component="span" sx={{ fontWeight: 400 }}>
+                        {", "}
+                        {time}
+                      </Box>
+                    </Typography>
                   )}
-                >
-                  {event.sourceEvent.title ?? "(No name)"}
-                  {height < 30 ? (
-                    <Box component="span" sx={{ fontWeight: 400 }}>
-                      {", "}
-                      {time}
+                </Box>
+
+                {event.sourceEvent.endAdornment ? (
+                  <>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Box>{event.sourceEvent.endAdornment({ bg, color })}</Box>
                     </Box>
-                  ) : null}
-                </Typography>
-                {height >= 30 && (
-                  <Typography
-                    component="div"
-                    color={color}
-                    variant="event"
-                    sx={mergeSx(
-                      {
-                        pointerEvents: "none",
-                        whiteSpace: "nowrap",
-                        fontWeight: 400,
-                      },
-                      textOpacityStyle
-                    )}
-                  >
-                    {time}
-                  </Typography>
-                )}
+                  </>
+                ) : null}
               </Box>
+
               {event.sourceEvent.canEdit &&
                 !isTask(event.sourceEvent) &&
                 (["start", "end"] as const).map((pos, i) => (
@@ -1218,6 +1277,7 @@ function AllDayCalendarOverflow({
   bg,
   valueDate,
   compact,
+  endAdornment,
 }: {
   direction: "left" | "right";
   value: number;
@@ -1225,6 +1285,7 @@ function AllDayCalendarOverflow({
   color: string;
   bg: string;
   compact?: boolean;
+  endAdornment?: React.ReactNode;
 }) {
   const t = (
     <>
@@ -1241,7 +1302,7 @@ function AllDayCalendarOverflow({
         pointerEvents: "none",
       }}
     >
-      <Triangle direction={direction} height={16} width={12} color={bg} />
+      <Triangle direction={direction} height={16} width={4} color={bg} />
       <Box
         sx={{
           display: "flex",
@@ -1268,6 +1329,7 @@ function AllDayCalendarOverflow({
             </>
           )}
         </Typography>
+        {endAdornment ? <Box sx={{ pl: 0.5 }}>{endAdornment}</Box> : null}
       </Box>
     </Box>
   );

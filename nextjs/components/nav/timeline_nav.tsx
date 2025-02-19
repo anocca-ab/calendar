@@ -317,9 +317,13 @@ export function TimelineNav(props: {
                     {getTimeLabel(value)}
                   </Typography>
                   <Typography
-                    color={(theme) => theme.palette.text.secondary}
                     variant="caption"
-                    sx={{ top: "12px", position: "absolute", left: "0" }}
+                    sx={{
+                      top: "12px",
+                      position: "absolute",
+                      left: "0",
+                      color: (theme) => theme.palette.text.secondary,
+                    }}
                   >
                     {allSpeeds
                       .slice(allSpeeds.indexOf(value) + 1)

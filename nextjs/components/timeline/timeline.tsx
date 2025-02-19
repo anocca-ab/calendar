@@ -84,10 +84,10 @@ type TimelineGroup<T> = {
 };
 
 /**
- * To render events we either use the `rows` or `group` prop. 
- * 
+ * To render events we either use the `rows` or `group` prop.
+ *
  * The `group` props defines how we can render groups of events.
- * 
+ *
  * `rows` will just render each row of events, you are responsible for spacing them out.
  */
 export type TimelineProps<T> = {
@@ -1089,6 +1089,7 @@ const RowEvent = React.memo(function RowEvent<T>({
             padding: 0,
             pointerEvents: "none",
             width: "100%",
+            overflow: "flex",
           }}
         >
           <Box
@@ -1106,6 +1107,12 @@ const RowEvent = React.memo(function RowEvent<T>({
             <Typography variant="event" style={{ color }}>
               {title}
             </Typography>
+            {event.sourceEvent.endAdornment ? (
+              <>
+                <Box sx={{ flex: 1 }}></Box>
+                <Box>{event.sourceEvent.endAdornment({ bg, color })}</Box>
+              </>
+            ) : null}
           </Box>
         </Box>
 

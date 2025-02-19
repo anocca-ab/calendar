@@ -1,4 +1,6 @@
 import { CalendarEvent } from "@/components/types";
+import { CheckCircleOutline } from "@mui/icons-material";
+import { Box } from "@mui/material";
 import {
   addHours,
   startOfDay,
@@ -160,7 +162,7 @@ export const manyEvents: CalendarEvent<undefined>[] = [
       ),
       25
     ),
-    title: "25 min event",
+    title: "25 min event and a pretty long title",
   },
   {
     start: addHours(
@@ -218,6 +220,135 @@ export const manyEvents: CalendarEvent<undefined>[] = [
     ),
     title: "60 min event",
   },
+
+  {
+    start: addDays(
+      addHours(
+        startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+        1
+      ),
+      2
+    ),
+    end: addDays(
+      addMinutes(
+        addHours(
+          startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+          1
+        ),
+        5
+      ),
+      2
+    ),
+    title: "5 min event",
+    endAdornment: () => "🎉",
+  },
+  {
+    start: addDays(
+      addHours(
+        startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+        2
+      ),
+      2
+    ),
+    end: addMinutes(
+      addHours(
+        startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+        2
+      ),
+      25
+    ),
+    title: "25 min event and a pretty long title",
+    endAdornment: () => "🎉",
+  },
+  {
+    start: addDays(
+      addHours(
+        startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+        3
+      ),
+      2
+    ),
+    end: addDays(
+      addMinutes(
+        addHours(
+          startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+          3
+        ),
+        30
+      ),
+      2
+    ),
+    title: "30 min event",
+    endAdornment: () => "🎉",
+  },
+  {
+    start: addDays(
+      addHours(
+        startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+        4
+      ),
+      2
+    ),
+    end: addDays(
+      addMinutes(
+        addHours(
+          startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+          4
+        ),
+        35
+      ),
+      2
+    ),
+    title: "35 min event",
+    endAdornment: () => "🎉",
+  },
+  {
+    start: addDays(
+      addHours(
+        startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+        5
+      ),
+      2
+    ),
+    end: addDays(
+      addMinutes(
+        addHours(
+          startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+          5
+        ),
+        45
+      ),
+      2
+    ),
+    title: "45 min event",
+    endAdornment: () => "🎉",
+  },
+  {
+    start: addDays(
+      addHours(
+        startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+        6
+      ),
+      2
+    ),
+    end: addDays(
+      addMinutes(
+        addHours(
+          startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
+          6
+        ),
+        60
+      ),
+      2
+    ),
+    title: "60 min event",
+    endAdornment: () => (
+      <Box sx={{ display: "flex", width: "10px", height: "10px" }}>
+        <CheckCircleOutline sx={{ fontSize: "10px", color: "white" }} />
+      </Box>
+    ),
+  },
+
   {
     start: addHours(
       startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
@@ -248,6 +379,7 @@ export const manyEvents: CalendarEvent<undefined>[] = [
       0
     ),
     title: "To fix issue #23 /2",
+    endAdornment: () => "🎉",
   },
   {
     start: addHours(
@@ -263,6 +395,7 @@ export const manyEvents: CalendarEvent<undefined>[] = [
     ),
     canEdit: false,
     title: "over night event",
+    endAdornment: () => "🎉",
   },
   // full day events
   {
@@ -274,6 +407,7 @@ export const manyEvents: CalendarEvent<undefined>[] = [
     start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
     end: endOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
     title: "All day event",
+    endAdornment: () => "🎉",
   },
   {
     start: startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })),
@@ -284,15 +418,18 @@ export const manyEvents: CalendarEvent<undefined>[] = [
     start: startOfDay(subDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 2)),
     end: endOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 14)),
     title: "A loong day event",
+    endAdornment: () => "🎉",
   },
   {
     start: startOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
     end: endOfDay(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 3)),
     title: "All day event",
+    endAdornment: () => "🎉",
   },
   {
     start: new Date("2025-01-01T00:00:00.000Z"),
     end: new Date("2026-01-01T00:00:00.000Z"),
     title: "A year event",
+    endAdornment: () => "🎉",
   },
 ].map((ev) => ({ ...ev, canEdit: ev.canEdit === false ? false : true }));

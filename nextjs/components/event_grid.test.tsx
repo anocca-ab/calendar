@@ -32,7 +32,8 @@ function eventGrid<T>(
     ),
     startDay,
     monthCalendarRange(startDay, startOfMonth).startOfMonthCalendar,
-    monthCalendarRange(startDay, startOfMonth).endOfMonthCalendar
+    monthCalendarRange(startDay, startOfMonth).endOfMonthCalendar,
+    1
   );
 }
 
@@ -413,20 +414,26 @@ test("eventProperties", () => {
     {
       "0": {
         "day": 6,
-        "maxRow": 1,
+        "endDay": 6,
+        "inMoreButton": false,
         "row": 0,
+        "startDay": 6,
         "week": 2,
       },
       "1": {
         "day": 0,
-        "maxRow": 2,
+        "endDay": 2,
+        "inMoreButton": true,
         "row": 0,
+        "startDay": 0,
         "week": 3,
       },
       "2": {
         "day": 0,
-        "maxRow": 2,
+        "endDay": 1,
+        "inMoreButton": true,
         "row": 1,
+        "startDay": 0,
         "week": 3,
       },
     }

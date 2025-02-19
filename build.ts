@@ -40,10 +40,10 @@ await Bun.write(
       title: "Calendar",
       author: "Anocca",
       peerDependencies: {
-        "@mui/material": "^5",
+        "@mui/material": "^6",
         "@mui/x-date-pickers": "^7",
         "date-fns": "^3",
-        react: "^18",
+        react: "18||19",
       },
       devDependencies: {
         typescript: "^5",

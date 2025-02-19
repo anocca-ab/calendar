@@ -101,8 +101,11 @@ function InteractiveDemo(
         setResolution={props.canChangeResolution ? setResolution : undefined}
       />
       <Typography
-        sx={{ textAlign: "center", p: 2 }}
-        color={(theme) => theme.palette.text.primary}
+        sx={{
+          textAlign: "center",
+          p: 2,
+          color: (theme) => theme.palette.text.primary,
+        }}
       >
         {format(currentDate, "do MMMM yyyy")}
       </Typography>
