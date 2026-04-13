@@ -184,7 +184,7 @@ export function parseColor(background: string): ParsedColor | undefined {
     // const unsaturatedContrastText = contrastText;
     // or if we want the contrast text to be calculated on the more unsaturated color
     const unsaturatedContrastText = getContrastText(
-      c.getImageData(x, y, 1, 1).data
+      c.getImageData(x, y, 1, 1).data,
     );
 
     const result: ParsedColor = {
@@ -199,21 +199,37 @@ export function parseColor(background: string): ParsedColor | undefined {
   return undefined;
 }
 
+export function isUnsaturated(
+  now: Date,
+  end: Date,
+  colorByOwnership?: boolean,
+  isOwner?: boolean,
+) {
+  const isPastEvent = end.getTime() - now.getTime() < 0;
+  if (colorByOwnership !== undefined && isOwner !== undefined) {
+    return (!colorByOwnership && isPastEvent) || (colorByOwnership && !isOwner);
+  }
+  return isPastEvent;
+}
+
 export function getEventColor(
   now: Date,
   end: Date,
   theme: Theme,
-  eventColor: string
+  eventColor: string,
+  colorByOwnership?: boolean,
+  isOwner?: boolean,
 ) {
   const parsedColor = parseColor(eventColor);
+  const useUnsaturated = isUnsaturated(now, end, colorByOwnership, isOwner);
 
   const bg = parsedColor
-    ? end.getTime() - now.getTime() < 0
-      ? parsedColor?.unsaturated.cssString
-      : parsedColor?.hsla.cssString
+    ? useUnsaturated
+      ? parsedColor.unsaturated.cssString
+      : parsedColor.hsla.cssString
     : DEFAULT_COLOR;
   const color = parsedColor
-    ? (end.getTime() - now.getTime() < 0
+    ? (useUnsaturated
         ? parsedColor.unsaturatedContrastText
         : parsedColor.contrastText) ===
       (theme.palette.mode === "dark" ? "white" : "black")
@@ -224,6 +240,24 @@ export function getEventColor(
     bg,
     color,
   };
+}
+
+function hasOwnerId(data: unknown): data is { ownerId: string } {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "ownerId" in data &&
+    typeof (data as Record<string, unknown>).ownerId === "string"
+  );
+}
+
+export function getEventOwnerId<T>(
+  event: CalendarEvent<T>,
+): string | undefined {
+  if ("data" in event && hasOwnerId(event.data)) {
+    return event.data.ownerId;
+  }
+  return undefined;
 }
 
 export function getEventStart<T>(

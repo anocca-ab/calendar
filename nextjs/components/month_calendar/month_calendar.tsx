@@ -38,6 +38,7 @@ import {
   DEFAULT_COLOR,
   getEventColor,
   getEventEnd,
+  getEventOwnerId,
   getEventStart,
   heightToPct,
   isAllDayEvent,
@@ -147,6 +148,16 @@ export type MonthCalendarProps<T> = {
    * @default [window]
    */
   scrollContainers?: ScrollContainer[];
+
+  /**
+   * When true, events not owned by the current user are rendered in the unsaturated color
+   */
+  colorByOwnership?: boolean;
+
+  /**
+   * The id of the currently logged-in user, used together with colorByOwnership
+   */
+  currentUserId?: string;
 };
 
 function parseDefaultProps<T>(props: MonthCalendarProps<T>) {
@@ -170,12 +181,21 @@ function parseDefaultProps<T>(props: MonthCalendarProps<T>) {
     onClickEvent: props.onClickEvent,
     scrollContainers,
     defaultEventColor: props.defaultEventColor ?? DEFAULT_COLOR,
+    colorByOwnership: props.colorByOwnership,
+    currentUserId: props.currentUserId,
   };
 }
 
 export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
-  const { startDay, now, startOfMonth, defaultEventColor, ...calendarProps } =
-    parseDefaultProps(props);
+  const {
+    startDay,
+    now,
+    startOfMonth,
+    defaultEventColor,
+    colorByOwnership,
+    currentUserId,
+    ...calendarProps
+  } = parseDefaultProps(props);
 
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
     calendarProps.events
@@ -615,8 +635,8 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                               color: active
                                 ? (theme) => theme.palette.primary.contrastText
                                 : isInCurrentMonth
-                                ? (theme) => theme.palette.text.primary
-                                : (theme) => theme.palette.text.secondary,
+                                  ? (theme) => theme.palette.text.primary
+                                  : (theme) => theme.palette.text.secondary,
                             }}
                           >
                             {dayNumber}
@@ -731,10 +751,10 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         triangleLeft && triangleRight
                           ? "both"
                           : triangleRight
-                          ? "right"
-                          : triangleLeft
-                          ? "left"
-                          : undefined;
+                            ? "right"
+                            : triangleLeft
+                              ? "left"
+                              : undefined;
 
                       const disableInteractive =
                         !calendarProps.onClickEvent &&
@@ -749,7 +769,9 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         now,
                         getEventEnd(event.sourceEvent),
                         theme,
-                        event.sourceEvent.color ?? defaultEventColor
+                        event.sourceEvent.color ?? defaultEventColor,
+                        colorByOwnership,
+                        getEventOwnerId(event.sourceEvent) === currentUserId,
                       );
 
                       const props: React.ComponentPropsWithoutRef<
@@ -785,11 +807,11 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                                 event.sourceEvent
                                 ? 0.5
                                 : !disableInteractive &&
-                                  draggedEvent?.dragged &&
-                                  draggedEvent.source.sourceEvent ===
-                                    event.sourceEvent
-                                ? 0.75
-                                : 1,
+                                    draggedEvent?.dragged &&
+                                    draggedEvent.source.sourceEvent ===
+                                      event.sourceEvent
+                                  ? 0.75
+                                  : 1,
                           },
                           event.sourceEvent.selected && {
                             boxShadow: theme.shadows[6],
@@ -845,8 +867,8 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                           color: isSameDay(modal.date, startOfMonth)
                             ? (theme) => theme.palette.primary.contrastText
                             : isSameMonth(modal.date, startOfMonth)
-                            ? (theme) => theme.palette.text.primary
-                            : (theme) => theme.palette.text.secondary,
+                              ? (theme) => theme.palette.text.primary
+                              : (theme) => theme.palette.text.secondary,
                         }}
                       >
                         {format(modal.date, "EEE")}
@@ -864,8 +886,8 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                           color: isSameDay(modal.date, startOfMonth)
                             ? (theme) => theme.palette.primary.contrastText
                             : isSameMonth(modal.date, startOfMonth)
-                            ? (theme) => theme.palette.text.primary
-                            : (theme) => theme.palette.text.secondary,
+                              ? (theme) => theme.palette.text.primary
+                              : (theme) => theme.palette.text.secondary,
                         }}
                       >
                         {format(modal.date, "d")}
@@ -918,7 +940,9 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         now,
                         getEventEnd(event.sourceEvent),
                         theme,
-                        event.sourceEvent.color ?? defaultEventColor
+                        event.sourceEvent.color ?? defaultEventColor,
+                        colorByOwnership,
+                        getEventOwnerId(event.sourceEvent) === currentUserId,
                       );
 
                       const props: React.ComponentPropsWithoutRef<

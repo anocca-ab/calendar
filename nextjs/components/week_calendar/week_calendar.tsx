@@ -24,9 +24,11 @@ import {
   DEFAULT_COLOR,
   getEventColor,
   getEventEnd,
+  getEventOwnerId,
   getEventStart,
   isAllDayEvent,
   isTask,
+  isUnsaturated,
   mergeSx,
   widthToPct,
 } from "../helpers";
@@ -127,6 +129,16 @@ export type WeekCalendarProps<T> = {
    * Auto scroll to the time indicator
    */
   autoScroll?: boolean;
+
+  /**
+   * When true, events not owned by the current user are rendered in the unsaturated color
+   */
+  colorByOwnership?: boolean;
+
+  /**
+   * The id of the currently logged-in user, used together with colorByOwnership
+   */
+  currentUserId?: string;
 };
 
 function parseDefaultProps<T>(props: WeekCalendarProps<T>) {
@@ -158,6 +170,8 @@ function parseDefaultProps<T>(props: WeekCalendarProps<T>) {
     onClickEvent: props.onClickEvent,
     defaultEventColor: props.defaultEventColor ?? DEFAULT_COLOR,
     scrollContainers,
+    colorByOwnership: props.colorByOwnership,
+    currentUserId: props.currentUserId,
   };
 }
 
@@ -173,6 +187,8 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
     onClickEvent,
     defaultEventColor,
     scrollContainers,
+    colorByOwnership,
+    currentUserId,
   } = parseDefaultProps(props);
 
   const allDayEvents: CalendarEvent<T>[] = [];
@@ -210,6 +226,8 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
         onMoveEvent,
         defaultEventColor,
         scrollContainers,
+        colorByOwnership,
+        currentUserId,
       }}
     >
       <WeekCalendarHeader events={allDayEvents} sticky={props.stickyHeader} />
@@ -273,8 +291,15 @@ function WeekCalendarHeader<T>(props: {
   events: CalendarEvent<T>[];
   sticky?: boolean;
 }) {
-  const { workWeek, startOfWeek, now, onCreateEvent, ...calendarProps } =
-    useCalendar();
+  const {
+    workWeek,
+    startOfWeek,
+    now,
+    onCreateEvent,
+    colorByOwnership,
+    currentUserId,
+    ...calendarProps
+  } = useCalendar();
   const daysInWeek = workWeek ? 5 : 7;
 
   const [events, draggedEvent, setDraggedEvent] = useDragableEvents(
@@ -464,7 +489,9 @@ function WeekCalendarHeader<T>(props: {
               now,
               end,
               theme,
-              event.sourceEvent.color ?? calendarProps.defaultEventColor
+              event.sourceEvent.color ?? calendarProps.defaultEventColor,
+              colorByOwnership,
+              getEventOwnerId(event.sourceEvent) === currentUserId,
             );
 
             const disableInteractive =
@@ -706,8 +733,15 @@ function WeekCalendarGrid<T>(props: {
   events: CalendarEvent<T>[];
   autoScroll?: boolean;
 }) {
-  const { workWeek, now, startOfWeek, startDay, ...calendarProps } =
-    useCalendar<T>();
+  const {
+    workWeek,
+    now,
+    startOfWeek,
+    startDay,
+    colorByOwnership,
+    currentUserId,
+    ...calendarProps
+  } = useCalendar<T>();
   const daysInWeek = workWeek ? 5 : 7;
 
   const snapFn = (start: Date, end: Date, strict?: boolean) => {
@@ -1026,21 +1060,27 @@ function WeekCalendarGrid<T>(props: {
           );
           const colX = rect.x;
 
+          const isOwner = getEventOwnerId(event.sourceEvent) === currentUserId;
+          const eventEnd = getEventEnd(event.sourceEvent);
           const { bg, color } = getEventColor(
             now,
-            getEventEnd(event.sourceEvent),
+            eventEnd,
             theme,
-            event.sourceEvent.color ?? calendarProps.defaultEventColor
+            event.sourceEvent.color ?? calendarProps.defaultEventColor,
+            colorByOwnership,
+            isOwner,
           );
 
           const disableInteractive =
             !calendarProps.onClickEvent && !calendarProps.onMoveEvent;
-          const textOpacityStyle =
-            getEventEnd(event.sourceEvent).getTime() - now.getTime() < 0
-              ? {
-                  opacity: "0.5",
-                }
-              : {};
+          const textOpacityStyle = isUnsaturated(
+            now,
+            eventEnd,
+            colorByOwnership,
+            isOwner,
+          )
+            ? { opacity: "0.5" }
+            : {};
           const dataProps: any = {
             "data-type": "week-calendar-sub-day-event",
             "data-calendar-event": JSON.stringify({

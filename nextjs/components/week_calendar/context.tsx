@@ -13,10 +13,12 @@ type RawContext<T> =
       onMoveEvent?: (
         event: CalendarEvent<T>,
         newStart: Date,
-        newEnd: Date | undefined
+        newEnd: Date | undefined,
       ) => void;
       defaultEventColor: string;
       scrollContainers: ScrollContainer[];
+      colorByOwnership?: boolean;
+      currentUserId?: string;
     };
 export const CalendarConfigContext =
   React.createContext<RawContext<any>>(undefined);

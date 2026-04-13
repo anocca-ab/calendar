@@ -37,6 +37,7 @@ import {
   DEFAULT_COLOR,
   getEventColor,
   getEventEnd,
+  getEventOwnerId,
   getEventStart,
   isTask,
   mergeSx,
@@ -183,6 +184,16 @@ export type TimelineProps<T> = {
    * If you remove the header it will not render the week / month / year / 3 years header
    */
   noHeader?: boolean;
+
+  /**
+   * When true, events not owned by the current user are rendered in the unsaturated color
+   */
+  colorByOwnership?: boolean;
+
+  /**
+   * The id of the currently logged-in user, used together with colorByOwnership
+   */
+  currentUserId?: string;
 };
 
 function getStartTime(
@@ -238,6 +249,8 @@ function useParseDefaultProps<T>(props: TimelineProps<T>) {
     group: props.group,
     getId: props.getId,
     defaultEventColor: props.defaultEventColor ?? DEFAULT_COLOR,
+    colorByOwnership: props.colorByOwnership,
+    currentUserId: props.currentUserId,
   };
 }
 
@@ -253,6 +266,8 @@ export function Timeline<T>(props: TimelineProps<T>) {
     getId,
     defaultEventColor,
     now,
+    colorByOwnership,
+    currentUserId,
     ...calendarProps
   } = p;
 
@@ -883,6 +898,8 @@ export function Timeline<T>(props: TimelineProps<T>) {
                     resolution={resolution}
                     defaultEventColor={defaultEventColor}
                     now={now}
+                    colorByOwnership={colorByOwnership}
+                    currentUserId={currentUserId}
                   />
                 );
               })}
@@ -923,6 +940,8 @@ const Row = React.memo(function Row<T>({
   resolution,
   defaultEventColor,
   now,
+  colorByOwnership,
+  currentUserId,
 }: {
   row: ModifiableEvent<T>[];
   rowIndex: number;
@@ -932,6 +951,8 @@ const Row = React.memo(function Row<T>({
   resolution: TimelineResolution;
   defaultEventColor: string;
   now: Date;
+  colorByOwnership?: boolean;
+  currentUserId?: string;
 }) {
   const start = timelineStart.getTime();
   const end = timelineEnd.getTime();
@@ -952,7 +973,9 @@ const Row = React.memo(function Row<T>({
           now,
           getEventEnd(event.sourceEvent),
           theme,
-          event.sourceEvent.color ?? defaultEventColor
+          event.sourceEvent.color ?? defaultEventColor,
+          colorByOwnership,
+          getEventOwnerId(event.sourceEvent) === currentUserId,
         );
         return (
           <RowEvent
