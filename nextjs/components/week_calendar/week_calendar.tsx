@@ -294,11 +294,138 @@ function WeekCalendarHeader<T>(props: {
   events: CalendarEvent<T>[];
   sticky?: boolean;
 }) {
-  const { workWeek, startOfWeek, now, onCreateEvent, group, ...calendarProps } =
-    useCalendar();
-  const baseDaysInWeek = workWeek ? 5 : 7;
-  const numGroups = group ? group.groups.length : 1;
-  const daysInWeek = baseDaysInWeek * numGroups;
+  const { workWeek, startOfWeek, now, onCreateEvent, group } = useCalendar();
+  const daysInWeek = workWeek ? 5 : 7;
+
+  // Build the shared day-headers row (Mon, Tue, ... labels)
+  const weekDays = [...Array(daysInWeek)].map((_, index) => {
+    const day = addDays(startOfWeek, index);
+    return (
+      <Box
+        component={onCreateEvent ? Button : "div"}
+        key={index}
+        onClick={
+          onCreateEvent
+            ? () => {
+                const start = startOfDay(day);
+                const end = endOfDay(day);
+                onCreateEvent(start, end);
+              }
+            : undefined
+        }
+        sx={mergeSx(
+          onCreateEvent
+            ? {
+                border: 0,
+                p: 0,
+                display: "block",
+                background: "none",
+                cursor: "pointer",
+              }
+            : undefined,
+          {
+            pt: 1,
+            justifyContent: "flex-start",
+            alignItems: "center",
+            display: "flex",
+            flexDirection: "column",
+            minWidth: "auto",
+            flex: 1,
+          },
+        )}
+      >
+        <DayHeader date={day} active={isSameDay(now, day)} />
+      </Box>
+    );
+  });
+
+  if (group) {
+    // Horizontal bands mode: one band per group, each with its own all-day event row
+    const groupBands = group.groups.map((g) => {
+      const groupEvents = props.events.filter(
+        (ev) => group.getGroup(ev) === g.key,
+      );
+      return (
+        <AllDayBand
+          key={g.key}
+          events={groupEvents}
+          groupLabel={g.title}
+          groupColor={g.color}
+        />
+      );
+    });
+
+    return (
+      <FlexCol
+        sx={mergeSx(
+          props.sticky && {
+            width: "100%",
+            position: "sticky",
+            top: 0,
+            zIndex: 1,
+            marginBottom: "-1px",
+            background: (theme) => theme.palette.background.paper,
+          },
+        )}
+      >
+        {/* Day headers row — aligned with the event bands below */}
+        <Box
+          sx={mergeSx(
+            {
+              display: "flex",
+              pl: "64px",
+            },
+            props.sticky && {
+              background: (theme) => theme.palette.background.paper,
+            },
+          )}
+        >
+          {weekDays}
+        </Box>
+        {/* Group bands stacked vertically */}
+        <Box
+          sx={mergeSx(
+            props.sticky && {
+              background: (theme) => theme.palette.background.paper,
+              borderBottomColor: (theme) => theme.palette.divider,
+              borderBottomStyle: "solid",
+              borderBottomWidth: "thin",
+            },
+          )}
+        >
+          {groupBands}
+        </Box>
+      </FlexCol>
+    );
+  }
+
+  // No group: original single-band layout (unchanged behaviour)
+  return (
+    <AllDayBand
+      events={props.events}
+      sticky={props.sticky}
+      weekDaysHeader={weekDays}
+    />
+  );
+}
+
+/**
+ * A single horizontal band that shows all-day events.
+ * Used both for the ungrouped case (wraps the day-headers row) and for each
+ * group in the grouped case (includes a left sidebar label).
+ */
+function AllDayBand<T>(props: {
+  events: CalendarEvent<T>[];
+  /** When provided renders a colored sidebar label (grouped mode) */
+  groupLabel?: string;
+  groupColor?: string;
+  /** When true, makes the whole band sticky (ungrouped mode only) */
+  sticky?: boolean;
+  /** Day-header boxes rendered above the event area (ungrouped mode only) */
+  weekDaysHeader?: React.ReactNode;
+}) {
+  const { workWeek, startOfWeek, now, ...calendarProps } = useCalendar<T>();
+  const daysInWeek = workWeek ? 5 : 7;
 
   const [events, draggedEvent, setDraggedEvent] = useDragableEvents(
     props.events,
@@ -306,14 +433,13 @@ function WeekCalendarHeader<T>(props: {
 
   const overlaps = getAllDayOverlaps(startOfWeek, daysInWeek, events);
 
-  const maxOverlaps = Math.max(...Object.values(overlaps).map((o) => o.length));
+  const maxOverlaps = Math.max(
+    0,
+    ...Object.values(overlaps).map((o) => o.length),
+  );
 
   const totalHeight = 17 * maxOverlaps;
 
-  // handle drag and drop
-  /**
-   * if event has moved return the new start and end time
-   */
   function calculateNewTime(
     state: MouseState,
     dragged: DragPosition<ModifiableEvent<T>>,
@@ -353,92 +479,266 @@ function WeekCalendarHeader<T>(props: {
 
   useMouse("week-calendar-all-day-event", effectRefs, workWeek);
 
-  // Build two-level header: for each of the base days, render a container that
-  // spans numGroups sub-columns. When grouped, group sub-labels appear below the day header.
-  const weekDays = [...Array(baseDaysInWeek)].map((_, dayIndex) => {
-    const day = addDays(startOfWeek, dayIndex);
-    return (
-      <Box
-        component={onCreateEvent ? Button : "div"}
-        key={dayIndex}
-        onClick={
-          onCreateEvent
-            ? () => {
-                const start = startOfDay(day);
-                const end = endOfDay(day);
-                onCreateEvent(start, end);
-              }
-            : undefined
-        }
-        sx={mergeSx(
-          onCreateEvent
-            ? {
-                border: 0,
-                p: 0,
-                display: "block",
-                background: "none",
-                cursor: "pointer",
-              }
-            : undefined,
-          {
-            pt: 1,
-            justifyContent: "flex-start",
-            alignItems: "center",
-            display: "flex",
-            flexDirection: "column",
-            minWidth: "auto",
-            // Each day spans numGroups sub-columns
-            flex: numGroups,
-          },
-        )}
-      >
-        <DayHeader date={day} active={isSameDay(now, day)} />
-        <Box sx={{ height: "12px" }} />
-        {/* Group sub-labels row */}
-        {group && (
-          <FlexRow width="100%" sx={{ borderBottom: "none" }}>
-            {group.groups.map((g) => (
-              <Tooltip key={g.key} title={g.title} placement="bottom">
-                <Box
-                  sx={{
-                    flex: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderLeft: `3px solid ${g.color}`,
-                    px: 0.5,
-                    overflow: "hidden",
-                    minWidth: 0,
-                  }}
-                >
-                  <Typography
-                    variant="caption"
-                    noWrap
-                    sx={{
-                      fontSize: 10,
-                      color: (theme) => theme.palette.text.secondary,
-                    }}
-                  >
-                    {g.title}
-                  </Typography>
-                </Box>
-              </Tooltip>
-            ))}
-          </FlexRow>
-        )}
-        <FlexRow
-          sx={{
-            height: totalHeight,
-            justifyContent: "flex-start",
-            width: "100%",
-          }}
-        ></FlexRow>
-      </Box>
-    );
-  });
-
   const theme = useTheme();
 
+  const isGrouped = props.groupLabel !== undefined;
+
+  const bandContent = (
+    <Box
+      sx={mergeSx(
+        {
+          display: "flex",
+          position: "relative",
+        },
+        !isGrouped &&
+          props.sticky && {
+            background: (theme) => theme.palette.background.paper,
+            borderBottomColor: (theme) => theme.palette.divider,
+            borderBottomStyle: "solid",
+            borderBottomWidth: "thin",
+          },
+      )}
+      ref={eventContainerRef}
+    >
+      {/* Day-width spacer boxes so event positions align with columns */}
+      {[...Array(daysInWeek)].map((_, i) => (
+        <Box key={i} sx={{ flex: 1 }}>
+          <FlexRow
+            sx={{
+              height: totalHeight,
+              justifyContent: "flex-start",
+              width: "100%",
+            }}
+          />
+        </Box>
+      ))}
+
+      {/* Vertical dividers */}
+      <FlexRow
+        className="header-vertical-lines"
+        sx={{
+          position: "absolute",
+          alignItems: "stretch",
+          justifyContent: "space-between",
+          pointerEvents: "none",
+          height: totalHeight,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+      >
+        {[...Array(daysInWeek + 1)].map((_, i) => (
+          <Divider
+            key={i}
+            orientation="vertical"
+            sx={{
+              opacity: i === 0 || i === daysInWeek ? 0 : 1,
+            }}
+          />
+        ))}
+      </FlexRow>
+
+      {/* All-day events */}
+      {events.map((event, index) => {
+        const start = startOfDay(event.start);
+        const end = parseAllDayEnd(event.end ?? endOfDay(event.start));
+        const endOfWeekDate = addDays(startOfWeek, daysInWeek);
+
+        const rawDayX = differenceInCalendarDays(start, startOfWeek);
+        const dayX = Math.max(rawDayX, 0);
+        const x = dayX;
+        const rawX = rawDayX;
+
+        const y = overlaps[x] ? overlaps[x].indexOf(event) : 0;
+        const daySpan = differenceInCalendarDays(
+          min([end, endOfWeekDate]),
+          max([start, startOfWeek]),
+        );
+        const width = Math.max(daySpan, 1);
+
+        const style = {
+          height: 16,
+          width: widthToPct(119 * Math.max(daySpan, 1) - 8, daysInWeek),
+        };
+
+        const dayOverflowRight = differenceInCalendarDays(end, endOfWeekDate);
+
+        const { bg, color } = getEventColor(
+          now,
+          end,
+          theme,
+          event.sourceEvent.color ?? calendarProps.defaultEventColor,
+        );
+
+        const disableInteractive =
+          !calendarProps.onClickEvent && !calendarProps.onMoveEvent;
+
+        return (
+          <Box
+            className="all-day-event"
+            key={index}
+            component={Button}
+            data-type="week-calendar-all-day-event"
+            data-calendar-event={JSON.stringify({
+              x,
+              colX: 0,
+              index,
+              w: width,
+            })}
+            disableRipple={
+              disableInteractive ||
+              (draggedEvent?.dragged &&
+                draggedEvent?.source.sourceEvent === event.sourceEvent)
+            }
+            sx={mergeSx(
+              {
+                border: 0,
+                p: 0,
+                m: 0,
+                minWidth: "auto",
+                background: "none",
+                cursor: "pointer",
+                position: "absolute",
+                bottom: totalHeight - y * 17 - 16,
+                left: widthToPct(x * 120 + 1, daysInWeek),
+                ...style,
+                display: "flex",
+                justifyContent: "stretch",
+                alignItems: "stretch",
+                "*": {
+                  pointerEvents: "none",
+                },
+              },
+              !disableInteractive &&
+                draggedEvent?.source.sourceEvent === event.sourceEvent && {
+                  opacity: 0.5,
+                },
+              !disableInteractive &&
+                draggedEvent?.dragged &&
+                draggedEvent?.source.sourceEvent === event.sourceEvent && {
+                  opacity: 0.75,
+                  boxShadow: theme.shadows[4],
+                },
+              disableInteractive && {
+                cursor: "auto",
+              },
+            )}
+          >
+            {rawX < 0 ? (
+              <AllDayCalendarOverflow
+                direction="left"
+                value={rawDayX}
+                color={color}
+                bg={bg}
+                valueDate={start}
+                compact={width <= 1}
+              />
+            ) : null}
+            <Box
+              sx={{
+                background: bg,
+                display: "flex",
+                justifyContent: "flex-start",
+                flex: 1,
+                px: 1,
+                alignItems: "center",
+                borderRadius: 1,
+                borderTopLeftRadius: rawX < 0 ? 0 : 4,
+                borderBottomLeftRadius: rawX < 0 ? 0 : 4,
+                borderTopRightRadius: dayOverflowRight > 0 ? 0 : 4,
+                borderBottomRightRadius: dayOverflowRight > 0 ? 0 : 4,
+                paddingLeft: rawX < 0 ? 0 : 1,
+                pointerEvents: "none",
+                overflow: "hidden",
+                flexShrink: 0,
+              }}
+            >
+              <Typography
+                color={color}
+                variant="event"
+                sx={{
+                  pointerEvents: "none",
+                  whiteSpace: "nowrap",
+                  textOverflow: "ellipsis",
+                  overflow: "hidden",
+                }}
+              >
+                {event.sourceEvent.title ?? "(No name)"}
+              </Typography>
+              {event.sourceEvent.endAdornment && dayOverflowRight <= 0 ? (
+                <>
+                  <Box sx={{ flex: 1 }}></Box>
+                  <Box>{event.sourceEvent.endAdornment({ bg, color })}</Box>
+                </>
+              ) : null}
+            </Box>
+            {dayOverflowRight > 0 ? (
+              <AllDayCalendarOverflow
+                direction="right"
+                value={dayOverflowRight}
+                bg={bg}
+                color={color}
+                valueDate={end}
+                compact={width <= 1}
+                endAdornment={
+                  event.sourceEvent.endAdornment
+                    ? event.sourceEvent.endAdornment({ bg, color })
+                    : undefined
+                }
+              />
+            ) : null}
+          </Box>
+        );
+      })}
+    </Box>
+  );
+
+  if (isGrouped) {
+    // Grouped mode: sidebar label on the left, event band on the right
+    return (
+      <FlexRow
+        sx={{
+          alignItems: "stretch",
+        }}
+      >
+        {/* Group sidebar label — matches the 64px TimeSidebar width */}
+        <Box
+          sx={{
+            width: "64px",
+            flexShrink: 0,
+            borderRight: `3px solid ${props.groupColor}`,
+            borderBottom: `3px solid ${props.groupColor}`,
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <Tooltip title={props.groupLabel} placement="right">
+            <Typography
+              variant="caption"
+              sx={{
+                position: "absolute",
+                bottom: 2,
+                left: 0,
+                right: 0,
+                px: 0.5,
+                fontSize: 10,
+                color: (theme) => theme.palette.text.secondary,
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
+                overflow: "hidden",
+              }}
+            >
+              {props.groupLabel}
+            </Typography>
+          </Tooltip>
+        </Box>
+        {/* Event area fills remaining width */}
+        <Box sx={{ flex: 1, position: "relative" }}>{bandContent}</Box>
+      </FlexRow>
+    );
+  }
+
+  // Ungrouped mode: original layout with optional sticky + day-headers row
   return (
     <FlexCol
       sx={mergeSx(
@@ -453,222 +753,10 @@ function WeekCalendarHeader<T>(props: {
       )}
     >
       <Box pl={8}>
-        <Box
-          sx={mergeSx(
-            {
-              display: "flex",
-              position: "relative",
-            },
-            props.sticky && {
-              background: (theme) => theme.palette.background.paper,
-              borderBottomColor: (theme) => theme.palette.divider,
-              borderBottomStyle: "solid",
-              borderBottomWidth: "thin",
-            },
-          )}
-          ref={eventContainerRef}
-        >
-          {weekDays}
-
-          <FlexRow
-            className="header-vertical-lines"
-            sx={{
-              position: "absolute",
-              alignItems: "stretch",
-              justifyContent: "space-between",
-              pointerEvents: "none",
-              height: totalHeight,
-              left: 0,
-              right: 0,
-              bottom: 0,
-            }}
-          >
-            {[...Array(daysInWeek + 1)].map((_, i) => {
-              const isDayBoundary = i % numGroups === 0;
-              const isFirst = i === 0;
-              const isLast = i === daysInWeek;
-              return (
-                <Divider
-                  key={i}
-                  orientation="vertical"
-                  sx={{
-                    opacity: isFirst || isLast ? 0 : 1,
-                    borderRightWidth: numGroups > 1 && isDayBoundary ? 2 : 1,
-                  }}
-                />
-              );
-            })}
-          </FlexRow>
-
-          {events.map((event, index) => {
-            const start = startOfDay(event.start);
-            const end = parseAllDayEnd(event.end ?? endOfDay(event.start));
-            const endOfWeekDate = addDays(startOfWeek, baseDaysInWeek);
-
-            const rawDayX = differenceInCalendarDays(start, startOfWeek);
-            const dayX = Math.max(rawDayX, 0);
-
-            // Determine group sub-column offset
-            const groupIndex = group
-              ? Math.max(
-                  0,
-                  group.groups.findIndex(
-                    (g) => g.key === group.getGroup(event.sourceEvent),
-                  ),
-                )
-              : 0;
-            const x = dayX * numGroups + groupIndex;
-            const rawX = rawDayX * numGroups + groupIndex;
-
-            const y = overlaps[x] ? overlaps[x].indexOf(event) : 0;
-            const daySpan = differenceInCalendarDays(
-              min([end, endOfWeekDate]),
-              max([start, startOfWeek]),
-            );
-            // All-day events span numGroups sub-columns per calendar day (one group lane)
-            const width = Math.max(daySpan, 1);
-
-            const style = {
-              height: 16,
-              width: widthToPct(
-                119 * numGroups * Math.max(daySpan, 1) - 8,
-                daysInWeek,
-              ),
-            };
-
-            const dayOverflowRight = differenceInCalendarDays(
-              end,
-              endOfWeekDate,
-            );
-
-            const { bg, color } = getEventColor(
-              now,
-              end,
-              theme,
-              event.sourceEvent.color ?? calendarProps.defaultEventColor,
-            );
-
-            const disableInteractive =
-              !calendarProps.onClickEvent && !calendarProps.onMoveEvent;
-
-            return (
-              <Box
-                className="all-day-event"
-                key={index}
-                component={Button}
-                data-type="week-calendar-all-day-event"
-                data-calendar-event={JSON.stringify({
-                  x,
-                  colX: 0,
-                  index,
-                  w: width,
-                })}
-                disableRipple={
-                  disableInteractive ||
-                  (draggedEvent?.dragged &&
-                    draggedEvent?.source.sourceEvent === event.sourceEvent)
-                }
-                sx={mergeSx(
-                  {
-                    border: 0,
-                    p: 0,
-                    m: 0,
-                    minWidth: "auto",
-                    background: "none",
-                    cursor: "pointer",
-                    position: "absolute",
-                    bottom: totalHeight - y * 17 - 16,
-                    left: widthToPct(x * 120 + 1, daysInWeek),
-                    ...style,
-                    display: "flex",
-                    justifyContent: "stretch",
-                    alignItems: "stretch",
-                    "*": {
-                      pointerEvents: "none",
-                    },
-                  },
-                  !disableInteractive &&
-                    draggedEvent?.source.sourceEvent === event.sourceEvent && {
-                      opacity: 0.5,
-                    },
-                  !disableInteractive &&
-                    draggedEvent?.dragged &&
-                    draggedEvent?.source.sourceEvent === event.sourceEvent && {
-                      opacity: 0.75,
-                      boxShadow: theme.shadows[4],
-                    },
-                  disableInteractive && {
-                    cursor: "auto",
-                  },
-                )}
-              >
-                {rawX < 0 ? (
-                  <AllDayCalendarOverflow
-                    direction="left"
-                    value={rawDayX}
-                    color={color}
-                    bg={bg}
-                    valueDate={start}
-                    compact={width <= 1}
-                  />
-                ) : null}
-                <Box
-                  sx={{
-                    background: bg,
-                    display: "flex",
-                    justifyContent: "flex-start",
-                    flex: 1,
-                    px: 1,
-                    alignItems: "center",
-                    borderRadius: 1,
-                    borderTopLeftRadius: rawX < 0 ? 0 : 4,
-                    borderBottomLeftRadius: rawX < 0 ? 0 : 4,
-                    borderTopRightRadius: dayOverflowRight > 0 ? 0 : 4,
-                    borderBottomRightRadius: dayOverflowRight > 0 ? 0 : 4,
-                    paddingLeft: rawX < 0 ? 0 : 1,
-                    pointerEvents: "none",
-                    overflow: "hidden",
-                    flexShrink: 0,
-                  }}
-                >
-                  <Typography
-                    color={color}
-                    variant="event"
-                    sx={{
-                      pointerEvents: "none",
-                      whiteSpace: "nowrap",
-                      textOverflow: "ellipsis",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {event.sourceEvent.title ?? "(No name)"}
-                  </Typography>
-                  {event.sourceEvent.endAdornment && dayOverflowRight <= 0 ? (
-                    <>
-                      <Box sx={{ flex: 1 }}></Box>
-                      <Box>{event.sourceEvent.endAdornment({ bg, color })}</Box>
-                    </>
-                  ) : null}
-                </Box>
-                {dayOverflowRight > 0 ? (
-                  <AllDayCalendarOverflow
-                    direction="right"
-                    value={dayOverflowRight}
-                    bg={bg}
-                    color={color}
-                    valueDate={end}
-                    compact={width <= 1}
-                    endAdornment={
-                      event.sourceEvent.endAdornment
-                        ? event.sourceEvent.endAdornment({ bg, color })
-                        : undefined
-                    }
-                  />
-                ) : null}
-              </Box>
-            );
-          })}
-        </Box>
+        {props.weekDaysHeader && (
+          <Box sx={{ display: "flex" }}>{props.weekDaysHeader}</Box>
+        )}
+        {bandContent}
       </Box>
     </FlexCol>
   );
@@ -788,11 +876,9 @@ function WeekCalendarGrid<T>(props: {
   events: CalendarEvent<T>[];
   autoScroll?: boolean;
 }) {
-  const { workWeek, now, startOfWeek, startDay, group, ...calendarProps } =
+  const { workWeek, now, startOfWeek, startDay, ...calendarProps } =
     useCalendar<T>();
-  const baseDaysInWeek = workWeek ? 5 : 7;
-  const numGroups = group ? group.groups.length : 1;
-  const daysInWeek = baseDaysInWeek * numGroups;
+  const daysInWeek = workWeek ? 5 : 7;
 
   const snapFn = (start: Date, end: Date, strict?: boolean) => {
     const delta = differenceInMilliseconds(end, start);
@@ -869,11 +955,7 @@ function WeekCalendarGrid<T>(props: {
       return defaultEvent;
     });
 
-  // Scope overlap detection per group when groups are active
-  const getGroupKey = group
-    ? (ev: ModifiableEvent<T>) => group.getGroup(ev.sourceEvent)
-    : undefined;
-  const [horizontalPositions, numCols] = getPositions(events, getGroupKey);
+  const [horizontalPositions, numCols] = getPositions(events);
 
   // handle drag and drop
   /**
@@ -957,9 +1039,7 @@ function WeekCalendarGrid<T>(props: {
     (pos0, container) => {
       const x = pos0.x - container.x;
       const y = pos0.y - container.y;
-      // Recover the calendar day from the effective column index
-      const col = Math.floor(x / xUnitToPx(120, daysInWeek, container));
-      const day = Math.floor(col / numGroups);
+      const day = Math.floor(x / xUnitToPx(120, daysInWeek, container));
       const minute = y;
       const start = addMinutes(
         startOfDay(addDays(fnsStartOfWeek(startOfWeek, options), day)),
@@ -1055,17 +1135,13 @@ function WeekCalendarGrid<T>(props: {
           inset: 0,
         }}
       >
-        {[...Array(daysInWeek + 1)].map((_, i) => {
-          const isDayBoundary = i % numGroups === 0;
-          const isFirst = i === 0;
-          const isLast = i === daysInWeek;
+        {[...Array(workWeek ? 6 : 8)].map((_, i) => {
           return (
             <Divider
               key={i}
               orientation="vertical"
               sx={{
-                opacity: isFirst || isLast ? 0 : 1,
-                borderRightWidth: numGroups > 1 && isDayBoundary ? 2 : 1,
+                opacity: workWeek && i === 5 ? 0 : !workWeek && i == 7 ? 0 : 1,
               }}
             />
           );
@@ -1096,17 +1172,7 @@ function WeekCalendarGrid<T>(props: {
               roundingMethod: "round",
             },
           );
-          const dayX = differenceInCalendarDays(event.start, startOfWeek);
-          // Determine group sub-column offset
-          const groupIndex = group
-            ? Math.max(
-                0,
-                group.groups.findIndex(
-                  (g) => g.key === group.getGroup(event.sourceEvent),
-                ),
-              )
-            : 0;
-          const x = dayX * numGroups + groupIndex;
+          const x = differenceInCalendarDays(event.start, startOfWeek);
           const left = x * 120;
           const n = numCols[index];
           const horPos = horizontalPositions[index];
@@ -1349,7 +1415,7 @@ function WeekCalendarGrid<T>(props: {
             pointerEvents: "none",
           }}
         >
-          {/* Time Indicator — spans all group sub-columns of the current day */}
+          {/* Time Indicator */}
           <Box
             className="time-indicator"
             ref={setTimeIndicatorRef}
@@ -1357,11 +1423,10 @@ function WeekCalendarGrid<T>(props: {
               position: "absolute",
               top: differenceInMinutes(now, startOfDay(now)),
               left: widthToPct(
-                differenceInCalendarDays(now, startOfWeek) * numGroups * 120 +
-                  1,
+                differenceInCalendarDays(now, startOfWeek) * 120 + 1,
                 daysInWeek,
               ),
-              width: `calc(${widthToPct(120 * numGroups, daysInWeek)} + 6.5px)`,
+              width: `calc(${widthToPct(120, daysInWeek)} + 6.5px)`,
               height: "13px",
               marginTop: "-6px",
               marginLeft: `calc(-${widthToPct(1, daysInWeek)} - 6.5px)`,
