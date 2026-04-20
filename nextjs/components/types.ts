@@ -22,6 +22,32 @@ export type CalendarEvent<T> = {
 export type StartDay = "monday" | "sunday";
 
 /**
+ * A group of calendar events, shown as a distinct track with its own color.
+ * Used by MonthCalendar, WeekCalendar, and Timeline to render track groupings.
+ */
+export type CalendarGroup<T> = {
+  /** Unique identifier for the group */
+  key: string;
+  /** Display label shown in the column header / sidebar */
+  title: string;
+  /** CSS/hex color for the group track indicator */
+  color: string;
+  /** All events belonging to this group */
+  events: CalendarEvent<T>[];
+};
+
+/**
+ * Configuration for grouping calendars into tracks.
+ * Pass this to MonthCalendar or WeekCalendar to enable the track/sub-column view.
+ */
+export type CalendarGroupConfig<T> = {
+  /** Maps an event to its group key */
+  getGroup: (event: CalendarEvent<T>) => string;
+  /** Ordered list of groups to render as sub-columns */
+  groups: CalendarGroup<T>[];
+};
+
+/**
  * How many days the timeline span
  *
  * e.g.\
@@ -61,11 +87,11 @@ type El = {
   addEventListener?(
     type: string,
     listener: (...args: any[]) => any,
-    options?: any
+    options?: any,
   ): void;
   removeEventListener?(
     type: string,
     listener: (...args: any[]) => any,
-    options?: any
+    options?: any,
   ): void;
 };

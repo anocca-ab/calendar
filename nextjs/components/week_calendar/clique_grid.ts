@@ -8,7 +8,34 @@ import {
 } from "./event_overlap_functions";
 import { ModifiableEvent } from "./types";
 
-export function getPositions<T>(events: ModifiableEvent<T>[]) {
+export function getPositions<T>(
+  events: ModifiableEvent<T>[],
+  getGroupKey?: (event: ModifiableEvent<T>) => string,
+) {
+  // When groups are active, partition events by group key and compute positions
+  // within each partition independently so events from different groups never collide.
+  if (getGroupKey) {
+    const partitions = new Map<string, number[]>();
+    events.forEach((ev, i) => {
+      const key = getGroupKey(ev);
+      if (!partitions.has(key)) partitions.set(key, []);
+      partitions.get(key)!.push(i);
+    });
+
+    const mergedHPos: Record<number, number> = {};
+    const mergedNumCols: Record<number, number> = {};
+
+    partitions.forEach((indices) => {
+      const partitionEvents = indices.map((i) => events[i]);
+      const [hPos, nCols] = getPositions(partitionEvents);
+      indices.forEach((origIdx, localIdx) => {
+        mergedHPos[origIdx] = hPos[localIdx];
+        mergedNumCols[origIdx] = nCols[localIdx];
+      });
+    });
+
+    return [mergedHPos, mergedNumCols] as const;
+  }
   /**
    * Overlaps is a graph where each event is a node and each edge is an overlap between two events
    * For each event, which other events is it overlapping with?
@@ -45,7 +72,7 @@ export function getPositions<T>(events: ModifiableEvent<T>[]) {
   components.forEach((component, index) => {
     // const cliques1 = findAllCliques(overlaps, component);
     const cliques2 = allCliques.filter((clique) =>
-      clique.some((node) => component.includes(node))
+      clique.some((node) => component.includes(node)),
     );
     const cliques = cliques2;
 
@@ -57,7 +84,7 @@ export function getPositions<T>(events: ModifiableEvent<T>[]) {
       numCols[index] = maxCliqueSizeForComponent;
 
       const cliquesForEvent = cliques.filter((clique) =>
-        clique.includes(index)
+        clique.includes(index),
       );
       const maxCliqueForEvent = cliquesForEvent.reduce((max, clique) => {
         return clique.length > max.length ? clique : max;
@@ -116,10 +143,10 @@ export function getPositions<T>(events: ModifiableEvent<T>[]) {
   // construct the vertical positions
   maxCliques.forEach((clique) => {
     const novelPositions = clique.filter(
-      (evIndex) => typeof verticalPositions[evIndex] === "undefined"
+      (evIndex) => typeof verticalPositions[evIndex] === "undefined",
     );
     const fixedPositions = clique.filter(
-      (evIndex) => typeof verticalPositions[evIndex] !== "undefined"
+      (evIndex) => typeof verticalPositions[evIndex] !== "undefined",
     );
 
     const verPos: (null | number)[] = [...clique].map(() => null);
@@ -163,7 +190,7 @@ function bronKerboschTomita(
   r: Component,
   p: Component,
   x: Component,
-  cliques: Clique[]
+  cliques: Clique[],
 ) {
   if (p.length === 0 && x.length === 0) {
     cliques.push([...r]);
@@ -181,7 +208,7 @@ function bronKerboschTomita(
       [...r, v],
       p.filter((w) => neighbors.includes(w)),
       x.filter((w) => neighbors.includes(w)),
-      cliques
+      cliques,
     );
     p = p.filter((w) => w !== v);
     x.push(v);

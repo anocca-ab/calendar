@@ -1,6 +1,10 @@
 import { CreateEvent } from "@/components/create_event";
 import { CalendarNav } from "@/components/nav/calendar_nav";
-import { CalendarEvent, TimelineResolution } from "@/components/types";
+import {
+  CalendarEvent,
+  CalendarGroupConfig,
+  TimelineResolution,
+} from "@/components/types";
 import React from "react";
 import { WeekCalendar } from "./week_calendar/week_calendar";
 import { MonthCalendar } from "./month_calendar/month_calendar";
@@ -43,7 +47,7 @@ export function InteractiveDemo(props: {
   onMoveEvent?: (
     event: CalendarEvent<undefined>,
     newStart: Date,
-    newEnd: Date | undefined
+    newEnd: Date | undefined,
   ) => void;
   onClickEvent?: (event: CalendarEvent<any>, nativeEvent: MouseEvent) => void;
   noHeader?: boolean;
@@ -56,7 +60,7 @@ export function InteractiveDemo(props: {
     (_events ?? []).map((ev) => ({
       ...ev,
       data: { ...(ev as any).data, key: Math.random().toString() },
-    }))
+    })),
     // .sort((a, b) => a.start.getTime() - b.start.getTime())
   );
   const [click, setClick] = React.useState(false);
@@ -74,60 +78,66 @@ export function InteractiveDemo(props: {
       !testSelection
         ? realEvents
         : realEvents.map((ev) =>
-            ev.title === "0" ? { ...ev, selected: click } : ev
+            ev.title === "0" ? { ...ev, selected: click } : ev,
           ),
-      props.timelineResolution ?? "month"
+      props.timelineResolution ?? "month",
     );
   }, [props.timelineResolution, testSelection, realEvents, click]);
   const rows = (props.rows ?? _rows) as typeof _rows;
 
-  const group: TimelineProps<{ data: { key: string } }>["group"] =
-    React.useMemo(() => {
-      if (!props.group) {
-        return undefined;
+  // Base group config shared by all calendar types: groups events by color.
+  const groupConfig:
+    | CalendarGroupConfig<{ data: { key: string } }>
+    | undefined = React.useMemo(() => {
+    if (!props.group) {
+      return undefined;
+    }
+    const getGroup = (event: CalEventWithKey) => {
+      return event.color ?? DEFAULT_COLOR;
+    };
+
+    const groupsRecord: Record<
+      string,
+      { key: string; title: string; color: string; events: CalEventWithKey[] }
+    > = {};
+
+    realEvents.forEach((event) => {
+      const g = getGroup(event);
+      if (!groupsRecord[g]) {
+        groupsRecord[g] = {
+          key: g,
+          title: g + getRandomName(),
+          color: g,
+          events: [],
+        };
       }
-      const getGroup = (event: CalEventWithKey) => {
-        return event.color ?? DEFAULT_COLOR;
-      };
+      groupsRecord[g].events.push(event);
+    });
 
-      const groupsRecord: Record<
-        string,
-        { key: string; title: string; color: string; events: CalEventWithKey[] }
-      > = {};
+    return { getGroup, groups: Object.values(groupsRecord) };
+  }, [realEvents, props.group]);
 
-      realEvents.forEach((event) => {
-        const group = getGroup(event);
-        if (!groupsRecord[group]) {
-          groupsRecord[group] = {
-            key: group,
-            title: group + getRandomName(),
-            color: group,
-            events: [],
-          };
-        }
-        groupsRecord[group].events.push(event);
-      });
-
-      const groups = Object.values(groupsRecord).map((group) => ({
-        ...group,
-        rows: eventsToRows(
-          group.events ?? [],
-          props.timelineResolution ?? "month"
-        ),
+  // Timeline additionally needs rows pre-packed per group (timeline-specific layout).
+  const timelineGroup: TimelineProps<{ data: { key: string } }>["group"] =
+    React.useMemo(() => {
+      if (!groupConfig) return undefined;
+      const groups = groupConfig.groups.map((g) => ({
+        ...g,
+        rows: eventsToRows(g.events ?? [], props.timelineResolution ?? "month"),
       }));
-      return { getGroup, groups };
-    }, [props.timelineResolution, realEvents, props.group]);
+      return { getGroup: groupConfig.getGroup, groups };
+    }, [props.timelineResolution, groupConfig]);
 
   const setEvents = (
     events:
       | CalEventWithKey[]
-      | ((events: CalEventWithKey[]) => CalEventWithKey[])
+      | ((events: CalEventWithKey[]) => CalEventWithKey[]),
   ) => {
     return _setEvents(events);
   };
 
   const [draft, setDraft] = React.useState<CalEventWithKey | undefined>(
-    undefined
+    undefined,
   );
 
   let events = [...realEvents];
@@ -163,7 +173,7 @@ export function InteractiveDemo(props: {
   const onMoveEvent = (
     event: CalEventWithKey,
     newStart: Date,
-    newEnd: Date | undefined
+    newEnd: Date | undefined,
   ) => {
     if (draft && event.data.key === draft.data.key) {
       setDraft({
@@ -192,8 +202,8 @@ export function InteractiveDemo(props: {
     type === "month"
       ? MonthCalendar
       : type === "week"
-      ? WeekCalendar
-      : Timeline;
+        ? WeekCalendar
+        : Timeline;
 
   const editingDraft = draft && editModalOpen?.key === draft.data.key;
   const editedEvent =
@@ -212,7 +222,7 @@ export function InteractiveDemo(props: {
           flexDirection: "column",
           alignItems: "stretch",
         },
-        props.sx
+        props.sx,
       )}
       className="interactive-demo"
     >
@@ -232,7 +242,7 @@ export function InteractiveDemo(props: {
               setDraft(ev);
             } else {
               setEvents(
-                realEvents.map((e) => (e.data.key === ev.data.key ? ev : e))
+                realEvents.map((e) => (e.data.key === ev.data.key ? ev : e)),
               );
             }
           }}
@@ -252,14 +262,14 @@ export function InteractiveDemo(props: {
             } else {
               setEvents(
                 realEvents.map((ev) =>
-                  ev.data.key === originalEvent.data.key ? newEv : ev
-                )
+                  ev.data.key === originalEvent.data.key ? newEv : ev,
+                ),
               );
             }
           }}
           onDelete={(event) => {
             const eventIndex = realEvents.findIndex(
-              (ev) => event.data.key === ev?.data.key
+              (ev) => event.data.key === ev?.data.key,
             );
             if (eventIndex !== -1) {
               const a = [...realEvents];
@@ -291,7 +301,7 @@ export function InteractiveDemo(props: {
         <CalendarType
           {...props}
           rows={rows}
-          group={group}
+          group={(type === "timeline" ? timelineGroup : groupConfig) as any}
           startTime={startTime} // timeline
           startOfWeek={startTime} // week calendar
           startOfMonth={startTime} // month calendar

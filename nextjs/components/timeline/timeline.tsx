@@ -45,6 +45,7 @@ import {
 import { useMeasureHeight } from "../measure_height";
 import {
   CalendarEvent,
+  CalendarGroup,
   ScrollContainer,
   StartDay,
   TimelineResolution,
@@ -63,20 +64,9 @@ import { Header } from "./header";
 import { timelineHeaderHeight } from "./timeline_height";
 import { widthToPct } from "./to_pct";
 
-type TimelineGroup<T> = {
-  /**
-   * group key
-   */
-  key: string;
-  /**
-   * title of the group
-   */
-  title: string;
-  /**
-   * color of the group
-   */
-  color: string;
-
+// TimelineGroup extends the shared CalendarGroup base type with pre-packed rows
+// (rows are timeline-specific; month/week calendars do their own layout internally).
+type TimelineGroup<T> = CalendarGroup<T> & {
   /**
    * Use these rows instead of the default rows
    */
@@ -157,7 +147,7 @@ export type TimelineProps<T> = {
   onMoveEvent?: (
     event: CalendarEvent<T>,
     newStart: Date,
-    newEnd: Date | undefined
+    newEnd: Date | undefined,
   ) => void;
 
   /**
@@ -188,7 +178,7 @@ export type TimelineProps<T> = {
 function getStartTime(
   startTime: Date,
   resolution: TimelineResolution,
-  startDay: StartDay
+  startDay: StartDay,
 ): Date {
   const options: StartOfWeekOptions = {
     weekStartsOn: startDay === "monday" ? 1 : 0,
@@ -225,7 +215,7 @@ function useParseDefaultProps<T>(props: TimelineProps<T>) {
     startDay,
     startTime: React.useMemo(
       () => getStartTime(props.startTime ?? new Date(), resolution, startDay),
-      [props.startTime, resolution, startDay]
+      [props.startTime, resolution, startDay],
     ),
     startOfWeek,
     resolution,
@@ -304,12 +294,12 @@ export function Timeline<T>(props: TimelineProps<T>) {
 
         const monthDelta = differenceInMilliseconds(
           startOfMonth(addMonths(start, 1)),
-          startOfMonth(start)
+          startOfMonth(start),
         );
 
         const middleOfTheMonth = addMilliseconds(
           startOfMonth(start),
-          monthDelta / 2
+          monthDelta / 2,
         );
 
         const snap = (date: Date) => {
@@ -339,7 +329,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
       const snapToWeek = () => {
         const middleOfTheWeek = addMinutes(
           startOfWeek(start, options),
-          (7 * 720) / 2
+          (7 * 720) / 2,
         );
 
         const snap = (date: Date) => {
@@ -368,7 +358,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
       }
       return { start, end };
     },
-    [options, resolution]
+    [options, resolution],
   );
 
   // const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
@@ -402,7 +392,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
           sourceEvent,
           start: getEventStart(sourceEvent),
           end: getEventEnd(sourceEvent),
-        }))
+        })),
       ),
       eventGroupMap,
     };
@@ -410,18 +400,18 @@ export function Timeline<T>(props: TimelineProps<T>) {
 
   const rows: ModifiableEvent<T>[][] = React.useMemo(
     () => parseEventsInTimeline(allRows, resolution, startTime),
-    [allRows, resolution, startTime]
+    [allRows, resolution, startTime],
   );
 
   const [timelineStart, timelineEnd] = React.useMemo(
     () => getTimelineRange(resolution, startTime),
-    [resolution, startTime]
+    [resolution, startTime],
   );
 
   function calculateNewTime(
     state: MouseState,
     dragged: DragPosition<ModifiableEvent<T>>,
-    container: EventContainer
+    container: EventContainer,
   ) {
     if (state.pos && state.pos0) {
       const { pos, pos0 } = state;
@@ -443,11 +433,11 @@ export function Timeline<T>(props: TimelineProps<T>) {
 
       let start = addMilliseconds(
         getEventStart(dragged.event.sourceEvent),
-        addedMs
+        addedMs,
       );
       let end = addMilliseconds(
         getEventEnd(dragged.event.sourceEvent),
-        addedMs
+        addedMs,
       );
 
       if (dragged.type === "new") {
@@ -473,7 +463,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
   function constrainResize(
     origEv: { start: Date; end: Date },
     newEv: { start: Date; end: Date },
-    resize: "start" | "end"
+    resize: "start" | "end",
   ) {
     if (resize === "end") {
       const delta = differenceInMilliseconds(newEv.end, origEv.start);
@@ -524,7 +514,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
     calculateNewTime,
     calendarProps,
     undefined,
-    constrainResize
+    constrainResize,
   );
 
   useMouse("timeline-event", effectRefs, false);
@@ -553,7 +543,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
   const endIndex = Math.min(topRowIndex + windowSize, rows.length - 1);
 
   const [scrollableRef, setScrollableRef] = React.useState<HTMLElement | null>(
-    null
+    null,
   );
 
   const [isPending, startTransition] = React.useTransition();
@@ -730,7 +720,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
               position: "absolute",
               pointerEvents: "none",
               left: widthToPct(
-                (720 * (now.getTime() - start)) / totalSecondsOfTimeline
+                (720 * (now.getTime() - start)) / totalSecondsOfTimeline,
               ),
               height: "100%",
             }}
@@ -866,7 +856,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
 
                 if (
                   row.some(
-                    (r) => r.sourceEvent === draggedEvent?.source.sourceEvent
+                    (r) => r.sourceEvent === draggedEvent?.source.sourceEvent,
                   )
                 ) {
                   draggedEventForRow = draggedEvent;
@@ -952,7 +942,7 @@ const Row = React.memo(function Row<T>({
           now,
           getEventEnd(event.sourceEvent),
           theme,
-          event.sourceEvent.color ?? defaultEventColor
+          event.sourceEvent.color ?? defaultEventColor,
         );
         return (
           <RowEvent
@@ -1017,10 +1007,10 @@ const RowEvent = React.memo(function RowEvent<T>({
   }
 
   const x = widthToPct(
-    (720 * (evStart.getTime() - start)) / totalSecondsOfTimeline
+    (720 * (evStart.getTime() - start)) / totalSecondsOfTimeline,
   );
   const w = widthToPct(
-    (720 * (evEnd.getTime() - evStart.getTime())) / totalSecondsOfTimeline
+    (720 * (evEnd.getTime() - evStart.getTime())) / totalSecondsOfTimeline,
   );
 
   let width = differenceInCalendarDays(evEnd, evStart);
@@ -1146,7 +1136,7 @@ const RowEvent = React.memo(function RowEvent<T>({
 
 const getTimelineRange = (
   resolution: TimelineResolution,
-  startTime: Date
+  startTime: Date,
 ): [Date, Date] => {
   if (resolution === "month") {
     return [startTime, addWeeks(startTime, 6)];
@@ -1167,7 +1157,7 @@ const constrainEvent = (
   resolution: TimelineResolution,
   startTime: Date,
   _start: Date,
-  _end: Date
+  _end: Date,
 ) => {
   const [timelineStart, timelineEnd] = getTimelineRange(resolution, startTime);
 
@@ -1195,7 +1185,7 @@ const constrainEvent = (
 function parseEventsInTimeline<T>(
   rows: ModifiableEvent<T>[][],
   resolution: TimelineResolution,
-  startTime: Date
+  startTime: Date,
 ) {
   const [timelineStart, timelineEnd] = getTimelineRange(resolution, startTime);
 
@@ -1207,7 +1197,7 @@ function parseEventsInTimeline<T>(
             start: timelineStart,
             end: timelineEnd,
           },
-          { start: getEventStart(event), end: getEventEnd(event) }
+          { start: getEventStart(event), end: getEventEnd(event) },
         );
       })
       .map((event) => {
@@ -1215,10 +1205,10 @@ function parseEventsInTimeline<T>(
           resolution,
           startTime,
           getEventStart(event),
-          getEventEnd(event)
+          getEventEnd(event),
         );
         return { sourceEvent: event.sourceEvent, start, end };
-      })
+      }),
   );
   return rowsInTimeline;
 }

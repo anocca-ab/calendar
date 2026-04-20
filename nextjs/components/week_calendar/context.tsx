@@ -1,5 +1,10 @@
 import React from "react";
-import { CalendarEvent, ScrollContainer, StartDay } from "../types";
+import {
+  CalendarEvent,
+  CalendarGroupConfig,
+  ScrollContainer,
+  StartDay,
+} from "../types";
 
 type RawContext<T> =
   | undefined
@@ -13,10 +18,11 @@ type RawContext<T> =
       onMoveEvent?: (
         event: CalendarEvent<T>,
         newStart: Date,
-        newEnd: Date | undefined
+        newEnd: Date | undefined,
       ) => void;
       defaultEventColor: string;
       scrollContainers: ScrollContainer[];
+      group?: CalendarGroupConfig<T>;
     };
 export const CalendarConfigContext =
   React.createContext<RawContext<any>>(undefined);
