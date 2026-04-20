@@ -393,7 +393,12 @@ function WeekCalendarHeader<T>(props: {
             },
           )}
         >
-          {groupBands}
+          {groupBands.map((band, i) => (
+            <React.Fragment key={i}>
+              {i > 0 && <Divider />}
+              <Box sx={{ py: "2px" }}>{band}</Box>
+            </React.Fragment>
+          ))}
         </Box>
       </FlexCol>
     );
@@ -438,7 +443,8 @@ function AllDayBand<T>(props: {
     ...Object.values(overlaps).map((o) => o.length),
   );
 
-  const totalHeight = 17 * maxOverlaps;
+  const MIN_BAND_HEIGHT = 25;
+  const totalHeight = Math.max(MIN_BAND_HEIGHT, 17 * maxOverlaps);
 
   function calculateNewTime(
     state: MouseState,
@@ -710,6 +716,7 @@ function AllDayBand<T>(props: {
             borderBottom: `3px solid ${props.groupColor}`,
             position: "relative",
             overflow: "hidden",
+            minHeight: "25px",
           }}
         >
           <Tooltip title={props.groupLabel} placement="right">
@@ -721,7 +728,6 @@ function AllDayBand<T>(props: {
                 left: 0,
                 right: 0,
                 px: 0.5,
-                fontSize: 10,
                 color: (theme) => theme.palette.text.secondary,
                 whiteSpace: "nowrap",
                 textOverflow: "ellipsis",
