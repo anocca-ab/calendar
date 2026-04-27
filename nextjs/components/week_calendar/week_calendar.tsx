@@ -443,7 +443,7 @@ function AllDayBand<T>(props: {
     ...Object.values(overlaps).map((o) => o.length),
   );
 
-  const MIN_BAND_HEIGHT = 25;
+  const MIN_BAND_HEIGHT = 20;
   const totalHeight = Math.max(MIN_BAND_HEIGHT, 17 * maxOverlaps);
 
   function calculateNewTime(
@@ -716,7 +716,6 @@ function AllDayBand<T>(props: {
             borderBottom: `3px solid ${props.groupColor}`,
             position: "relative",
             overflow: "hidden",
-            minHeight: "25px",
           }}
         >
           <Tooltip title={props.groupLabel} placement="right">
@@ -724,11 +723,9 @@ function AllDayBand<T>(props: {
               variant="caption"
               sx={{
                 position: "absolute",
-                bottom: 2,
                 left: 0,
                 right: 0,
-                px: 0.5,
-                color: (theme) => theme.palette.text.secondary,
+                color: (theme) => theme.palette.text.primary,
                 whiteSpace: "nowrap",
                 textOverflow: "ellipsis",
                 overflow: "hidden",
