@@ -4,6 +4,7 @@ import {
   addWeeks,
   differenceInCalendarWeeks,
   differenceInDays,
+  differenceInWeeks,
   endOfWeek,
   startOfMonth as fnsStartOfMonth,
   format,
@@ -13,7 +14,7 @@ import {
   startOfDay,
   startOfWeek,
 } from "date-fns";
-import { CalendarGroupConfig, StartDay } from "./types";
+import { StartDay } from "./types";
 import { ModifiableEvent } from "./week_calendar/types";
 import { getEventEnd, getEventStart } from "./helpers";
 
@@ -35,31 +36,13 @@ export function eventGrid<T>(
   startDay: StartDay,
   startTime: Date,
   endTime: Date,
-  maxEventsPerDay: number,
-  groupConfig?: CalendarGroupConfig<T>,
+  maxEventsPerDay: number
 ) {
   const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
     startDay === "monday" ? 1 : 0;
 
-  // Build a lookup: sourceEvent object → groupIndex (0-based index into groupConfig.groups)
-  const groupIndexMap = new WeakMap<object, number>();
-  if (groupConfig) {
-    groupConfig.groups.forEach((group, gi) => {
-      group.events.forEach((ev) => {
-        groupIndexMap.set(ev as object, gi);
-      });
-    });
-  }
-  const numGroups = groupConfig ? groupConfig.groups.length : 1;
-
-  const getGroupIndex = (event: ModifiableEvent<T>): number => {
-    if (!groupConfig) return 0;
-    return groupIndexMap.get(event.sourceEvent as object) ?? 0;
-  };
-
   /**
-   * This will hold all the properties about the events that we need to render them in the correct position.
-   * When groupConfig is provided, `day` stores the effective column: day * numGroups + groupIndex.
+   * This will hold all the properties about the events that we need to render them in the correct position
    */
   const eventProperties: {
     [
@@ -69,16 +52,11 @@ export function eventGrid<T>(
       index: string
     ]: {
       row: number;
-      /**
-       * When groupConfig is provided this is the effective column index:
-       * day * numGroups + groupIndex. Otherwise it is just the day-of-week (0–6).
-       */
       day: number;
       week: number;
       startDay: number;
       endDay: number;
       inMoreButton: boolean;
-      groupIndex: number;
     };
   } = {};
 
@@ -91,7 +69,7 @@ export function eventGrid<T>(
   });
 
   // step 3.
-  // for each week we have a grid of (7*numGroups) x 5 positions. We loop over each event during the week and occupy the first available positions in the grid
+  // for each week we have a grid of 7x5 positions. We loop over each event during the week and occupy the first available positions in the grid
   // in this process we will get the x, y position for each event
   // prettier-ignore
   const grid: (
@@ -104,9 +82,9 @@ export function eventGrid<T>(
       end: string;
     }
   )[
-    // row in a day×group slot
+    // row in a day
   ][
-    // col = day * numGroups + groupIndex
+    // day
   ][
     // week
   ] = [];
@@ -114,7 +92,6 @@ export function eventGrid<T>(
   const assignEventToGrid = (
     week: number,
     day: number,
-    groupIndex: number,
     eventIndex: number,
     {
       event,
@@ -128,40 +105,32 @@ export function eventGrid<T>(
       eventEnd: Date;
       endDay: number;
       startDay: number;
-    },
+    }
   ) => {
-    // The effective column in the grid is day*numGroups + groupIndex
-    const col = day * numGroups + groupIndex;
     grid[week] = grid[week] ?? [];
-    grid[week][col] = grid[week][col] ?? [];
+    grid[week][day] = grid[week][day] ?? [];
 
-    const rows = grid[week][col];
+    const rows = grid[week][day];
 
     // find the first available position
     let occupiedRows: number[] = [];
     let pinnedRow = -1;
-    grid[week].forEach((weekCol, colIndex) => {
-      // Only check occupancy within the same group lane
-      if (
-        Math.floor(colIndex / numGroups) === Math.floor(col / numGroups) &&
-        colIndex % numGroups === groupIndex
-      ) {
-        weekCol.forEach((event, row) => {
-          const ev = events[event.index];
-          const eventEnd = min([getEventEnd(ev), endTime]);
-          const evEndDay = differenceInDays(
-            eventEnd,
-            startOfWeek(eventEnd, { weekStartsOn }),
-          );
-          if (evEndDay >= day) {
-            if (event.index === eventIndex) {
-              pinnedRow = row;
-            } else {
-              occupiedRows.push(row);
-            }
+    grid[week].forEach((week, dayIndex) => {
+      week.forEach((event, row) => {
+        const ev = events[event.index];
+        const eventEnd = min([getEventEnd(ev), endTime]);
+        const evEndDay = differenceInDays(
+          eventEnd,
+          startOfWeek(eventEnd, { weekStartsOn })
+        );
+        if (evEndDay >= day) {
+          if (event.index === eventIndex) {
+            pinnedRow = row;
+          } else {
+            occupiedRows.push(row);
           }
-        });
-      }
+        }
+      });
     });
     let firstAvailableRow = pinnedRow !== -1 ? pinnedRow : rows.length;
     if (pinnedRow === -1) {
@@ -184,13 +153,11 @@ export function eventGrid<T>(
     if (!eventProperties[eventIndex]) {
       eventProperties[eventIndex] = {
         row: firstAvailableRow,
-        // Store col so callers can use it directly as the x-offset
-        day: col,
+        day,
         week,
-        startDay: day * numGroups + groupIndex,
-        endDay: endDay * numGroups + groupIndex,
+        startDay,
+        endDay,
         inMoreButton: false,
-        groupIndex,
       };
     }
   };
@@ -198,22 +165,21 @@ export function eventGrid<T>(
   events.forEach((event, index) => {
     const eventStart = max([getEventStart(event), startTime]);
     const eventEnd = min([getEventEnd(event), endTime]);
-    const groupIndex = getGroupIndex(event);
 
     const week = differenceInCalendarWeeks(eventStart, startTime, {
       weekStartsOn,
     });
     const day = differenceInDays(
       eventStart,
-      startOfWeek(eventStart, { weekStartsOn }),
+      startOfWeek(eventStart, { weekStartsOn })
     );
 
     const endDay = differenceInDays(
       eventEnd,
-      startOfWeek(eventStart, { weekStartsOn }),
+      startOfWeek(eventStart, { weekStartsOn })
     );
 
-    assignEventToGrid(week, day, groupIndex, index, {
+    assignEventToGrid(week, day, index, {
       event,
       startDay: day,
       endDay,
@@ -231,7 +197,7 @@ export function eventGrid<T>(
       });
       const day = differenceInDays(start, startOfWeek(start, { weekStartsOn }));
 
-      assignEventToGrid(week, day, groupIndex, index, {
+      assignEventToGrid(week, day, index, {
         event,
         startDay: day,
         endDay,
@@ -241,17 +207,17 @@ export function eventGrid<T>(
     }
   });
 
-  const maxRows: number /* week / col */[][] = [];
+  const maxRows: number /* week / day */[][] = [];
 
   // get max row
   grid.forEach((week, weekIndex) => {
-    week.forEach((col, colIndex) => {
+    week.forEach((day, dayIndex) => {
       if (!Array.isArray(maxRows[weekIndex])) {
         maxRows[weekIndex] = [];
       }
-      maxRows[weekIndex][colIndex] = Math.max(
-        col.length,
-        maxRows[weekIndex][colIndex] || 0,
+      maxRows[weekIndex][dayIndex] = Math.max(
+        day.length,
+        maxRows[weekIndex][dayIndex] || 0
       );
     });
   });
@@ -260,18 +226,16 @@ export function eventGrid<T>(
 
   const moreButtonsDict: Record<
     /**
-     * The key is `${week}-${col}` where col = day*numGroups + groupIndex
+     * The key is the `${week}-${day}`
      */
     string,
     MoreButton<T>
   > = {};
 
   events.forEach((event, eventIndex) => {
-    const { week, row, startDay, endDay, groupIndex } =
-      eventProperties[eventIndex];
-    for (let col = startDay; col <= endDay; col += numGroups) {
-      const key = `${week}-${col}`;
-      const day = Math.floor(col / numGroups);
+    const { week, row, startDay, endDay } = eventProperties[eventIndex];
+    for (let day = startDay; day <= endDay; day++) {
+      const key = `${week}-${day}`;
 
       let moreButton = moreButtonsDict[key];
       if (moreButton) {
@@ -280,8 +244,7 @@ export function eventGrid<T>(
         const date = startOfDay(addDays(addWeeks(startTime, week), day));
         moreButtonsDict[key] = {
           week,
-          day: col,
-          groupIndex,
+          day,
           events: [],
           allEvents: [eventIndex],
           date,
@@ -292,7 +255,7 @@ export function eventGrid<T>(
         moreButton.events.push(eventIndex);
         eventProperties[eventIndex].inMoreButton = true;
       };
-      const maxRow = maxRows[week][col];
+      const maxRow = maxRows[week][day];
       eventProperties[eventIndex];
       if (maxRow > maxEventsPerDay) {
         // has more button
@@ -312,16 +275,14 @@ export function eventGrid<T>(
     eventProperties,
     events,
     moreButtons: Object.values(moreButtonsDict).filter(
-      (button) => button.events.length > 0,
+      (button) => button.events.length > 0
     ),
   };
 }
 
 export type MoreButton<T> = {
   week: number;
-  /** When groupConfig is active this is the effective column (day * numGroups + groupIndex) */
   day: number;
-  groupIndex: number;
   date: Date;
   events: number[];
   allEvents: number[];
