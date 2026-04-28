@@ -388,7 +388,9 @@ function WeekCalendarHeader<T>(props: {
         <Box sx={{ height: "12px" }} />
         <FlexRow
           sx={{
-            height: effectiveHeight,
+            height: isExpanded
+              ? `min(${totalHeight}px, 50vh)`
+              : effectiveHeight,
             justifyContent: "flex-start",
             width: "100%",
           }}
@@ -448,7 +450,7 @@ function WeekCalendarHeader<T>(props: {
               display: "flex",
               position: "relative",
               flex: 1,
-              overflow: "hidden",
+              overflowX: "hidden",
             },
             props.sticky && {
               background: (theme) => theme.palette.background.paper,
@@ -468,10 +470,10 @@ function WeekCalendarHeader<T>(props: {
               alignItems: "stretch",
               justifyContent: "space-between",
               pointerEvents: "none",
-              height: "100%",
+              height: "calc(100% - 64px)",
               left: 0,
               right: 0,
-              bottom: 0,
+              top: 64,
             }}
           >
             {[...Array(workWeek ? 6 : 8)].map((_, i) => {
@@ -494,7 +496,7 @@ function WeekCalendarHeader<T>(props: {
               position: "absolute",
               left: 0,
               right: 0,
-              bottom: 0,
+              top: 64,
               height: effectiveHeight,
               maxHeight: isExpanded ? "50vh" : effectiveHeight,
               overflowY: isExpanded ? "auto" : "hidden",
@@ -557,7 +559,7 @@ function WeekCalendarHeader<T>(props: {
                       background: "none",
                       cursor: "pointer",
                       position: "absolute",
-                      bottom: totalHeight - y * 17 - 16,
+                      top: y * 17,
                       left: widthToPct(x * 120 + 1, daysInWeek),
                       ...style,
                       display: "flex",
