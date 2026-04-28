@@ -36,7 +36,8 @@ export function eventGrid<T>(
   startDay: StartDay,
   startTime: Date,
   endTime: Date,
-  maxEventsPerDay: number
+  maxEventsPerDay: number,
+  groupOrder?: (event: ModifiableEvent<T>) => number,
 ) {
   const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
     startDay === "monday" ? 1 : 0;
@@ -61,8 +62,12 @@ export function eventGrid<T>(
   } = {};
 
   // step 2.
-  // sort the events by 1. start date and 2. duration
+  // sort the events by 1. group order (if provided), 2. start date and 3. duration
   events.sort((a, b) => {
+    if (groupOrder) {
+      const groupComparison = groupOrder(a) - groupOrder(b);
+      if (groupComparison !== 0) return groupComparison;
+    }
     const startComparison = a.start.getTime() - b.start.getTime();
     if (startComparison !== 0) return startComparison;
     return b.end.getTime() - a.end.getTime();
@@ -105,7 +110,7 @@ export function eventGrid<T>(
       eventEnd: Date;
       endDay: number;
       startDay: number;
-    }
+    },
   ) => {
     grid[week] = grid[week] ?? [];
     grid[week][day] = grid[week][day] ?? [];
@@ -121,7 +126,7 @@ export function eventGrid<T>(
         const eventEnd = min([getEventEnd(ev), endTime]);
         const evEndDay = differenceInDays(
           eventEnd,
-          startOfWeek(eventEnd, { weekStartsOn })
+          startOfWeek(eventEnd, { weekStartsOn }),
         );
         if (evEndDay >= day) {
           if (event.index === eventIndex) {
@@ -171,12 +176,12 @@ export function eventGrid<T>(
     });
     const day = differenceInDays(
       eventStart,
-      startOfWeek(eventStart, { weekStartsOn })
+      startOfWeek(eventStart, { weekStartsOn }),
     );
 
     const endDay = differenceInDays(
       eventEnd,
-      startOfWeek(eventStart, { weekStartsOn })
+      startOfWeek(eventStart, { weekStartsOn }),
     );
 
     assignEventToGrid(week, day, index, {
@@ -217,7 +222,7 @@ export function eventGrid<T>(
       }
       maxRows[weekIndex][dayIndex] = Math.max(
         day.length,
-        maxRows[weekIndex][dayIndex] || 0
+        maxRows[weekIndex][dayIndex] || 0,
       );
     });
   });
@@ -275,7 +280,7 @@ export function eventGrid<T>(
     eventProperties,
     events,
     moreButtons: Object.values(moreButtonsDict).filter(
-      (button) => button.events.length > 0
+      (button) => button.events.length > 0,
     ),
   };
 }

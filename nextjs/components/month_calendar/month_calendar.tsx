@@ -44,7 +44,12 @@ import {
   mergeSx,
   widthToPct,
 } from "../helpers";
-import { CalendarEvent, ScrollContainer, StartDay } from "../types";
+import {
+  CalendarEvent,
+  CalendarGroupConfig,
+  ScrollContainer,
+  StartDay,
+} from "../types";
 import {
   DragPosition,
   EventContainer,
@@ -73,7 +78,7 @@ type RawContext<T> =
       onMoveEvent?: (
         event: CalendarEvent<T>,
         newStart: Date,
-        newEnd: Date | undefined
+        newEnd: Date | undefined,
       ) => void;
     };
 export const MonthCalendarConfigContext =
@@ -126,7 +131,7 @@ export type MonthCalendarProps<T> = {
   onMoveEvent?: (
     event: CalendarEvent<T>,
     newStart: Date,
-    newEnd: Date | undefined
+    newEnd: Date | undefined,
   ) => void;
 
   /**
@@ -147,6 +152,12 @@ export type MonthCalendarProps<T> = {
    * @default [window]
    */
   scrollContainers?: ScrollContainer[];
+
+  /**
+   * When provided, events are visually grouped — events from the same group are placed in consecutive rows,
+   * separated by a Divider between group clusters.
+   */
+  group?: CalendarGroupConfig<T>;
 };
 
 function parseDefaultProps<T>(props: MonthCalendarProps<T>) {
@@ -170,6 +181,7 @@ function parseDefaultProps<T>(props: MonthCalendarProps<T>) {
     onClickEvent: props.onClickEvent,
     scrollContainers,
     defaultEventColor: props.defaultEventColor ?? DEFAULT_COLOR,
+    group: props.group,
   };
 }
 
@@ -177,8 +189,10 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
   const { startDay, now, startOfMonth, defaultEventColor, ...calendarProps } =
     parseDefaultProps(props);
 
+  const { group } = calendarProps;
+
   const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
-    calendarProps.events
+    calendarProps.events,
   );
 
   const [moreButtonClicked, setMoreButtonClicked] = useState<
@@ -215,7 +229,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
   const eventsInMonth: ModifiableEvent<T>[] = filterEventsInMonth(
     allEvents,
     startDay,
-    startOfMonth
+    startOfMonth,
   );
 
   // step 1.
@@ -227,12 +241,12 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
   const splitEvents = splitMultiWeekEvents(
     eventsInMonth,
     startDay,
-    startOfMonth
+    startOfMonth,
   );
 
   const { startOfMonthCalendar, endOfMonthCalendar } = monthCalendarRange(
     startDay,
-    startOfMonth
+    startOfMonth,
   );
 
   const weeksInMonth = getWeeksInMonth(startOfMonth, {
@@ -240,20 +254,29 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
   });
 
   const { height, setWrapperRef, hasMeasuredHeight } = useMeasureHeight(
-    120 * weeksInMonth
+    120 * weeksInMonth,
   );
 
   const maxEventsPerDay = Math.max(
     Math.floor((height / weeksInMonth - 35) / 17),
-    1
+    1,
   );
+
+  const groupOrder = group
+    ? (event: ModifiableEvent<T>) => {
+        const key = group.getGroup(event.sourceEvent);
+        const idx = group.groups.findIndex((g) => g.key === key);
+        return idx === -1 ? group.groups.length : idx;
+      }
+    : undefined;
 
   const { eventProperties, events, moreButtons } = eventGrid(
     splitEvents,
     startDay,
     startOfMonthCalendar,
     endOfMonthCalendar,
-    maxEventsPerDay
+    maxEventsPerDay,
+    groupOrder,
   );
 
   const weekStartsOn: StartOfWeekOptions["weekStartsOn"] =
@@ -266,7 +289,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
   function calculateNewTime(
     state: MouseState,
     dragged: DragPosition<ModifiableEvent<T>>,
-    container: EventContainer
+    container: EventContainer,
   ) {
     if (state.pos && state.pos0) {
       const addedDays = dayDiff(
@@ -274,7 +297,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
         state.pos0,
         dragged,
         daysInWeek,
-        container
+        container,
       );
 
       const height = yUnitToPx(120, weeksInMonth, container);
@@ -323,7 +346,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
     getEvent,
     setDraggedEvent,
     calculateNewTime,
-    calendarProps
+    calendarProps,
   );
 
   useMouse("month-calendar-event", effectRefs, false);
@@ -362,6 +385,44 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
     }
     eventParts[index].push(event);
   });
+
+  /**
+   * Compute group divider positions.
+   * For each week row, find the row indices where the group transitions so we can
+   * render a horizontal Divider between group clusters.
+   */
+  const groupDividers: { week: number; row: number }[] = [];
+  if (group) {
+    // For each week, collect the highest row used by each group index
+    const maxRowByGroupPerWeek: Map<number, Map<number, number>> = new Map();
+    events.forEach((event, index) => {
+      const { week, row, inMoreButton } = eventProperties[`${index}`];
+      if (inMoreButton) return;
+      const gIdx = groupOrder!(event);
+      if (!maxRowByGroupPerWeek.has(week)) {
+        maxRowByGroupPerWeek.set(week, new Map());
+      }
+      const weekMap = maxRowByGroupPerWeek.get(week);
+      if (weekMap !== undefined) {
+        weekMap.set(gIdx, Math.max(weekMap.get(gIdx) ?? -1, row));
+      }
+    });
+
+    // For each week, sort the group indices that actually appear and emit a
+    // divider between consecutive groups (at the row just after the last row of
+    // the earlier group, i.e. before the first row of the later group).
+    maxRowByGroupPerWeek.forEach((weekMap, week) => {
+      const sortedGroupIndices = Array.from(weekMap.keys()).sort(
+        (a, b) => a - b,
+      );
+      for (let i = 0; i < sortedGroupIndices.length - 1; i++) {
+        const currentGroupIdx = sortedGroupIndices[i];
+        const maxRowOfCurrentGroup = weekMap.get(currentGroupIdx)!;
+        // Divider sits at the row just after the last event of this group
+        groupDividers.push({ week, row: maxRowOfCurrentGroup + 1 });
+      }
+    });
+  }
 
   let modal: undefined | ({ top: string; left: string } & MoreButton<T>) =
     undefined;
@@ -517,7 +578,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                   startOfWeek(startOfMonth, {
                     weekStartsOn: startDay === "monday" ? 1 : 0,
                   }),
-                  Math.floor(i / 7)
+                  Math.floor(i / 7),
                 );
 
                 const currentDate = addDays(beginningOfCurrentWeek, i % 7);
@@ -566,7 +627,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         ":hover": {
                           backgroundColor: "transparent",
                         },
-                      }
+                      },
                     )}
                   >
                     <FlexRow
@@ -615,8 +676,8 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                               color: active
                                 ? (theme) => theme.palette.primary.contrastText
                                 : isInCurrentMonth
-                                ? (theme) => theme.palette.text.primary
-                                : (theme) => theme.palette.text.secondary,
+                                  ? (theme) => theme.palette.text.primary
+                                  : (theme) => theme.palette.text.secondary,
                             }}
                           >
                             {dayNumber}
@@ -641,6 +702,25 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                 ref={eventContainerRef}
               >
                 <>
+                  {/* Group dividers */}
+                  {groupDividers.map((divider, i) => (
+                    <Divider
+                      key={`group-divider-${i}`}
+                      sx={{
+                        position: "absolute",
+                        left: 0,
+                        right: 0,
+                        top: `calc(${heightToPct(
+                          divider.week * 120,
+                          weeksInMonth,
+                        )} + ${divider.row * 17 + 32}px)`,
+                        zIndex: 2,
+                        pointerEvents: "none",
+                      }}
+                    />
+                  ))}
+                </>
+                <>
                   {moreButtons.map((moreButton, index) => {
                     const { week, day, events: moreButtonEvents } = moreButton;
                     const row = maxEventsPerDay - 1;
@@ -658,7 +738,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                           left: `${widthToPct(day * 120 + 2, daysInWeek)}`,
                           top: `calc(${heightToPct(
                             week * 120,
-                            weeksInMonth
+                            weeksInMonth,
                           )} + ${row * (16 + 1) + 1 + 32}px)`,
                           height: "16px",
                           position: "absolute",
@@ -693,7 +773,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
 
                       let width = differenceInCalendarDays(
                         eventEnd,
-                        eventStart
+                        eventStart,
                       );
                       if (eventEnd.getTime() === endOfDay(eventEnd).getTime()) {
                         width += 1;
@@ -731,10 +811,10 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         triangleLeft && triangleRight
                           ? "both"
                           : triangleRight
-                          ? "right"
-                          : triangleLeft
-                          ? "left"
-                          : undefined;
+                            ? "right"
+                            : triangleLeft
+                              ? "left"
+                              : undefined;
 
                       const disableInteractive =
                         !calendarProps.onClickEvent &&
@@ -749,7 +829,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         now,
                         getEventEnd(event.sourceEvent),
                         theme,
-                        event.sourceEvent.color ?? defaultEventColor
+                        event.sourceEvent.color ?? defaultEventColor,
                       );
 
                       const props: React.ComponentPropsWithoutRef<
@@ -766,7 +846,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                             left: `${widthToPct(day * 120 + 1, daysInWeek)}`,
                             top: `calc(${heightToPct(
                               week * 120,
-                              weeksInMonth
+                              weeksInMonth,
                             )} + ${row * (16 + 1) + 1 + 32}px)`,
                             height: "16px",
                             position: "absolute",
@@ -785,16 +865,16 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                                 event.sourceEvent
                                 ? 0.5
                                 : !disableInteractive &&
-                                  draggedEvent?.dragged &&
-                                  draggedEvent.source.sourceEvent ===
-                                    event.sourceEvent
-                                ? 0.75
-                                : 1,
+                                    draggedEvent?.dragged &&
+                                    draggedEvent.source.sourceEvent ===
+                                      event.sourceEvent
+                                  ? 0.75
+                                  : 1,
                           },
                           event.sourceEvent.selected && {
                             boxShadow: theme.shadows[6],
                             border: `1px solid ${theme.palette.primary.main}`,
-                          }
+                          },
                         ),
                         allDayEvent: isAllDayEvent(event.sourceEvent),
                         state:
@@ -845,8 +925,8 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                           color: isSameDay(modal.date, startOfMonth)
                             ? (theme) => theme.palette.primary.contrastText
                             : isSameMonth(modal.date, startOfMonth)
-                            ? (theme) => theme.palette.text.primary
-                            : (theme) => theme.palette.text.secondary,
+                              ? (theme) => theme.palette.text.primary
+                              : (theme) => theme.palette.text.secondary,
                         }}
                       >
                         {format(modal.date, "EEE")}
@@ -864,8 +944,8 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                           color: isSameDay(modal.date, startOfMonth)
                             ? (theme) => theme.palette.primary.contrastText
                             : isSameMonth(modal.date, startOfMonth)
-                            ? (theme) => theme.palette.text.primary
-                            : (theme) => theme.palette.text.secondary,
+                              ? (theme) => theme.palette.text.primary
+                              : (theme) => theme.palette.text.secondary,
                         }}
                       >
                         {format(modal.date, "d")}
@@ -879,7 +959,14 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                       height: `${modal.allEvents.length * 18}px`,
                     }}
                   >
-                    {modal.allEvents.map((indexOfEvent, index) => {
+                    {(group
+                      ? [...modal.allEvents].sort((a, b) => {
+                          const ga = groupOrder!(events[a]);
+                          const gb = groupOrder!(events[b]);
+                          return ga - gb;
+                        })
+                      : modal.allEvents
+                    ).map((indexOfEvent, index) => {
                       const event = events[indexOfEvent];
 
                       const { week, day, row } =
@@ -887,7 +974,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
 
                       let width = differenceInCalendarDays(
                         event.end,
-                        event.start
+                        event.start,
                       );
                       if (
                         event.end.getTime() === endOfDay(event.end).getTime()
@@ -918,7 +1005,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         now,
                         getEventEnd(event.sourceEvent),
                         theme,
-                        event.sourceEvent.color ?? defaultEventColor
+                        event.sourceEvent.color ?? defaultEventColor,
                       );
 
                       const props: React.ComponentPropsWithoutRef<
@@ -939,7 +1026,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                           event.sourceEvent.selected && {
                             boxShadow: theme.shadows[6],
                             border: `1px solid ${theme.palette.primary.main}`,
-                          }
+                          },
                         ),
                         disableRipple,
                         allDayEvent: isAllDayEvent(event.sourceEvent),
@@ -1039,7 +1126,7 @@ function MoreEventsButton({
           minWidth: "auto",
           whiteSpace: "nowrap",
         },
-        buttonProps.sx
+        buttonProps.sx,
       )}
     >
       <Typography
@@ -1068,9 +1155,9 @@ function MonthCalendarWeekdayBar() {
         startOfWeek(startOfMonth, {
           weekStartsOn: startDay === "monday" ? 1 : 0,
         }),
-        index
+        index,
       ),
-      "EEE"
+      "EEE",
     );
 
     weekDays.push(
@@ -1099,7 +1186,7 @@ function MonthCalendarWeekdayBar() {
             sx={{ width: "25px", height: "1px" }}
           />
         )}
-      </FlexCol>
+      </FlexCol>,
     );
   });
 
