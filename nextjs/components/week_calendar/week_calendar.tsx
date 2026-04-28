@@ -299,7 +299,16 @@ function WeekCalendarHeader<T>(props: {
   const collapsedHeight = 17 * COLLAPSED_ROWS;
   const hasOverflow = maxOverlaps > COLLAPSED_ROWS;
 
+  const hiddenPerDay: number[] = Array.from(
+    { length: daysInWeek },
+    (_, i) =>
+      (overlaps[i] ?? []).filter((e, idx) => e != null && idx >= COLLAPSED_ROWS)
+        .length,
+  );
+
   const [isExpanded, setIsExpanded] = React.useState(false);
+
+  const MORE_BUTTON_HEIGHT = hasOverflow && !isExpanded ? 20 : 0;
 
   const effectiveHeight = isExpanded
     ? totalHeight
@@ -390,7 +399,7 @@ function WeekCalendarHeader<T>(props: {
           sx={{
             height: isExpanded
               ? `min(${totalHeight}px, 50vh)`
-              : effectiveHeight,
+              : effectiveHeight + MORE_BUTTON_HEIGHT,
             justifyContent: "flex-start",
             width: "100%",
           }}
@@ -655,6 +664,34 @@ function WeekCalendarHeader<T>(props: {
               );
             })}
           </Box>
+
+          {/* "+N more" expand links, one per day column with hidden events */}
+          {!isExpanded &&
+            [...Array(daysInWeek)].map((_, index) => {
+              if (hiddenPerDay[index] === 0) return null;
+              return (
+                <Button
+                  key={index}
+                  size="small"
+                  variant="text"
+                  onClick={() => setIsExpanded(true)}
+                  sx={{
+                    position: "absolute",
+                    top: 64 + effectiveHeight,
+                    left: widthToPct(index * 120 + 1, daysInWeek),
+                    width: widthToPct(119, daysInWeek),
+                    fontSize: "0.7rem",
+                    p: 0,
+                    minWidth: "auto",
+                    textTransform: "none",
+                    lineHeight: 1,
+                    justifyContent: "flex-start",
+                  }}
+                >
+                  +{hiddenPerDay[index]} more
+                </Button>
+              );
+            })}
         </Box>
       </FlexRow>
     </FlexCol>
