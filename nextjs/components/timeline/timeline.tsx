@@ -45,10 +45,17 @@ import {
 import { useMeasureHeight } from "../measure_height";
 import {
   CalendarEvent,
+  CalendarSize,
   ScrollContainer,
   StartDay,
   TimelineResolution,
 } from "../types";
+
+const ROW_HEIGHTS: Record<CalendarSize, number> = {
+  compact: 17,
+  comfortable: 24,
+  spacious: 32,
+};
 import {
   DragPosition,
   DraggedEvent,
@@ -157,7 +164,7 @@ export type TimelineProps<T> = {
   onMoveEvent?: (
     event: CalendarEvent<T>,
     newStart: Date,
-    newEnd: Date | undefined
+    newEnd: Date | undefined,
   ) => void;
 
   /**
@@ -183,12 +190,18 @@ export type TimelineProps<T> = {
    * If you remove the header it will not render the week / month / year / 3 years header
    */
   noHeader?: boolean;
+
+  /**
+   * Controls the height of events in the timeline grid
+   * @default "compact"
+   */
+  calendarSize?: CalendarSize;
 };
 
 function getStartTime(
   startTime: Date,
   resolution: TimelineResolution,
-  startDay: StartDay
+  startDay: StartDay,
 ): Date {
   const options: StartOfWeekOptions = {
     weekStartsOn: startDay === "monday" ? 1 : 0,
@@ -225,7 +238,7 @@ function useParseDefaultProps<T>(props: TimelineProps<T>) {
     startDay,
     startTime: React.useMemo(
       () => getStartTime(props.startTime ?? new Date(), resolution, startDay),
-      [props.startTime, resolution, startDay]
+      [props.startTime, resolution, startDay],
     ),
     startOfWeek,
     resolution,
@@ -238,6 +251,7 @@ function useParseDefaultProps<T>(props: TimelineProps<T>) {
     group: props.group,
     getId: props.getId,
     defaultEventColor: props.defaultEventColor ?? DEFAULT_COLOR,
+    rowHeight: ROW_HEIGHTS[props.calendarSize ?? "compact"],
   };
 }
 
@@ -253,6 +267,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
     getId,
     defaultEventColor,
     now,
+    rowHeight,
     ...calendarProps
   } = p;
 
@@ -304,12 +319,12 @@ export function Timeline<T>(props: TimelineProps<T>) {
 
         const monthDelta = differenceInMilliseconds(
           startOfMonth(addMonths(start, 1)),
-          startOfMonth(start)
+          startOfMonth(start),
         );
 
         const middleOfTheMonth = addMilliseconds(
           startOfMonth(start),
-          monthDelta / 2
+          monthDelta / 2,
         );
 
         const snap = (date: Date) => {
@@ -339,7 +354,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
       const snapToWeek = () => {
         const middleOfTheWeek = addMinutes(
           startOfWeek(start, options),
-          (7 * 720) / 2
+          (7 * 720) / 2,
         );
 
         const snap = (date: Date) => {
@@ -368,7 +383,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
       }
       return { start, end };
     },
-    [options, resolution]
+    [options, resolution],
   );
 
   // const [allEvents, draggedEvent, setDraggedEvent] = useDragableEvents(
@@ -402,7 +417,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
           sourceEvent,
           start: getEventStart(sourceEvent),
           end: getEventEnd(sourceEvent),
-        }))
+        })),
       ),
       eventGroupMap,
     };
@@ -410,18 +425,18 @@ export function Timeline<T>(props: TimelineProps<T>) {
 
   const rows: ModifiableEvent<T>[][] = React.useMemo(
     () => parseEventsInTimeline(allRows, resolution, startTime),
-    [allRows, resolution, startTime]
+    [allRows, resolution, startTime],
   );
 
   const [timelineStart, timelineEnd] = React.useMemo(
     () => getTimelineRange(resolution, startTime),
-    [resolution, startTime]
+    [resolution, startTime],
   );
 
   function calculateNewTime(
     state: MouseState,
     dragged: DragPosition<ModifiableEvent<T>>,
-    container: EventContainer
+    container: EventContainer,
   ) {
     if (state.pos && state.pos0) {
       const { pos, pos0 } = state;
@@ -443,11 +458,11 @@ export function Timeline<T>(props: TimelineProps<T>) {
 
       let start = addMilliseconds(
         getEventStart(dragged.event.sourceEvent),
-        addedMs
+        addedMs,
       );
       let end = addMilliseconds(
         getEventEnd(dragged.event.sourceEvent),
-        addedMs
+        addedMs,
       );
 
       if (dragged.type === "new") {
@@ -473,7 +488,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
   function constrainResize(
     origEv: { start: Date; end: Date },
     newEv: { start: Date; end: Date },
-    resize: "start" | "end"
+    resize: "start" | "end",
   ) {
     if (resize === "end") {
       const delta = differenceInMilliseconds(newEv.end, origEv.start);
@@ -524,7 +539,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
     calculateNewTime,
     calendarProps,
     undefined,
-    constrainResize
+    constrainResize,
   );
 
   useMouse("timeline-event", effectRefs, false);
@@ -540,12 +555,12 @@ export function Timeline<T>(props: TimelineProps<T>) {
     useMeasureHeight(0);
 
   // half a screen of rows
-  const padding = Math.floor(height / 17 / 2);
+  const padding = Math.floor(height / rowHeight / 2);
 
   const [direction, setDirection] = React.useState<"up" | "down">("down");
   const windowSize = !hasMeasuredHeight
     ? 0
-    : Math.ceil(height / 17) + padding * 2;
+    : Math.ceil(height / rowHeight) + padding * 2;
 
   const [topRowIndex, setTopRowIndex] = React.useState(0);
 
@@ -553,7 +568,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
   const endIndex = Math.min(topRowIndex + windowSize, rows.length - 1);
 
   const [scrollableRef, setScrollableRef] = React.useState<HTMLElement | null>(
-    null
+    null,
   );
 
   const [isPending, startTransition] = React.useTransition();
@@ -568,7 +583,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
       const scrollTop = scrollableRef.scrollTop;
       setDirection(scrollTop > current ? "down" : "up");
       current = scrollTop;
-      const newStartIndex = Math.floor(scrollTop / 17);
+      const newStartIndex = Math.floor(scrollTop / rowHeight);
       setTimeout(() => {
         setTopRowIndex(newStartIndex);
       }, 0);
@@ -598,9 +613,9 @@ export function Timeline<T>(props: TimelineProps<T>) {
       scrollableRef.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(t);
     };
-  }, [scrollableRef, rows.length]);
+  }, [scrollableRef, rows.length, rowHeight]);
 
-  const scrollLength = rows.length * 17;
+  const scrollLength = rows.length * rowHeight;
 
   const empty = rows.length === 0 || rows.every((r) => r.length === 0);
   const leftSidebarWidth = 64;
@@ -730,7 +745,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
               position: "absolute",
               pointerEvents: "none",
               left: widthToPct(
-                (720 * (now.getTime() - start)) / totalSecondsOfTimeline
+                (720 * (now.getTime() - start)) / totalSecondsOfTimeline,
               ),
               height: "100%",
             }}
@@ -786,7 +801,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
           ></Box>
           <Box
             style={{
-              transform: `translateY(${startIndex * 17}px)`,
+              transform: `translateY(${startIndex * rowHeight}px)`,
               pointerEvents: "all",
               display: "flex",
               alignItems: "stretch",
@@ -817,7 +832,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
                       return (
                         <Box
                           sx={{
-                            height: "17px",
+                            height: `${rowHeight}px`,
                             borderBottom:
                               "3px solid " + (group.color ?? DEFAULT_COLOR),
                             borderRight:
@@ -848,7 +863,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
                     return (
                       <Box
                         sx={{
-                          height: "17px",
+                          height: `${rowHeight}px`,
                           borderRight:
                             "3px solid " + (group.color ?? DEFAULT_COLOR),
                         }}
@@ -866,7 +881,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
 
                 if (
                   row.some(
-                    (r) => r.sourceEvent === draggedEvent?.source.sourceEvent
+                    (r) => r.sourceEvent === draggedEvent?.source.sourceEvent,
                   )
                 ) {
                   draggedEventForRow = draggedEvent;
@@ -883,6 +898,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
                     resolution={resolution}
                     defaultEventColor={defaultEventColor}
                     now={now}
+                    rowHeight={rowHeight}
                   />
                 );
               })}
@@ -923,6 +939,7 @@ const Row = React.memo(function Row<T>({
   resolution,
   defaultEventColor,
   now,
+  rowHeight,
 }: {
   row: ModifiableEvent<T>[];
   rowIndex: number;
@@ -932,6 +949,7 @@ const Row = React.memo(function Row<T>({
   resolution: TimelineResolution;
   defaultEventColor: string;
   now: Date;
+  rowHeight: number;
 }) {
   const start = timelineStart.getTime();
   const end = timelineEnd.getTime();
@@ -943,7 +961,7 @@ const Row = React.memo(function Row<T>({
       style={{
         display: "flex",
         position: "relative",
-        height: "17px",
+        height: `${rowHeight}px`,
       }}
     >
       {row.map((event, evIndex) => {
@@ -952,7 +970,7 @@ const Row = React.memo(function Row<T>({
           now,
           getEventEnd(event.sourceEvent),
           theme,
-          event.sourceEvent.color ?? defaultEventColor
+          event.sourceEvent.color ?? defaultEventColor,
         );
         return (
           <RowEvent
@@ -966,6 +984,7 @@ const Row = React.memo(function Row<T>({
             resolution={resolution}
             bg={bg}
             color={color}
+            rowHeight={rowHeight}
           />
         );
       })}
@@ -983,6 +1002,7 @@ const RowEvent = React.memo(function RowEvent<T>({
   resolution,
   bg,
   color,
+  rowHeight,
 }: {
   draggedEvent?: DraggedEvent<ModifiableEvent<T>>;
   event: ModifiableEvent<T>;
@@ -993,6 +1013,7 @@ const RowEvent = React.memo(function RowEvent<T>({
   resolution: TimelineResolution;
   bg: string;
   color: string;
+  rowHeight: number;
 }) {
   let evStart = event.start;
   let evEnd = event.end;
@@ -1017,10 +1038,10 @@ const RowEvent = React.memo(function RowEvent<T>({
   }
 
   const x = widthToPct(
-    (720 * (evStart.getTime() - start)) / totalSecondsOfTimeline
+    (720 * (evStart.getTime() - start)) / totalSecondsOfTimeline,
   );
   const w = widthToPct(
-    (720 * (evEnd.getTime() - evStart.getTime())) / totalSecondsOfTimeline
+    (720 * (evEnd.getTime() - evStart.getTime())) / totalSecondsOfTimeline,
   );
 
   let width = differenceInCalendarDays(evEnd, evStart);
@@ -1063,7 +1084,7 @@ const RowEvent = React.memo(function RowEvent<T>({
           minWidth: "auto",
           width: w,
           left: x,
-          height: "16px",
+          height: `${rowHeight - 1}px`,
           position: "absolute",
           borderRadius: "4px",
           padding: 0,
@@ -1078,7 +1099,7 @@ const RowEvent = React.memo(function RowEvent<T>({
       >
         <Box
           style={{
-            height: "16px",
+            height: `${rowHeight - 1}px`,
             backgroundColor: bg,
             display: "flex",
             justifyContent: "center",
@@ -1097,7 +1118,7 @@ const RowEvent = React.memo(function RowEvent<T>({
               paddingLeft: p + "px",
               paddingRight: p + "px",
               flexShrink: 1,
-              height: "16px",
+              height: `${rowHeight - 1}px`,
               display: "flex",
               alignItems: "center",
               justifyContent: "flex-start",
@@ -1146,7 +1167,7 @@ const RowEvent = React.memo(function RowEvent<T>({
 
 const getTimelineRange = (
   resolution: TimelineResolution,
-  startTime: Date
+  startTime: Date,
 ): [Date, Date] => {
   if (resolution === "month") {
     return [startTime, addWeeks(startTime, 6)];
@@ -1167,7 +1188,7 @@ const constrainEvent = (
   resolution: TimelineResolution,
   startTime: Date,
   _start: Date,
-  _end: Date
+  _end: Date,
 ) => {
   const [timelineStart, timelineEnd] = getTimelineRange(resolution, startTime);
 
@@ -1195,7 +1216,7 @@ const constrainEvent = (
 function parseEventsInTimeline<T>(
   rows: ModifiableEvent<T>[][],
   resolution: TimelineResolution,
-  startTime: Date
+  startTime: Date,
 ) {
   const [timelineStart, timelineEnd] = getTimelineRange(resolution, startTime);
 
@@ -1207,7 +1228,7 @@ function parseEventsInTimeline<T>(
             start: timelineStart,
             end: timelineEnd,
           },
-          { start: getEventStart(event), end: getEventEnd(event) }
+          { start: getEventStart(event), end: getEventEnd(event) },
         );
       })
       .map((event) => {
@@ -1215,10 +1236,10 @@ function parseEventsInTimeline<T>(
           resolution,
           startTime,
           getEventStart(event),
-          getEventEnd(event)
+          getEventEnd(event),
         );
         return { sourceEvent: event.sourceEvent, start, end };
-      })
+      }),
   );
   return rowsInTimeline;
 }

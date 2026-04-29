@@ -22,6 +22,15 @@ export type CalendarEvent<T> = {
 export type StartDay = "monday" | "sunday";
 
 /**
+ * Controls the height of events in the timeline grid
+ *
+ * - `compact` — default, minimal row height (17px)
+ * - `comfortable` — moderately increased row height (24px)
+ * - `spacious` — largest row height (32px)
+ */
+export type CalendarSize = "compact" | "comfortable" | "spacious";
+
+/**
  * How many days the timeline span
  *
  * e.g.\
@@ -61,11 +70,11 @@ type El = {
   addEventListener?(
     type: string,
     listener: (...args: any[]) => any,
-    options?: any
+    options?: any,
   ): void;
   removeEventListener?(
     type: string,
     listener: (...args: any[]) => any,
-    options?: any
+    options?: any,
   ): void;
 };
