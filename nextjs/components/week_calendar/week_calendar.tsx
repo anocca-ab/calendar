@@ -186,6 +186,10 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
   const allDayEvents: CalendarEvent<T>[] = [];
   const gridEvents: CalendarEvent<T>[] = [];
 
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
+  const daysInWeek = workWeek ? 5 : 7;
+
   events.forEach((event) => {
     const eventOverlapWithWeek = areIntervalsOverlapping(
       {
@@ -206,6 +210,33 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
     }
   });
 
+  const overlaps = getAllDayOverlaps(
+    startOfWeek,
+    daysInWeek,
+    allDayEvents.map((e) => ({
+      sourceEvent: e,
+      start: e.start,
+      end: e.end ?? e.start,
+    })),
+  );
+  const maxOverlaps = Math.max(
+    0,
+    ...Object.values(overlaps).map((o) => o.length),
+  );
+  const totalHeight = 17 * maxOverlaps;
+  const COLLAPSED_ROWS = 6;
+  const collapsedHeight = 17 * COLLAPSED_ROWS;
+  const hasOverflow = maxOverlaps > COLLAPSED_ROWS;
+  const effectiveIsExpanded = isExpanded && hasOverflow;
+  const MORE_BUTTON_HEIGHT = hasOverflow && !effectiveIsExpanded ? 20 : 0;
+  const effectiveHeight = effectiveIsExpanded
+    ? totalHeight
+    : Math.min(totalHeight, collapsedHeight);
+  // 64px day label row + 12px spacer below it
+  const HEADER_OVERHEAD = 76;
+  const headerContentHeight =
+    effectiveHeight + MORE_BUTTON_HEIGHT + HEADER_OVERHEAD;
+
   return (
     <CalendarConfigContext.Provider
       value={{
@@ -220,20 +251,63 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
         scrollContainers,
       }}
     >
-      <WeekCalendarHeader events={allDayEvents} sticky={props.stickyHeader} />
-      <FlexCol sx={{ zIndex: 0, position: "relative" }}>
-        <FlexRow width="100%">
-          <TimeSidebar />
-          <Box width="100%">
-            <FlexRow width="100%">
-              <WeekCalendarGrid
-                events={gridEvents}
-                autoScroll={props.autoScroll}
-              />
+      {props.stickyHeader ? (
+        <FlexCol sx={{ height: "100%", overflow: "hidden" }}>
+          <FlexCol
+            sx={{
+              flex: `0 0 min(${headerContentHeight}px, 50%)`,
+              overflow: "hidden",
+              minHeight: 0,
+            }}
+          >
+            <WeekCalendarHeader
+              events={allDayEvents}
+              sticky
+              isExpanded={effectiveIsExpanded}
+              setIsExpanded={setIsExpanded}
+            />
+          </FlexCol>
+          <FlexCol
+            sx={{
+              flex: 1,
+              overflow: "auto",
+              scrollbarGutter: "stable",
+              zIndex: 0,
+              position: "relative",
+              minHeight: 0,
+            }}
+          >
+            <FlexRow sx={{ height: "100%" }}>
+              <TimeSidebar />
+              <Box width="100%">
+                <FlexRow width="100%">
+                  <WeekCalendarGrid
+                    events={gridEvents}
+                    autoScroll={props.autoScroll}
+                  />
+                </FlexRow>
+              </Box>
             </FlexRow>
-          </Box>
-        </FlexRow>
-      </FlexCol>
+          </FlexCol>
+        </FlexCol>
+      ) : (
+        <>
+          <WeekCalendarHeader events={allDayEvents} />
+          <FlexCol sx={{ zIndex: 0, position: "relative" }}>
+            <FlexRow width="100%">
+              <TimeSidebar />
+              <Box width="100%">
+                <FlexRow width="100%">
+                  <WeekCalendarGrid
+                    events={gridEvents}
+                    autoScroll={props.autoScroll}
+                  />
+                </FlexRow>
+              </Box>
+            </FlexRow>
+          </FlexCol>
+        </>
+      )}
     </CalendarConfigContext.Provider>
   );
 }
@@ -280,6 +354,8 @@ const parseAllDayEnd = (end: Date) => {
 function WeekCalendarHeader<T>(props: {
   events: CalendarEvent<T>[];
   sticky?: boolean;
+  isExpanded?: boolean;
+  setIsExpanded?: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const { workWeek, startOfWeek, now, onCreateEvent, ...calendarProps } =
     useCalendar();
@@ -306,7 +382,9 @@ function WeekCalendarHeader<T>(props: {
         .length,
   );
 
-  const [isExpanded, setIsExpanded] = React.useState(false);
+  const [isExpandedInternal, setIsExpandedInternal] = React.useState(false);
+  const isExpanded = (props.isExpanded ?? isExpandedInternal) && hasOverflow;
+  const setIsExpanded = props.setIsExpanded ?? setIsExpandedInternal;
 
   const MORE_BUTTON_HEIGHT = hasOverflow && !isExpanded ? 20 : 0;
 
@@ -390,6 +468,7 @@ function WeekCalendarHeader<T>(props: {
             flexDirection: "column",
             minWidth: "auto",
             flex: 1,
+            ...(props.sticky && isExpanded ? { height: "100%" } : {}),
           },
         )}
       >
@@ -397,9 +476,10 @@ function WeekCalendarHeader<T>(props: {
         <Box sx={{ height: "12px" }} />
         <FlexRow
           sx={{
-            height: isExpanded
-              ? `min(${totalHeight}px, 50vh)`
-              : effectiveHeight + MORE_BUTTON_HEIGHT,
+            height:
+              isExpanded && props.sticky
+                ? "calc(100% - 76px)"
+                : effectiveHeight + MORE_BUTTON_HEIGHT,
             justifyContent: "flex-start",
             width: "100%",
           }}
@@ -415,6 +495,7 @@ function WeekCalendarHeader<T>(props: {
       sx={mergeSx(
         props.sticky && {
           width: "100%",
+          height: "100%",
           position: "sticky",
           top: 0,
           zIndex: 1,
@@ -423,7 +504,7 @@ function WeekCalendarHeader<T>(props: {
         },
       )}
     >
-      <FlexRow>
+      <FlexRow sx={props.sticky ? { height: "100%" } : undefined}>
         {/* Left gutter — same 64px width as TimeSidebar */}
         <Box
           sx={{
@@ -462,6 +543,8 @@ function WeekCalendarHeader<T>(props: {
               overflowX: "hidden",
             },
             props.sticky && {
+              height: "100%",
+              scrollbarGutter: "stable",
               background: (theme) => theme.palette.background.paper,
               borderBottomColor: (theme) => theme.palette.divider,
               borderBottomStyle: "solid",
@@ -506,8 +589,14 @@ function WeekCalendarHeader<T>(props: {
               left: 0,
               right: 0,
               top: 64,
-              height: effectiveHeight,
-              maxHeight: isExpanded ? "50vh" : effectiveHeight,
+              height:
+                isExpanded && props.sticky
+                  ? "calc(100% - 64px)"
+                  : effectiveHeight,
+              maxHeight:
+                isExpanded && props.sticky
+                  ? "calc(100% - 64px)"
+                  : effectiveHeight,
               overflowY: isExpanded ? "auto" : "hidden",
             }}
           >
