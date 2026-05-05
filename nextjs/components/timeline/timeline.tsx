@@ -196,6 +196,11 @@ export type TimelineProps<T> = {
    * @default "compact"
    */
   calendarSize?: CalendarSize;
+
+  /**
+   * If true, renders a full-width divider between each group in the timeline
+   */
+  separateTimelines?: boolean;
 };
 
 function getStartTime(
@@ -255,6 +260,7 @@ function useParseDefaultProps<T>(props: TimelineProps<T>) {
     getId: props.getId,
     defaultEventColor: props.defaultEventColor ?? DEFAULT_COLOR,
     rowHeight: ROW_HEIGHTS[props.calendarSize ?? "compact"],
+    separateTimelines: props.separateTimelines ?? false,
   };
 }
 
@@ -271,6 +277,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
     defaultEventColor,
     now,
     rowHeight,
+    separateTimelines,
     ...calendarProps
   } = p;
 
@@ -622,6 +629,13 @@ export function Timeline<T>(props: TimelineProps<T>) {
   }, [scrollableRef, rows.length, rowHeight]);
 
   const scrollLength = rows.length * rowHeight;
+  const groupBoundaryCount =
+    separateTimelines && group
+      ? group.groups.reduce((count, _, i) => (i === 0 ? count : count + 1), 0)
+      : 0;
+  const dividerHeight = 10; // 2px divider + 4px margin top + 4px margin bottom
+  const adjustedScrollLength =
+    scrollLength + groupBoundaryCount * dividerHeight;
 
   const empty = rows.length === 0 || rows.every((r) => r.length === 0);
   const leftSidebarWidth = 64;
@@ -798,7 +812,7 @@ export function Timeline<T>(props: TimelineProps<T>) {
         >
           <Box
             sx={{
-              height: `${scrollLength}px`,
+              height: `${adjustedScrollLength}px`,
               width: `64px`,
               position: "absolute",
               pointerEvents: "none",
@@ -807,7 +821,20 @@ export function Timeline<T>(props: TimelineProps<T>) {
           ></Box>
           <Box
             style={{
-              transform: `translateY(${startIndex * rowHeight}px)`,
+              transform: `translateY(${
+                startIndex * rowHeight +
+                (separateTimelines
+                  ? eventGroupMap.slice(0, startIndex).reduce((count, g, i) => {
+                      if (i === 0) return count;
+                      return eventGroupMap[i]?.key !==
+                        eventGroupMap[i - 1]?.key &&
+                        eventGroupMap[i] !== undefined
+                        ? count + 1
+                        : count;
+                    }, 0)
+                  : 0) *
+                  dividerHeight
+              }px)`,
               pointerEvents: "all",
               display: "flex",
               alignItems: "stretch",
@@ -827,6 +854,13 @@ export function Timeline<T>(props: TimelineProps<T>) {
                     if (!group) {
                       return null;
                     }
+                    const absoluteIndex = startIndex + index;
+                    const prevGroup = eventGroupMap[absoluteIndex - 1];
+                    const isGroupBoundary =
+                      separateTimelines &&
+                      index > 0 &&
+                      group.key !== prevGroup?.key;
+
                     let last = false;
                     if (
                       eventGroupMap[index + startIndex + 1]?.key !== group.key
@@ -834,53 +868,66 @@ export function Timeline<T>(props: TimelineProps<T>) {
                       last = true;
                     }
 
-                    if (last) {
-                      return (
-                        <Box
-                          sx={{
-                            height: `${rowHeight}px`,
-                            borderBottom:
-                              "3px solid " + (group.color ?? DEFAULT_COLOR),
-                            borderRight:
-                              "3px solid " + (group.color ?? DEFAULT_COLOR),
-                            position: "relative",
-                            overflow: "hidden",
-                          }}
-                          key={startIndex + index}
-                        >
-                          <Tooltip title={group.title} placement="top">
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                position: "absolute",
-                                top: "-2px",
-                                whiteSpace: "nowrap",
-                                textOverflow: "ellipsis",
-                                width: "100%",
-                                overflow: "hidden",
-                              }}
-                            >
-                              {group.title}
-                            </Typography>
-                          </Tooltip>
-                        </Box>
-                      );
-                    }
                     return (
-                      <Box
-                        sx={{
-                          height: `${rowHeight}px`,
-                          borderRight:
-                            "3px solid " + (group.color ?? DEFAULT_COLOR),
-                        }}
-                        key={startIndex + index}
-                      ></Box>
+                      <React.Fragment key={absoluteIndex}>
+                        {isGroupBoundary && (
+                          <Box
+                            sx={{ height: `${dividerHeight}px`, flexShrink: 0 }}
+                          />
+                        )}
+                        {last ? (
+                          <Box
+                            sx={{
+                              height: `${rowHeight}px`,
+                              borderBottom:
+                                "3px solid " + (group.color ?? DEFAULT_COLOR),
+                              borderRight:
+                                "3px solid " + (group.color ?? DEFAULT_COLOR),
+                              position: "relative",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <Tooltip title={group.title} placement="top">
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  position: "absolute",
+                                  top: "-2px",
+                                  whiteSpace: "nowrap",
+                                  textOverflow: "ellipsis",
+                                  width: "100%",
+                                  overflow: "hidden",
+                                }}
+                              >
+                                {group.title}
+                              </Typography>
+                            </Tooltip>
+                          </Box>
+                        ) : (
+                          <Box
+                            sx={{
+                              height: `${rowHeight}px`,
+                              borderRight:
+                                "3px solid " + (group.color ?? DEFAULT_COLOR),
+                            }}
+                          ></Box>
+                        )}
+                      </React.Fragment>
                     );
                   })}
               </Box>
             )}
             <Box sx={{ flex: 1 }}>
               {rows.slice(startIndex, endIndex + 1).map((row, index) => {
+                const absoluteIndex = startIndex + index;
+                const currentGroup = eventGroupMap[absoluteIndex];
+                const prevGroup = eventGroupMap[absoluteIndex - 1];
+                const isGroupBoundary =
+                  separateTimelines &&
+                  index > 0 &&
+                  currentGroup !== undefined &&
+                  currentGroup?.key !== prevGroup?.key;
+
                 let draggedEventForRow:
                   | DraggedEvent<ModifiableEvent<T>>
                   | undefined;
@@ -894,18 +941,32 @@ export function Timeline<T>(props: TimelineProps<T>) {
                 }
 
                 return (
-                  <Row
-                    row={row}
-                    key={startIndex + index}
-                    draggedEvent={draggedEventForRow}
-                    rowIndex={startIndex + index}
-                    timelineStart={timelineStart}
-                    timelineEnd={timelineEnd}
-                    resolution={resolution}
-                    defaultEventColor={defaultEventColor}
-                    now={now}
-                    rowHeight={rowHeight}
-                  />
+                  <React.Fragment key={absoluteIndex}>
+                    {isGroupBoundary && (
+                      <Box
+                        sx={{
+                          marginTop: "4px",
+                          marginBottom: "4px",
+                          height: "2px",
+                          backgroundColor: (theme) => theme.palette.divider,
+                          width: `calc(100% + ${leftSidebarWidth}px)`,
+                          marginLeft: `-${leftSidebarWidth}px`,
+                          pointerEvents: "none",
+                        }}
+                      />
+                    )}
+                    <Row
+                      row={row}
+                      draggedEvent={draggedEventForRow}
+                      rowIndex={absoluteIndex}
+                      timelineStart={timelineStart}
+                      timelineEnd={timelineEnd}
+                      resolution={resolution}
+                      defaultEventColor={defaultEventColor}
+                      now={now}
+                      rowHeight={rowHeight}
+                    />
+                  </React.Fragment>
                 );
               })}
             </Box>
