@@ -206,6 +206,9 @@ function getStartTime(
   const options: StartOfWeekOptions = {
     weekStartsOn: startDay === "monday" ? 1 : 0,
   };
+  if (resolution === "week") {
+    return startOfWeek(startTime, options);
+  }
   if (resolution === "month") {
     return startOfWeek(startTime, options);
   }
@@ -369,6 +372,9 @@ export function Timeline<T>(props: TimelineProps<T>) {
         return handleSnap(snappedStart, snappedEnd);
       };
 
+      if (resolution === "week") {
+        return snapToDay();
+      }
       if (resolution === "month") {
         return snapToDay();
       }
@@ -1169,6 +1175,9 @@ const getTimelineRange = (
   resolution: TimelineResolution,
   startTime: Date,
 ): [Date, Date] => {
+  if (resolution === "week") {
+    return [startTime, addWeeks(startTime, 1)];
+  }
   if (resolution === "month") {
     return [startTime, addWeeks(startTime, 6)];
   }

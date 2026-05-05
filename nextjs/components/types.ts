@@ -37,7 +37,12 @@ export type CalendarSize = "compact" | "comfortable" | "spacious";
  * month = 30 days\
  * 3-months = 90 days
  */
-export type TimelineResolution = "month" | "3-months" | "year" | "3-years";
+export type TimelineResolution =
+  | "week"
+  | "month"
+  | "3-months"
+  | "year"
+  | "3-years";
 
 /**
  * The speed that you navigate left / right using the timeline nav
