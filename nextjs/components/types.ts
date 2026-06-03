@@ -13,10 +13,29 @@ export type CalendarEvent<T> = {
    * If no title is provided the default title is "(no title)"
    */
   title?: string;
-  color?: string;
+  /**
+   * Styling options for the event.
+   * Use `bg` to set the event background color, `color` to set the text color,
+   * `opacity` to control the overall opacity,
+   * and `textOpacity` to control the opacity of the text independently.
+   */
+  styling?: {
+    /**
+     * Computed background CSS color string for the event. Falls back to `DEFAULT_COLOR` if not provided.
+     */
+    bg?: string;
+    /**
+     * Computed text/contrast CSS color string for the event.
+     */
+    textColor?: string;
+    /**
+     * Opacity of the event text (0–1).
+     */
+    textOpacity?: number;
+  };
   canEdit?: boolean;
   selected?: boolean;
-  endAdornment?: (colors: { bg: string; color: string }) => React.ReactNode;
+  endAdornment?: (colors: { bg: string; textColor: string }) => React.ReactNode;
 } & (T extends { data: any } ? T : {});
 
 export type StartDay = "monday" | "sunday";

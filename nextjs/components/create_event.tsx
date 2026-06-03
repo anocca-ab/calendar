@@ -106,7 +106,7 @@ export function CreateEvent<T>({
   const colors = [DEFAULT_COLOR, "#5C6BC0", "#EC407A", "#26A69A", "#EF5350"];
 
   const [eventColor, setEventColor] = React.useState(
-    event.color ?? defaultEventColor ?? DEFAULT_COLOR
+    event.styling?.bg ?? defaultEventColor ?? DEFAULT_COLOR
   );
 
   const unofficialColors = React.useRef<string[]>([]);
@@ -432,7 +432,7 @@ export function CreateEvent<T>({
               start.getTime() === event.start.getTime() &&
               end?.getTime() === event.end?.getTime() &&
               title === event.title &&
-              eventColor === (event.color ?? defaultEventColor ?? DEFAULT_COLOR)
+              eventColor === (event.styling?.bg ?? defaultEventColor ?? DEFAULT_COLOR)
             }
             onClick={() => {
               onSave(
@@ -441,7 +441,7 @@ export function CreateEvent<T>({
                   start,
                   end,
                   title,
-                  color: eventColor,
+                  styling: { ...event.styling, color: eventColor },
                   canEdit: true,
                 },
                 event

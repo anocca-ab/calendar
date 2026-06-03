@@ -87,7 +87,7 @@ export function InteractiveDemo(props: {
         return undefined;
       }
       const getGroup = (event: CalEventWithKey) => {
-        return event.color ?? DEFAULT_COLOR;
+        return event.styling?.bg ?? DEFAULT_COLOR;
       };
 
       const groupsRecord: Record<
@@ -299,7 +299,7 @@ export function InteractiveDemo(props: {
           onCreateEvent={(start, end) => {
             const ev: CalEventWithKey = {
               canEdit: true,
-              color: props.defaultEventColor ?? DEFAULT_COLOR,
+              styling: { bg: props.defaultEventColor ?? DEFAULT_COLOR },
               end,
               start,
               title: "(No title)",

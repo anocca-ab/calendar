@@ -36,9 +36,7 @@ import React, {
 import { MoreButton, eventGrid, monthCalendarRange } from "../event_grid";
 import {
   DEFAULT_COLOR,
-  getEventColor,
   getEventEnd,
-  getEventOwnerId,
   getEventStart,
   heightToPct,
   isAllDayEvent,
@@ -148,16 +146,6 @@ export type MonthCalendarProps<T> = {
    * @default [window]
    */
   scrollContainers?: ScrollContainer[];
-
-  /**
-   * When true, events not owned by the current user are rendered in the unsaturated color
-   */
-  colorByOwnership?: boolean;
-
-  /**
-   * The id of the currently logged-in user, used together with colorByOwnership
-   */
-  currentUserId?: string;
 };
 
 function parseDefaultProps<T>(props: MonthCalendarProps<T>) {
@@ -181,8 +169,6 @@ function parseDefaultProps<T>(props: MonthCalendarProps<T>) {
     onClickEvent: props.onClickEvent,
     scrollContainers,
     defaultEventColor: props.defaultEventColor ?? DEFAULT_COLOR,
-    colorByOwnership: props.colorByOwnership,
-    currentUserId: props.currentUserId,
   };
 }
 
@@ -192,8 +178,6 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
     now,
     startOfMonth,
     defaultEventColor,
-    colorByOwnership,
-    currentUserId,
     ...calendarProps
   } = parseDefaultProps(props);
 
@@ -765,14 +749,8 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                           draggedEvent.source.sourceEvent ===
                             event.sourceEvent);
 
-                      const { bg, color } = getEventColor(
-                        now,
-                        getEventEnd(event.sourceEvent),
-                        theme,
-                        event.sourceEvent.color ?? defaultEventColor,
-                        colorByOwnership,
-                        getEventOwnerId(event.sourceEvent) === currentUserId,
-                      );
+                      const bg = event.sourceEvent.styling?.bg ?? defaultEventColor ?? DEFAULT_COLOR;
+                      const textColor = event.sourceEvent.styling?.textColor ?? theme.palette.text.primary;
 
                       const props: React.ComponentPropsWithoutRef<
                         typeof MonthCalendarEvent
@@ -781,7 +759,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         disableInteractive,
                         disableRipple,
                         bg,
-                        color,
+                        textColor,
                         sx: mergeSx(
                           {
                             width: widthToPct(width * 119 - 4, daysInWeek),
@@ -936,14 +914,8 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                           draggedEvent.source.sourceEvent ===
                             event.sourceEvent);
 
-                      const { bg, color } = getEventColor(
-                        now,
-                        getEventEnd(event.sourceEvent),
-                        theme,
-                        event.sourceEvent.color ?? defaultEventColor,
-                        colorByOwnership,
-                        getEventOwnerId(event.sourceEvent) === currentUserId,
-                      );
+                      const bg = event.sourceEvent.styling?.bg ?? defaultEventColor ?? DEFAULT_COLOR;
+                      const textColor = event.sourceEvent.styling?.textColor ?? theme.palette.text.primary;
 
                       const props: React.ComponentPropsWithoutRef<
                         typeof MonthCalendarEvent
@@ -951,7 +923,7 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                         event: event.sourceEvent,
                         disableInteractive,
                         bg,
-                        color,
+                        textColor,
                         sx: mergeSx(
                           {
                             width: "100%",

@@ -35,9 +35,7 @@ import React from "react";
 import { minRenderedEventDuration } from "../events_to_rows";
 import {
   DEFAULT_COLOR,
-  getEventColor,
   getEventEnd,
-  getEventOwnerId,
   getEventStart,
   isTask,
   mergeSx,
@@ -184,16 +182,6 @@ export type TimelineProps<T> = {
    * If you remove the header it will not render the week / month / year / 3 years header
    */
   noHeader?: boolean;
-
-  /**
-   * When true, events not owned by the current user are rendered in the unsaturated color
-   */
-  colorByOwnership?: boolean;
-
-  /**
-   * The id of the currently logged-in user, used together with colorByOwnership
-   */
-  currentUserId?: string;
 };
 
 function getStartTime(
@@ -249,8 +237,6 @@ function useParseDefaultProps<T>(props: TimelineProps<T>) {
     group: props.group,
     getId: props.getId,
     defaultEventColor: props.defaultEventColor ?? DEFAULT_COLOR,
-    colorByOwnership: props.colorByOwnership,
-    currentUserId: props.currentUserId,
   };
 }
 
@@ -266,8 +252,6 @@ export function Timeline<T>(props: TimelineProps<T>) {
     getId,
     defaultEventColor,
     now,
-    colorByOwnership,
-    currentUserId,
     ...calendarProps
   } = p;
 
@@ -898,8 +882,6 @@ export function Timeline<T>(props: TimelineProps<T>) {
                     resolution={resolution}
                     defaultEventColor={defaultEventColor}
                     now={now}
-                    colorByOwnership={colorByOwnership}
-                    currentUserId={currentUserId}
                   />
                 );
               })}
@@ -940,8 +922,6 @@ const Row = React.memo(function Row<T>({
   resolution,
   defaultEventColor,
   now,
-  colorByOwnership,
-  currentUserId,
 }: {
   row: ModifiableEvent<T>[];
   rowIndex: number;
@@ -951,8 +931,6 @@ const Row = React.memo(function Row<T>({
   resolution: TimelineResolution;
   defaultEventColor: string;
   now: Date;
-  colorByOwnership?: boolean;
-  currentUserId?: string;
 }) {
   const start = timelineStart.getTime();
   const end = timelineEnd.getTime();
@@ -969,14 +947,8 @@ const Row = React.memo(function Row<T>({
     >
       {row.map((event, evIndex) => {
         const dragged = draggedEvent?.source.sourceEvent === event.sourceEvent;
-        const { bg, color } = getEventColor(
-          now,
-          getEventEnd(event.sourceEvent),
-          theme,
-          event.sourceEvent.color ?? defaultEventColor,
-          colorByOwnership,
-          getEventOwnerId(event.sourceEvent) === currentUserId,
-        );
+        const bg = event.sourceEvent.styling?.bg ?? defaultEventColor ?? DEFAULT_COLOR;
+        const textColor = event.sourceEvent.styling?.textColor ?? theme.palette.text.primary;
         return (
           <RowEvent
             key={evIndex}
@@ -988,7 +960,7 @@ const Row = React.memo(function Row<T>({
             evIndex={evIndex}
             resolution={resolution}
             bg={bg}
-            color={color}
+            textColor={textColor}
           />
         );
       })}
@@ -1005,7 +977,7 @@ const RowEvent = React.memo(function RowEvent<T>({
   evIndex,
   resolution,
   bg,
-  color,
+  textColor,
 }: {
   draggedEvent?: DraggedEvent<ModifiableEvent<T>>;
   event: ModifiableEvent<T>;
@@ -1015,7 +987,7 @@ const RowEvent = React.memo(function RowEvent<T>({
   evIndex: number;
   resolution: TimelineResolution;
   bg: string;
-  color: string;
+  textColor: string;
 }) {
   let evStart = event.start;
   let evEnd = event.end;
@@ -1127,13 +1099,13 @@ const RowEvent = React.memo(function RowEvent<T>({
               width: "100%",
             }}
           >
-            <Typography variant="event" style={{ color }}>
+            <Typography variant="event" style={{ color: textColor }}>
               {title}
             </Typography>
             {event.sourceEvent.endAdornment ? (
               <>
                 <Box sx={{ flex: 1 }}></Box>
-                <Box>{event.sourceEvent.endAdornment({ bg, color })}</Box>
+                <Box>{event.sourceEvent.endAdornment({ bg, textColor })}</Box>
               </>
             ) : null}
           </Box>

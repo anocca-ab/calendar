@@ -13,7 +13,7 @@ export function MonthCalendarEvent<T>({
   disableInteractive,
   dataProps,
   bg,
-  color,
+  textColor,
   ...buttonProps
 }: {
   event: CalendarEvent<T>;
@@ -23,7 +23,7 @@ export function MonthCalendarEvent<T>({
   disableInteractive?: boolean;
   dataProps: any;
   bg: string;
-  color: string;
+  textColor: string;
 } & Omit<React.ComponentProps<typeof Button>, "color">) {
   const { start, title } = event;
 
@@ -84,13 +84,13 @@ export function MonthCalendarEvent<T>({
             alignItems: "center",
           }}
         >
-          <Typography variant="event" color={color}>
+          <Typography variant="event" color={textColor}>
             {title ?? "(No title)"}
           </Typography>
           {event.endAdornment ? (
             <>
               <Box sx={{ flex: 1 }}></Box>
-              <Box>{event.endAdornment({ bg, color })}</Box>
+              <Box>{event.endAdornment({ bg, textColor })}</Box>
             </>
           ) : null}
         </FlexRow>
@@ -131,7 +131,7 @@ export function MonthCalendarEvent<T>({
             <>
               <Box sx={{ flex: 1 }}></Box>
               <Box sx={{ paddingRight: "4px" }}>
-                {event.endAdornment({ bg, color })}
+                {event.endAdornment({ bg, textColor })}
               </Box>
             </>
           ) : null}

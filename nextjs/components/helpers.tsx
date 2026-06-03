@@ -199,66 +199,6 @@ export function parseColor(background: string): ParsedColor | undefined {
   return undefined;
 }
 
-export function isUnsaturated(
-  now: Date,
-  end: Date,
-  colorByOwnership?: boolean,
-  isOwner?: boolean,
-) {
-  const isPastEvent = end.getTime() - now.getTime() < 0;
-  if (colorByOwnership !== undefined && isOwner !== undefined) {
-    return (!colorByOwnership && isPastEvent) || (colorByOwnership && !isOwner);
-  }
-  return isPastEvent;
-}
-
-export function getEventColor(
-  now: Date,
-  end: Date,
-  theme: Theme,
-  eventColor: string,
-  colorByOwnership?: boolean,
-  isOwner?: boolean,
-) {
-  const parsedColor = parseColor(eventColor);
-  const useUnsaturated = isUnsaturated(now, end, colorByOwnership, isOwner);
-
-  const bg = parsedColor
-    ? useUnsaturated
-      ? parsedColor.unsaturated.cssString
-      : parsedColor.hsla.cssString
-    : DEFAULT_COLOR;
-  const color = parsedColor
-    ? (useUnsaturated
-        ? parsedColor.unsaturatedContrastText
-        : parsedColor.contrastText) ===
-      (theme.palette.mode === "dark" ? "white" : "black")
-      ? theme.palette.text.primary
-      : theme.palette.primary.contrastText
-    : "black";
-  return {
-    bg,
-    color,
-  };
-}
-
-function hasOwnerId(data: unknown): data is { ownerId: string } {
-  return (
-    typeof data === "object" &&
-    data !== null &&
-    "ownerId" in data &&
-    typeof (data as Record<string, unknown>).ownerId === "string"
-  );
-}
-
-export function getEventOwnerId<T>(
-  event: CalendarEvent<T>,
-): string | undefined {
-  if ("data" in event && hasOwnerId(event.data)) {
-    return event.data.ownerId;
-  }
-  return undefined;
-}
 
 export function getEventStart<T>(
   event: Pick<CalendarEvent<T>, "start" | "end">

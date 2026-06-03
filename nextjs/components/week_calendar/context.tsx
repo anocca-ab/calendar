@@ -17,8 +17,6 @@ type RawContext<T> =
       ) => void;
       defaultEventColor: string;
       scrollContainers: ScrollContainer[];
-      colorByOwnership?: boolean;
-      currentUserId?: string;
     };
 export const CalendarConfigContext =
   React.createContext<RawContext<any>>(undefined);

@@ -22,13 +22,10 @@ import {
 import React from "react";
 import {
   DEFAULT_COLOR,
-  getEventColor,
   getEventEnd,
-  getEventOwnerId,
   getEventStart,
   isAllDayEvent,
   isTask,
-  isUnsaturated,
   mergeSx,
   widthToPct,
 } from "../helpers";
@@ -129,16 +126,6 @@ export type WeekCalendarProps<T> = {
    * Auto scroll to the time indicator
    */
   autoScroll?: boolean;
-
-  /**
-   * When true, events not owned by the current user are rendered in the unsaturated color
-   */
-  colorByOwnership?: boolean;
-
-  /**
-   * The id of the currently logged-in user, used together with colorByOwnership
-   */
-  currentUserId?: string;
 };
 
 function parseDefaultProps<T>(props: WeekCalendarProps<T>) {
@@ -170,8 +157,6 @@ function parseDefaultProps<T>(props: WeekCalendarProps<T>) {
     onClickEvent: props.onClickEvent,
     defaultEventColor: props.defaultEventColor ?? DEFAULT_COLOR,
     scrollContainers,
-    colorByOwnership: props.colorByOwnership,
-    currentUserId: props.currentUserId,
   };
 }
 
@@ -187,8 +172,6 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
     onClickEvent,
     defaultEventColor,
     scrollContainers,
-    colorByOwnership,
-    currentUserId,
   } = parseDefaultProps(props);
 
   const allDayEvents: CalendarEvent<T>[] = [];
@@ -226,8 +209,6 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
         onMoveEvent,
         defaultEventColor,
         scrollContainers,
-        colorByOwnership,
-        currentUserId,
       }}
     >
       <WeekCalendarHeader events={allDayEvents} sticky={props.stickyHeader} />
@@ -296,8 +277,6 @@ function WeekCalendarHeader<T>(props: {
     startOfWeek,
     now,
     onCreateEvent,
-    colorByOwnership,
-    currentUserId,
     ...calendarProps
   } = useCalendar();
   const daysInWeek = workWeek ? 5 : 7;
@@ -485,14 +464,8 @@ function WeekCalendarHeader<T>(props: {
 
             const dayOverflowRight = differenceInCalendarDays(end, endOfWeek);
 
-            const { bg, color } = getEventColor(
-              now,
-              end,
-              theme,
-              event.sourceEvent.color ?? calendarProps.defaultEventColor,
-              colorByOwnership,
-              getEventOwnerId(event.sourceEvent) === currentUserId,
-            );
+            const bg = event.sourceEvent.styling?.bg ?? calendarProps.defaultEventColor ?? DEFAULT_COLOR;
+            const textColor = event.sourceEvent.styling?.textColor ?? theme.palette.text.primary;
 
             const disableInteractive =
               !calendarProps.onClickEvent && !calendarProps.onMoveEvent;
@@ -552,7 +525,7 @@ function WeekCalendarHeader<T>(props: {
                   <AllDayCalendarOverflow
                     direction="left"
                     value={rawX}
-                    color={color}
+                    textColor={textColor}
                     bg={bg}
                     valueDate={start}
                     compact={width <= 1}
@@ -578,7 +551,7 @@ function WeekCalendarHeader<T>(props: {
                   }}
                 >
                   <Typography
-                    color={color}
+                    color={textColor}
                     variant="event"
                     sx={{
                       pointerEvents: "none",
@@ -592,7 +565,7 @@ function WeekCalendarHeader<T>(props: {
                   {event.sourceEvent.endAdornment && dayOverflowRight <= 0 ? (
                     <>
                       <Box sx={{ flex: 1 }}></Box>
-                      <Box>{event.sourceEvent.endAdornment({ bg, color })}</Box>
+                      <Box>{event.sourceEvent.endAdornment({ bg, textColor })}</Box>
                     </>
                   ) : null}
                 </Box>
@@ -601,12 +574,12 @@ function WeekCalendarHeader<T>(props: {
                     direction="right"
                     value={dayOverflowRight}
                     bg={bg}
-                    color={color}
+                    textColor={textColor}
                     valueDate={end}
                     compact={width <= 1}
                     endAdornment={
                       event.sourceEvent.endAdornment
-                        ? event.sourceEvent.endAdornment({ bg, color })
+                        ? event.sourceEvent.endAdornment({ bg, textColor })
                         : undefined
                     }
                   />
@@ -738,8 +711,6 @@ function WeekCalendarGrid<T>(props: {
     now,
     startOfWeek,
     startDay,
-    colorByOwnership,
-    currentUserId,
     ...calendarProps
   } = useCalendar<T>();
   const daysInWeek = workWeek ? 5 : 7;
@@ -919,13 +890,13 @@ function WeekCalendarGrid<T>(props: {
         event: {
           start,
           end,
-          sourceEvent: {
-            canEdit: true,
-            color: calendarProps.defaultEventColor,
-            end,
-            start,
-            title: "(No title)",
-          } as CalendarEvent<T>,
+            sourceEvent: {
+              canEdit: true,
+              styling: { bg: calendarProps.defaultEventColor },
+              end,
+              start,
+              title: "(No title)",
+            } as CalendarEvent<T>,
         },
         w: 1,
         x: day + 1,
@@ -1060,27 +1031,15 @@ function WeekCalendarGrid<T>(props: {
           );
           const colX = rect.x;
 
-          const isOwner = getEventOwnerId(event.sourceEvent) === currentUserId;
-          const eventEnd = getEventEnd(event.sourceEvent);
-          const { bg, color } = getEventColor(
-            now,
-            eventEnd,
-            theme,
-            event.sourceEvent.color ?? calendarProps.defaultEventColor,
-            colorByOwnership,
-            isOwner,
-          );
+          const bg = event.sourceEvent.styling?.bg ?? calendarProps.defaultEventColor ?? DEFAULT_COLOR;
+          const textColor = event.sourceEvent.styling?.textColor ?? theme.palette.text.primary;
 
           const disableInteractive =
             !calendarProps.onClickEvent && !calendarProps.onMoveEvent;
-          const textOpacityStyle = isUnsaturated(
-            now,
-            eventEnd,
-            colorByOwnership,
-            isOwner,
-          )
-            ? { opacity: "0.5" }
-            : {};
+          const textOpacityStyle =
+            event.sourceEvent.styling?.textOpacity !== undefined
+              ? { opacity: event.sourceEvent.styling.textOpacity }
+              : {};
           const dataProps: any = {
             "data-type": "week-calendar-sub-day-event",
             "data-calendar-event": JSON.stringify({
@@ -1171,7 +1130,7 @@ function WeekCalendarGrid<T>(props: {
                   {height >= 30 ? (
                     <>
                       <Typography
-                        color={color}
+                        color={textColor}
                         variant="event"
                         component="div"
                         sx={mergeSx(
@@ -1188,7 +1147,7 @@ function WeekCalendarGrid<T>(props: {
                       </Typography>
                       <Typography
                         component="div"
-                        color={color}
+                        color={textColor}
                         variant="event"
                         sx={mergeSx(
                           {
@@ -1206,7 +1165,7 @@ function WeekCalendarGrid<T>(props: {
                     </>
                   ) : (
                     <Typography
-                      color={color}
+                      color={textColor}
                       variant="event"
                       component="div"
                       sx={mergeSx(
@@ -1237,7 +1196,7 @@ function WeekCalendarGrid<T>(props: {
                         justifyContent: "center",
                       }}
                     >
-                      <Box>{event.sourceEvent.endAdornment({ bg, color })}</Box>
+                      <Box>{event.sourceEvent.endAdornment({ bg, textColor })}</Box>
                     </Box>
                   </>
                 ) : null}
@@ -1313,7 +1272,7 @@ function WeekCalendarGrid<T>(props: {
 function AllDayCalendarOverflow({
   direction,
   value,
-  color,
+  textColor,
   bg,
   valueDate,
   compact,
@@ -1322,7 +1281,7 @@ function AllDayCalendarOverflow({
   direction: "left" | "right";
   value: number;
   valueDate: Date;
-  color: string;
+  textColor: string;
   bg: string;
   compact?: boolean;
   endAdornment?: React.ReactNode;
@@ -1354,7 +1313,7 @@ function AllDayCalendarOverflow({
       >
         <Typography
           variant="event"
-          color={color}
+          color={textColor}
           sx={{
             whiteSpace: "nowrap",
             opacity: 0.7,
