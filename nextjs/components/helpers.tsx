@@ -59,7 +59,7 @@ export function isAllDayEvent<T>(event: CalendarEvent<T>) {
   );
 }
 
-let offScreenCanavs: HTMLCanvasElement | null = null;
+let offScreenCanvas: HTMLCanvasElement | null = null;
 let offScreenContext: CanvasRenderingContext2D | null = null;
 
 type Rgba = { r: number; g: number; b: number; a: number; cssString: string };
@@ -129,27 +129,27 @@ export function parseColor(background: string): ParsedColor | undefined {
   if (colorCache.has(background)) {
     return colorCache.get(background);
   }
-  if (!offScreenCanavs) {
+  if (!offScreenCanvas) {
     const existingCanvas = document.getElementById(
       "calendar-off-screen-canvas"
     );
     if (existingCanvas && existingCanvas instanceof HTMLCanvasElement) {
-      offScreenCanavs = existingCanvas;
+      offScreenCanvas = existingCanvas;
     } else {
-      offScreenCanavs = document.createElement("canvas");
-      offScreenCanavs.id = "calendar-off-screen-canvas";
-      offScreenCanavs.style.position = "fixed";
-      offScreenCanavs.style.left = "-10px";
-      offScreenCanavs.style.width = "1px";
-      offScreenCanavs.style.height = "1px";
-      offScreenCanavs.width = 2;
-      offScreenCanavs.height = 2;
-      offScreenCanavs.style.visibility = "hidden";
-      document.body.appendChild(offScreenCanavs);
+      offScreenCanvas = document.createElement("canvas");
+      offScreenCanvas.id = "calendar-off-screen-canvas";
+      offScreenCanvas.style.position = "fixed";
+      offScreenCanvas.style.left = "-10px";
+      offScreenCanvas.style.width = "1px";
+      offScreenCanvas.style.height = "1px";
+      offScreenCanvas.width = 2;
+      offScreenCanvas.height = 2;
+      offScreenCanvas.style.visibility = "hidden";
+      document.body.appendChild(offScreenCanvas);
     }
   }
   if (!offScreenContext) {
-    offScreenContext = offScreenCanavs.getContext("2d", {
+    offScreenContext = offScreenCanvas.getContext("2d", {
       willReadFrequently: true,
     });
   }
@@ -194,11 +194,12 @@ export function parseColor(background: string): ParsedColor | undefined {
       unsaturated: unsaturated,
       unsaturatedContrastText: unsaturatedContrastText,
     };
+    colorCache.set(background, result)
+
     return result;
   }
   return undefined;
 }
-
 
 export function getEventStart<T>(
   event: Pick<CalendarEvent<T>, "start" | "end">
