@@ -35,9 +35,6 @@ import React from "react";
 import { minRenderedEventDuration } from "../events_to_rows";
 import {
   DEFAULT_COLOR,
-  getEventEnd,
-  getEventStart,
-  isTask,
   mergeSx,
   tuple,
 } from "../helpers";
@@ -144,7 +141,7 @@ export type TimelineProps<T> = {
    * @param end when event ends
    * @returns void
    */
-  onCreateEvent?: (start: Date, end?: Date) => void;
+  onCreateEvent?: (start: Date, end: Date) => void;
 
   /**
    * Triggered when an event is moved
@@ -156,7 +153,7 @@ export type TimelineProps<T> = {
   onMoveEvent?: (
     event: CalendarEvent<T>,
     newStart: Date,
-    newEnd: Date | undefined
+    newEnd: Date
   ) => void;
 
   /**
@@ -399,8 +396,8 @@ export function Timeline<T>(props: TimelineProps<T>) {
       allRows: allRows.map((sourceRow) =>
         sourceRow.map((sourceEvent) => ({
           sourceEvent,
-          start: getEventStart(sourceEvent),
-          end: getEventEnd(sourceEvent),
+          start: sourceEvent.start,
+          end: sourceEvent.end,
         }))
       ),
       eventGroupMap,
@@ -441,11 +438,11 @@ export function Timeline<T>(props: TimelineProps<T>) {
       addedMs = Math.min(Math.max(addedMs, minAddedMs), maxAddedMs);
 
       let start = addMilliseconds(
-        getEventStart(dragged.event.sourceEvent),
+        dragged.event.sourceEvent.start,
         addedMs
       );
       let end = addMilliseconds(
-        getEventEnd(dragged.event.sourceEvent),
+        dragged.event.sourceEvent.end,
         addedMs
       );
 
@@ -1001,9 +998,8 @@ const RowEvent = React.memo(function RowEvent<T>({
       ...draggedEvent.dragged,
     };
 
-    newDragged.start = getEventStart(newDragged);
     newDragged.end = max([
-      getEventEnd(newDragged),
+      newDragged.end,
       addMilliseconds(newDragged.start, minRenderedEventDuration(resolution)),
     ]);
 
@@ -1112,7 +1108,6 @@ const RowEvent = React.memo(function RowEvent<T>({
         </Box>
 
         {event.sourceEvent.canEdit &&
-          !isTask(event.sourceEvent) &&
           (["start", "end"] as const).map((pos, i) => (
             <Box
               key={i}
@@ -1202,15 +1197,15 @@ function parseEventsInTimeline<T>(
             start: timelineStart,
             end: timelineEnd,
           },
-          { start: getEventStart(event), end: getEventEnd(event) }
+          { start: event.start, end: event.end }
         );
       })
       .map((event) => {
         const { start, end } = constrainEvent(
           resolution,
           startTime,
-          getEventStart(event),
-          getEventEnd(event)
+          event.start,
+          event.end
         );
         return { sourceEvent: event.sourceEvent, start, end };
       })

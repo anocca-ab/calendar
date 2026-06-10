@@ -22,10 +22,7 @@ import {
 import React from "react";
 import {
   DEFAULT_COLOR,
-  getEventEnd,
-  getEventStart,
   isAllDayEvent,
-  isTask,
   mergeSx,
   widthToPct,
 } from "../helpers";
@@ -83,7 +80,7 @@ export type WeekCalendarProps<T> = {
    * @param end when event ends
    * @returns void
    */
-  onCreateEvent?: (start: Date, end?: Date) => void;
+  onCreateEvent?: (start: Date, end: Date) => void;
 
   /**
    * Triggered when an event is moved or resized
@@ -95,7 +92,7 @@ export type WeekCalendarProps<T> = {
   onMoveEvent?: (
     event: CalendarEvent<T>,
     newStart: Date,
-    newEnd: Date | undefined
+    newEnd: Date
   ) => void;
 
   /**
@@ -183,7 +180,7 @@ export function WeekCalendar<T>(props: WeekCalendarProps<T>) {
         start: startOfWeek,
         end: addDays(startOfWeek, workWeek ? 5 : 7),
       },
-      { start: event.start, end: event.end ?? event.start }
+      { start: event.start, end: event.end }
     );
 
     if (!eventOverlapWithWeek) {
@@ -311,10 +308,7 @@ function WeekCalendarHeader<T>(props: {
       if (addedDays !== 0) {
         return {
           start: addDays(dragged.event.start, addedDays),
-          end: addDays(
-            dragged.event.end ?? endOfDay(dragged.event.start),
-            addedDays
-          ),
+          end: addDays(dragged.event.end, addedDays),
         };
       }
     }
@@ -445,7 +439,7 @@ function WeekCalendarHeader<T>(props: {
 
           {events.map((event, index) => {
             const start = startOfDay(event.start);
-            const end = parseAllDayEnd(event.end ?? endOfDay(event.start));
+            const end = parseAllDayEnd(event.end);
             const endOfWeek = addDays(startOfWeek, daysInWeek);
 
             const rawX = differenceInCalendarDays(start, startOfWeek);
@@ -750,12 +744,12 @@ function WeekCalendarGrid<T>(props: {
       return {
         ...ev,
         start: min([
-          max([getEventStart(ev), startOfWeek]),
+          max([ev.start, startOfWeek]),
           // it must be within the week
           subMinutes(endOfWeek(startOfWeek, options), 15),
         ]),
         // an event "collision box" should be at least 15 minutes in height (=15px)
-        end: max([getEventEnd(ev), addMinutes(ev.start, 15)]),
+        end: max([ev.end, addMinutes(ev.start, 15)]),
       };
     })
     .flatMap((defaultEvent) => {
@@ -808,8 +802,8 @@ function WeekCalendarGrid<T>(props: {
           : // only allow drag to create event on the current day
             0;
 
-      let start = getEventStart(dragged.event.sourceEvent);
-      let end = getEventEnd(dragged.event.sourceEvent);
+      let start = dragged.event.sourceEvent.start;
+      let end = dragged.event.sourceEvent.end;
 
       if (addedDays !== 0) {
         start = addDays(start, addedDays);
@@ -1024,7 +1018,7 @@ function WeekCalendarGrid<T>(props: {
           const time = (
             <>
               {format(displayStart, height >= 30 ? "h:mm" : "h:mmaaa")}
-              {event.sourceEvent.end && height >= 30 ? (
+              {height >= 30 ? (
                 <> – {format(displayEnd, "h:mmaaa")}</>
               ) : null}
             </>
@@ -1203,7 +1197,6 @@ function WeekCalendarGrid<T>(props: {
               </Box>
 
               {event.sourceEvent.canEdit &&
-                !isTask(event.sourceEvent) &&
                 (["start", "end"] as const).map((pos, i) => (
                   <Box
                     key={i}

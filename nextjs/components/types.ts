@@ -4,11 +4,7 @@
  */
 export type CalendarEvent<T> = {
   start: Date;
-  /**
-   * * If `end` is not provided, the event is considered to be a full day task.
-   * * If end === start it is considered to be a task that lasts for 15 min.
-   */
-  end?: Date;
+  end: Date;
   /**
    * If no title is provided the default title is "(no title)"
    */

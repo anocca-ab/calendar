@@ -1,6 +1,6 @@
 import { Box, Button, Typography } from "@mui/material";
 import { format } from "date-fns";
-import { DEFAULT_COLOR, isTask, mergeSx } from "../helpers";
+import { DEFAULT_COLOR, mergeSx } from "../helpers";
 import type { CalendarEvent } from "../types";
 import { Triangle } from "../week_calendar/week_calendar";
 import { FlexCol, FlexRow } from "../wrappers";

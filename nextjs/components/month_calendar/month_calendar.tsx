@@ -36,8 +36,6 @@ import React, {
 import { MoreButton, eventGrid, monthCalendarRange } from "../event_grid";
 import {
   DEFAULT_COLOR,
-  getEventEnd,
-  getEventStart,
   heightToPct,
   isAllDayEvent,
   mergeSx,
@@ -68,11 +66,11 @@ type RawContext<T> =
       startDay: StartDay;
       startOfMonth: Date;
       now: Date;
-      onCreateEvent?: (start: Date, end?: Date) => void;
+      onCreateEvent?: (start: Date, end: Date) => void;
       onMoveEvent?: (
         event: CalendarEvent<T>,
         newStart: Date,
-        newEnd: Date | undefined
+        newEnd: Date
       ) => void;
     };
 export const MonthCalendarConfigContext =
@@ -113,7 +111,7 @@ export type MonthCalendarProps<T> = {
    * @param end when event ends
    * @returns void
    */
-  onCreateEvent?: (start: Date, end?: Date) => void;
+  onCreateEvent?: (start: Date, end: Date) => void;
 
   /**
    * Triggered when an event is moved
@@ -125,7 +123,7 @@ export type MonthCalendarProps<T> = {
   onMoveEvent?: (
     event: CalendarEvent<T>,
     newStart: Date,
-    newEnd: Date | undefined
+    newEnd: Date
   ) => void;
 
   /**
@@ -284,8 +282,8 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
       const height = yUnitToPx(120, weeksInMonth, container);
       const startWeek = getWeek(startOfMonth, { weekStartsOn });
 
-      let start = getEventStart(dragged.event.sourceEvent);
-      let end = getEventEnd(dragged.event.sourceEvent);
+      let start = dragged.event.sourceEvent.start;
+      let end = dragged.event.sourceEvent.end;
       if (addedDays !== 0) {
         start = addDays(start, addedDays);
         end = addDays(end, addedDays);
@@ -687,11 +685,11 @@ export function MonthCalendar<T>(props: MonthCalendarProps<T>) {
                       const { week, day, row } = eventProperties[`${index}`];
 
                       const eventStart = max([
-                        getEventStart(event),
+                        event.start,
                         startOfMonthCalendar,
                       ]);
                       const eventEnd = min([
-                        getEventEnd(event),
+                        event.end,
                         endOfMonthCalendar,
                       ]);
 

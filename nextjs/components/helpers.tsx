@@ -40,11 +40,8 @@ export function isAllDayEvent<T>(event: CalendarEvent<T>) {
     date.getTime() >= start.getTime() && date.getTime() <= end.getTime();
 
   return (
-    // task
-    !event.end ||
     // all day event, it is more than 24h
-    (event.end &&
-      event.end.getTime() - event.start.getTime() >= 24 * 60 * 60 * 1000) ||
+    event.end.getTime() - event.start.getTime() >= 24 * 60 * 60 * 1000 ||
     // all day event that is exactly 24h (plus minus 1 minute)
     (inRange(
       event.start,
@@ -59,163 +56,147 @@ export function isAllDayEvent<T>(event: CalendarEvent<T>) {
   );
 }
 
-let offScreenCanvas: HTMLCanvasElement | null = null;
-let offScreenContext: CanvasRenderingContext2D | null = null;
+// let offScreenCanvas: HTMLCanvasElement | null = null;
+// let offScreenContext: CanvasRenderingContext2D | null = null;
 
-type Rgba = { r: number; g: number; b: number; a: number; cssString: string };
-type Hsla = { h: number; s: number; l: number; a: number; cssString: string };
+// type Rgba = { r: number; g: number; b: number; a: number; cssString: string };
+// type Hsla = { h: number; s: number; l: number; a: number; cssString: string };
 
-function rgbaToHsla({ r, g, b, a }: Rgba): Hsla {
-  r /= 255;
-  g /= 255;
-  b /= 255;
+// function rgbaToHsla({ r, g, b, a }: Rgba): Hsla {
+//   r /= 255;
+//   g /= 255;
+//   b /= 255;
 
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  let h = 0,
-    s = 0,
-    l = (max + min) / 2;
+//   const max = Math.max(r, g, b);
+//   const min = Math.min(r, g, b);
+//   let h = 0,
+//     s = 0,
+//     l = (max + min) / 2;
 
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+//   if (max !== min) {
+//     const d = max - min;
+//     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
 
-    switch (max) {
-      case r:
-        h = (g - b) / d + (g < b ? 6 : 0);
-        break;
-      case g:
-        h = (b - r) / d + 2;
-        break;
-      case b:
-        h = (r - g) / d + 4;
-        break;
-    }
+//     switch (max) {
+//       case r:
+//         h = (g - b) / d + (g < b ? 6 : 0);
+//         break;
+//       case g:
+//         h = (b - r) / d + 2;
+//         break;
+//       case b:
+//         h = (r - g) / d + 4;
+//         break;
+//     }
 
-    h /= 6;
-  }
+//     h /= 6;
+//   }
 
-  h = Math.round(h * 360);
-  s = Math.round(s * 100);
-  l = Math.round(l * 100);
+//   h = Math.round(h * 360);
+//   s = Math.round(s * 100);
+//   l = Math.round(l * 100);
 
-  return {
-    h,
-    s,
-    l,
-    a,
-    cssString: `hsla(${h}, ${s}%, ${l}%, ${a})`,
-  };
-}
+//   return {
+//     h,
+//     s,
+//     l,
+//     a,
+//     cssString: `hsla(${h}, ${s}%, ${l}%, ${a})`,
+//   };
+// }
 
-type ParsedColor = {
-  hsla: Hsla;
-  rgba: Rgba;
-  contrastText: "white" | "black";
-  unsaturated: Hsla;
-  unsaturatedContrastText: "white" | "black";
-};
+// type ParsedColor = {
+//   hsla: Hsla;
+//   rgba: Rgba;
+//   contrastText: "white" | "black";
+//   unsaturated: Hsla;
+//   unsaturatedContrastText: "white" | "black";
+// };
 
-const colorCache = new Map<string, ParsedColor>();
+// const colorCache = new Map<string, ParsedColor>();
 
-const getContrastText = (color: Uint8ClampedArray) => {
-  const [red, green, blue, alpha] = color;
-  const contrastText: "white" | "black" =
-    red * 0.299 + green * 0.587 + blue * 0.114 > 150 ? "black" : "white";
-  return contrastText;
-};
+// const getContrastText = (color: Uint8ClampedArray) => {
+//   const [red, green, blue, alpha] = color;
+//   const contrastText: "white" | "black" =
+//     red * 0.299 + green * 0.587 + blue * 0.114 > 150 ? "black" : "white";
+//   return contrastText;
+// };
 
-export function parseColor(background: string): ParsedColor | undefined {
-  if (colorCache.has(background)) {
-    return colorCache.get(background);
-  }
-  if (!offScreenCanvas) {
-    const existingCanvas = document.getElementById(
-      "calendar-off-screen-canvas"
-    );
-    if (existingCanvas && existingCanvas instanceof HTMLCanvasElement) {
-      offScreenCanvas = existingCanvas;
-    } else {
-      offScreenCanvas = document.createElement("canvas");
-      offScreenCanvas.id = "calendar-off-screen-canvas";
-      offScreenCanvas.style.position = "fixed";
-      offScreenCanvas.style.left = "-10px";
-      offScreenCanvas.style.width = "1px";
-      offScreenCanvas.style.height = "1px";
-      offScreenCanvas.width = 2;
-      offScreenCanvas.height = 2;
-      offScreenCanvas.style.visibility = "hidden";
-      document.body.appendChild(offScreenCanvas);
-    }
-  }
-  if (!offScreenContext) {
-    offScreenContext = offScreenCanvas.getContext("2d", {
-      willReadFrequently: true,
-    });
-  }
-  const c = offScreenContext;
-  if (c) {
-    const x = 0;
-    const y = 0;
-    c.clearRect(x, y, 1, 1);
-    c.fillStyle = background;
-    c.fillRect(x, y, 1, 1);
-    const imageData = c.getImageData(x, y, 1, 1).data;
-    const [red, green, blue, alpha] = imageData;
-    const rgba: Rgba = {
-      r: red,
-      g: green,
-      b: blue,
-      a: alpha,
-      cssString: `rgba(${red}, ${green}, ${blue}, ${alpha})`,
-    };
-    const hsla = rgbaToHsla(rgba);
-    const unsaturated: Hsla = {
-      ...hsla,
-      s: Math.max(hsla.s * 0.7, 0),
-      l: Math.max(Math.min(hsla.l * 1.3, 100), 70),
-    };
-    unsaturated.cssString = `hsla(${unsaturated.h}, ${unsaturated.s}%, ${unsaturated.l}%, ${unsaturated.a})`;
-    const contrastText = getContrastText(imageData);
+// export function parseColor(background: string): ParsedColor | undefined {
+//   if (colorCache.has(background)) {
+//     return colorCache.get(background);
+//   }
+//   if (!offScreenCanvas) {
+//     const existingCanvas = document.getElementById(
+//       "calendar-off-screen-canvas"
+//     );
+//     if (existingCanvas && existingCanvas instanceof HTMLCanvasElement) {
+//       offScreenCanvas = existingCanvas;
+//     } else {
+//       offScreenCanvas = document.createElement("canvas");
+//       offScreenCanvas.id = "calendar-off-screen-canvas";
+//       offScreenCanvas.style.position = "fixed";
+//       offScreenCanvas.style.left = "-10px";
+//       offScreenCanvas.style.width = "1px";
+//       offScreenCanvas.style.height = "1px";
+//       offScreenCanvas.width = 2;
+//       offScreenCanvas.height = 2;
+//       offScreenCanvas.style.visibility = "hidden";
+//       document.body.appendChild(offScreenCanvas);
+//     }
+//   }
+//   if (!offScreenContext) {
+//     offScreenContext = offScreenCanvas.getContext("2d", {
+//       willReadFrequently: true,
+//     });
+//   }
+//   const c = offScreenContext;
+//   if (c) {
+//     const x = 0;
+//     const y = 0;
+//     c.clearRect(x, y, 1, 1);
+//     c.fillStyle = background;
+//     c.fillRect(x, y, 1, 1);
+//     const imageData = c.getImageData(x, y, 1, 1).data;
+//     const [red, green, blue, alpha] = imageData;
+//     const rgba: Rgba = {
+//       r: red,
+//       g: green,
+//       b: blue,
+//       a: alpha,
+//       cssString: `rgba(${red}, ${green}, ${blue}, ${alpha})`,
+//     };
+//     const hsla = rgbaToHsla(rgba);
+//     const unsaturated: Hsla = {
+//       ...hsla,
+//       s: Math.max(hsla.s * 0.7, 0),
+//       l: Math.max(Math.min(hsla.l * 1.3, 100), 70),
+//     };
+//     unsaturated.cssString = `hsla(${unsaturated.h}, ${unsaturated.s}%, ${unsaturated.l}%, ${unsaturated.a})`;
+//     const contrastText = getContrastText(imageData);
 
-    c.clearRect(x, y, 1, 1);
-    c.fillStyle = unsaturated.cssString;
-    c.fillRect(x, y, 1, 1);
-    // const unsaturatedContrastText = contrastText;
-    // or if we want the contrast text to be calculated on the more unsaturated color
-    const unsaturatedContrastText = getContrastText(
-      c.getImageData(x, y, 1, 1).data,
-    );
+//     c.clearRect(x, y, 1, 1);
+//     c.fillStyle = unsaturated.cssString;
+//     c.fillRect(x, y, 1, 1);
+//     // const unsaturatedContrastText = contrastText;
+//     // or if we want the contrast text to be calculated on the more unsaturated color
+//     const unsaturatedContrastText = getContrastText(
+//       c.getImageData(x, y, 1, 1).data,
+//     );
 
-    const result: ParsedColor = {
-      hsla,
-      rgba,
-      contrastText,
-      unsaturated: unsaturated,
-      unsaturatedContrastText: unsaturatedContrastText,
-    };
-    colorCache.set(background, result)
+//     const result: ParsedColor = {
+//       hsla,
+//       rgba,
+//       contrastText,
+//       unsaturated: unsaturated,
+//       unsaturatedContrastText: unsaturatedContrastText,
+//     };
+//     colorCache.set(background, result)
 
-    return result;
-  }
-  return undefined;
-}
-
-export function getEventStart<T>(
-  event: Pick<CalendarEvent<T>, "start" | "end">
-) {
-  if (!event.end) {
-    return startOfDay(event.start);
-  }
-  return event.start;
-}
-
-export function getEventEnd<T>(event: CalendarEvent<T>) {
-  if (event.end && event.start.getTime() === event.end.getTime()) {
-    return addMinutes(event.start, 15);
-  }
-  return event.end ?? endOfDay(event.start);
-}
+//     return result;
+//   }
+//   return undefined;
+// }
 
 export const DEFAULT_COLOR = "#FF7043";
 
@@ -224,10 +205,6 @@ export function widthToPct(width: number, daysInWeek: number): string {
 }
 export function heightToPct(height: number, weeksInMonth: number): string {
   return String((height / (120 * weeksInMonth)) * 100) + "%";
-}
-
-export function isTask(event: { start: Date; end?: Date }) {
-  return !event.end || event.start.getTime() === event.end.getTime();
 }
 
 /**

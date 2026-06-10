@@ -37,13 +37,13 @@ function eventGrid<T>(
   );
 }
 
-test("works with a task", () => {
+test("works with a short event", () => {
   expect(
     eventGrid(
       [
         {
           sourceEvent: {
-            title: "Task",
+            title: "Short event",
             start: subMinutes(new Date(), 30), // 14th 23:30
             end: subMinutes(new Date(), 15), // 14th 23:45
           },
@@ -70,7 +70,7 @@ test("works with a task", () => {
             "end": "2024-06-14 23:45",
             "index": 0,
             "start": "2024-06-14 23:30",
-            "title": "Task",
+            "title": "Short event",
           },
         ],
       ],

@@ -39,11 +39,11 @@ export function InteractiveDemo(props: {
   workWeek?: boolean;
   startOfWeek?: Date;
   group?: boolean;
-  onCreateEvent?: (start: Date, end: Date | undefined) => void;
+  onCreateEvent?: (start: Date, end: Date) => void;
   onMoveEvent?: (
     event: CalendarEvent<undefined>,
     newStart: Date,
-    newEnd: Date | undefined
+    newEnd: Date
   ) => void;
   onClickEvent?: (event: CalendarEvent<any>, nativeEvent: MouseEvent) => void;
   noHeader?: boolean;
@@ -163,7 +163,7 @@ export function InteractiveDemo(props: {
   const onMoveEvent = (
     event: CalEventWithKey,
     newStart: Date,
-    newEnd: Date | undefined
+    newEnd: Date
   ) => {
     if (draft && event.data.key === draft.data.key) {
       setDraft({

@@ -67,8 +67,9 @@ export const EmptyCalendar: Story = {
 
 const monthEvents: CalendarEvent<undefined>[] = [
   {
-    title: "Task",
+    title: "Short event",
     start: subMinutes(new Date(), 30),
+    end: subMinutes(new Date(), 15),
     styling: { color: "#EC407A" },
     canEdit: true,
   },
