@@ -351,7 +351,7 @@ export function CreateEvent<T>({
                   start,
                   end,
                   title,
-                  styling: { ...event.styling, color: eventColor },
+                  styling: { ...event.styling, bg: eventColor },
                   canEdit: true,
                 },
                 event

@@ -11,8 +11,7 @@ export type CalendarEvent<T> = {
   title?: string;
   /**
    * Styling options for the event.
-   * Use `bg` to set the event background color, `color` to set the text color,
-   * `opacity` to control the overall opacity,
+   * Use `bg` to set the event background color, `textColor` to set the text color,
    * and `textOpacity` to control the opacity of the text independently.
    */
   styling?: {
